@@ -1,532 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ChristyAn Beauty Studio – Booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@1,600&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-    :root {
-      --teal:       #7ec8c8;
-      --teal-dark:  #4a9e9e;
-      --teal-light: #d6f0f0;
-      --orange:     #d4622a;
-      --orange-light:#f0d0c0;
-      --white:      #ffffff;
-      --text:       #2a2a2a;
-      --grey:       #f5f5f5;
-      --border:     #ddd;
-      --shadow:     0 4px 18px rgba(0,0,0,0.10);
+    :root{
+      --teal:#7ec8c8;--teal-dark:#4a9e9e;--teal-light:#d6f0f0;
+      --orange:#d4622a;--orange-light:#f0d0c0;
+      --white:#fff;--text:#2a2a2a;--grey:#f5f5f5;--border:#ddd;
+      --shadow:0 4px 18px rgba(0,0,0,.10);
     }
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #b2dede 0%, #e8f7f7 100%);
-      min-height: 100vh;
-      color: var(--text);
-    }
-
-    /* ── NAV ── */
-    header {
-      background: var(--white);
-      box-shadow: var(--shadow);
-      padding: 0 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 70px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo-icon {
-      width: 46px; height: 46px;
-      background: var(--teal-light);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; font-weight: 900;
-      color: var(--orange);
-      border: 2px solid var(--teal);
-      font-family: Georgia, serif;
-      font-style: italic;
-    }
-
-    .logo-text {
-      display: flex; flex-direction: column; line-height: 1.1;
-    }
-
-    .logo-text .brand {
-      font-size: 20px; font-weight: 700;
-      font-family: Georgia, serif;
-      color: var(--orange); /* "An" is orange by default */
-    }
-
-    .logo-text .brand span { color: var(--text); } /* "Christy" is black */
-    .logo-text .brand .diamond { color: var(--text); } /* diamond is black */
-    .logo-text .sub { font-size: 11px; letter-spacing: 3px; color: var(--text); text-transform: uppercase; }
-
-    nav { display: flex; gap: 8px; }
-
-    nav button {
-      padding: 9px 22px;
-      border: 2px solid var(--teal);
-      border-radius: 30px;
-      background: transparent;
-      color: var(--teal-dark);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s;
-    }
-
-    nav button.active, nav button:hover {
-      background: var(--teal-dark);
-      color: var(--white);
-      border-color: var(--teal-dark);
-    }
-
-    /* ── PAGES ── */
-    .page { display: none; padding: 36px 32px; max-width: 1200px; margin: 0 auto; }
-    .page.active { display: block; }
-
-    /* ── BOOKING PAGE ── */
-    .booking-wrapper {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 28px;
-      align-items: start;
-    }
-
-    .card {
-      background: var(--white);
-      border-radius: 18px;
-      padding: 32px;
-      box-shadow: var(--shadow);
-    }
-
-    .card h2 {
-      font-family: Georgia, serif;
-      font-size: 22px;
-      color: var(--teal-dark);
-      margin-bottom: 24px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid var(--teal-light);
-      display: flex; align-items: center; gap: 8px;
-    }
-
-    .form-group { margin-bottom: 20px; }
-
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--teal-dark);
-      margin-bottom: 6px;
-      letter-spacing: .5px;
-      text-transform: uppercase;
-    }
-
-    input[type="text"],
-    input[type="date"],
-    input[type="time"],
-    select, textarea {
-      width: 100%;
-      padding: 11px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      font-size: 14px;
-      color: var(--text);
-      background: var(--grey);
-      transition: border-color .2s, box-shadow .2s;
-      outline: none;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--teal);
-      box-shadow: 0 0 0 3px rgba(126,200,200,.2);
-      background: var(--white);
-    }
-
-    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
-    /* Services grid */
-    .services-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 6px;
-    }
-
-    .service-chip {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all .2s;
-      background: var(--grey);
-      font-size: 13px;
-      font-weight: 500;
-      user-select: none;
-      text-transform: none;
-      letter-spacing: normal;
-      margin-bottom: 0;
-      color: var(--text);
-    }
-
-    .service-chip input[type="checkbox"] {
-      display: none;
-      width: auto;
-      padding: 0;
-      border: none;
-      background: none;
-    }
-
-    .service-chip .dot {
-      width: 18px; height: 18px;
-      border-radius: 5px;
-      border: 2px solid var(--border);
-      background: var(--white);
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      transition: all .2s;
-    }
-
-    .service-chip.selected {
-      border-color: var(--teal-dark);
-      background: var(--teal-light);
-    }
-
-    .service-chip.selected .dot {
-      background: var(--teal-dark);
-      border-color: var(--teal-dark);
-    }
-
-    .service-chip.selected .dot::after {
-      content: '✓';
-      color: white;
-      font-size: 11px;
-      font-weight: 900;
-    }
-
-    .service-chip .emoji { font-size: 18px; }
-
-    .btn-book {
-      width: 100%;
-      padding: 14px;
-      background: var(--orange);
-      color: var(--white);
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: .5px;
-      margin-top: 8px;
-      transition: background .2s, transform .1s;
-    }
-
-    .btn-book:hover { background: #b5511f; transform: translateY(-1px); }
-    .btn-book:active { transform: translateY(0); }
-
-    /* Sidebar summary */
-    .appt-list { list-style: none; margin-top: 4px; }
-
-    .appt-item {
-      padding: 12px 14px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      background: var(--teal-light);
-      border-left: 4px solid var(--teal-dark);
-      font-size: 13px;
-    }
-
-    .appt-item .name { font-weight: 700; font-size: 14px; color: var(--text); }
-    .appt-item .time { color: var(--teal-dark); font-weight: 600; margin: 2px 0; }
-    .appt-item .services { color: #666; }
-
-    .appt-item .delete-btn {
-      float: right;
-      background: none;
-      border: none;
-      color: #c00;
-      cursor: pointer;
-      font-size: 15px;
-      line-height: 1;
-      padding: 0;
-    }
-
-    .empty-msg { color: #aaa; font-size: 13px; text-align: center; padding: 20px 0; }
-
-    /* Toast */
-    #toast {
-      position: fixed;
-      bottom: 28px; left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--teal-dark);
-      color: white;
-      padding: 12px 28px;
-      border-radius: 30px;
-      font-size: 14px;
-      font-weight: 600;
-      box-shadow: var(--shadow);
-      transition: transform .35s ease;
-      z-index: 999;
-    }
-
-    #toast.show { transform: translateX(-50%) translateY(0); }
-
-    /* ── CALENDAR PAGE ── */
-    .cal-header {
-      display: flex; align-items: center; gap: 14px; margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-
-    .cal-header h2 {
-      font-family: Georgia, serif;
-      font-size: 22px;
-      color: var(--teal-dark);
-      flex: 1;
-    }
-
-    .cal-nav-btn {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      border: 2px solid var(--teal);
-      background: var(--white);
-      color: var(--teal-dark);
-      font-size: 16px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all .2s;
-    }
-
-    .cal-nav-btn:hover { background: var(--teal-dark); color: var(--white); border-color: var(--teal-dark); }
-
-    .view-toggle { display: flex; gap: 6px; }
-
-    .view-btn {
-      padding: 7px 16px;
-      border-radius: 20px;
-      border: 1.5px solid var(--teal);
-      background: transparent;
-      color: var(--teal-dark);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s;
-    }
-
-    .view-btn.active, .view-btn:hover {
-      background: var(--teal-dark);
-      color: white;
-      border-color: var(--teal-dark);
-    }
-
-    /* Monthly grid */
-    .month-grid {
-      background: var(--white);
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .month-days-header {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      background: var(--teal-dark);
-    }
-
-    .month-days-header div {
-      padding: 12px 0;
-      text-align: center;
-      color: white;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .month-body {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-    }
-
-    .month-cell {
-      min-height: 100px;
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 8px;
-      cursor: pointer;
-      transition: background .15s;
-    }
-
-    .month-cell:hover { background: var(--teal-light); }
-    .month-cell.other-month { background: #fafafa; }
-    .month-cell.today { background: #fff8f0; }
-
-    .cell-date {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 4px;
-      width: 26px; height: 26px;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 50%;
-    }
-
-    .month-cell.today .cell-date {
-      background: var(--orange);
-      color: white;
-    }
-
-    .cell-appt {
-      font-size: 11px;
-      background: var(--teal);
-      color: white;
-      border-radius: 4px;
-      padding: 2px 5px;
-      margin-bottom: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Week / Day view */
-    .week-view {
-      background: var(--white);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-
-    .week-header-row {
-      display: grid;
-      background: var(--teal-dark);
-    }
-
-    .week-header-row .time-col {
-      width: 70px; min-width: 70px;
-      background: var(--teal-dark);
-    }
-
-    .week-day-head {
-      padding: 10px 6px;
-      text-align: center;
-      color: white;
-      font-size: 12px;
-      font-weight: 700;
-      border-left: 1px solid rgba(255,255,255,.2);
-    }
-
-    .week-day-head.today { background: var(--orange); }
-    .week-day-head .day-num { font-size: 20px; line-height: 1; }
-
-    .week-body {
-      overflow-y: auto;
-      max-height: 600px;
-    }
-
-    .week-time-row {
-      display: grid;
-      min-height: 60px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .week-time-row .time-label {
-      width: 70px; min-width: 70px;
-      padding: 6px 10px;
-      font-size: 11px;
-      color: #888;
-      font-weight: 600;
-      border-right: 1px solid var(--border);
-      text-align: right;
-    }
-
-    .week-cell {
-      border-left: 1px solid var(--border);
-      padding: 2px 4px;
-      position: relative;
-      cursor: pointer;
-      transition: background .15s;
-    }
-
-    .week-cell:hover { background: var(--teal-light); }
-
-    .week-appt {
-      background: var(--teal);
-      color: white;
-      border-radius: 6px;
-      padding: 3px 6px;
-      font-size: 11px;
-      font-weight: 600;
-      margin-bottom: 2px;
-      cursor: pointer;
-      border-left: 3px solid var(--teal-dark);
-    }
-
-    .week-appt.orange { background: var(--orange-light); color: var(--orange); border-left-color: var(--orange); }
-    .week-appt.pink { background: #fce4f0; color: #c0559a; border-left-color: #c0559a; }
-    .week-appt.blue { background: #ddeeff; color: #3377bb; border-left-color: #3377bb; }
-
-    /* Modal */
-    .modal-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.45);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-overlay.open { display: flex; }
-
-    .modal {
-      background: white;
-      border-radius: 18px;
-      padding: 32px;
-      width: 420px;
-      max-width: 95vw;
-      box-shadow: 0 20px 60px rgba(0,0,0,.2);
-      animation: pop .25s ease;
-    }
-
-    @keyframes pop {
-      from { transform: scale(.9); opacity: 0; }
-      to   { transform: scale(1);  opacity: 1; }
-    }
-
-    .modal h3 { font-family: Georgia, serif; color: var(--teal-dark); font-size: 20px; margin-bottom: 16px; }
-    .modal .detail { margin-bottom: 8px; font-size: 14px; }
-    .modal .detail strong { color: var(--teal-dark); }
-    .modal .close-btn {
-      margin-top: 20px; width: 100%;
-      padding: 11px;
-      border: none; border-radius: 10px;
-      background: var(--teal-dark); color: white;
-      font-size: 14px; font-weight: 700; cursor: pointer;
-    }
-
-    @media (max-width: 760px) {
-      .booking-wrapper { grid-template-columns: 1fr; }
-      .services-grid { grid-template-columns: 1fr; }
-      .row-2 { grid-template-columns: 1fr; }
-      header { padding: 0 16px; }
-      .page { padding: 24px 16px; }
+    body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#b2dede 0%,#e8f7f7 100%);min-height:100vh;color:var(--text);}
+
+    /* HEADER */
+    header{background:var(--white);box-shadow:var(--shadow);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:70px;position:sticky;top:0;z-index:100;}
+    .logo-area{display:flex;align-items:center;gap:12px;}
+    .logo-icon{width:46px;height:46px;background:var(--teal-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:var(--orange);border:2px solid var(--teal);font-family:Georgia,serif;font-style:italic;}
+    .logo-text{display:flex;flex-direction:column;line-height:1.1;}
+    .logo-text .brand{font-size:22px;font-weight:600;font-family:'Crimson Text',Georgia,serif;font-style:italic;color:var(--orange);}
+    .logo-text .brand span{color:var(--text);}
+    .logo-text .brand .diamond{color:var(--text);}
+    .logo-text .sub{font-size:11px;letter-spacing:3px;color:var(--text);text-transform:uppercase;}
+    .header-right{display:flex;align-items:center;gap:10px;}
+    nav{display:flex;gap:8px;}
+    nav button{padding:9px 22px;border:2px solid var(--teal);border-radius:30px;background:transparent;color:var(--teal-dark);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;}
+    nav button.active,nav button:hover{background:var(--teal-dark);color:var(--white);border-color:var(--teal-dark);}
+    #btn-login-nav{padding:9px 22px;border:2px solid var(--orange);border-radius:30px;background:transparent;color:var(--orange);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;}
+    #btn-login-nav:hover{background:var(--orange);color:var(--white);}
+    #btn-logout-nav{padding:9px 22px;border:2px solid var(--border);border-radius:30px;background:transparent;color:#888;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:none;}
+    #btn-logout-nav:hover{border-color:#c00;color:#c00;}
+    #logged-in-label{font-size:12px;color:var(--teal-dark);font-weight:600;display:none;}
+
+    /* UTIL */
+    #loading-bar{position:fixed;top:0;left:0;height:3px;background:var(--orange);width:0;transition:width .3s ease;z-index:9999;}
+    #sync-status{position:fixed;bottom:28px;right:24px;background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:var(--shadow);opacity:0;transition:opacity .3s;z-index:998;}
+    #sync-status.show{opacity:1;}
+    #sync-status .dot{width:8px;height:8px;border-radius:50%;background:#ccc;}
+    #sync-status.syncing .dot{background:var(--orange);animation:pulse 1s infinite;}
+    #sync-status.synced .dot{background:#4caf50;}
+    #sync-status.error .dot{background:#e53935;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--teal-dark);color:white;padding:12px 28px;border-radius:30px;font-size:14px;font-weight:600;box-shadow:var(--shadow);transition:transform .35s ease;z-index:1100;}
+    #toast.show{transform:translateX(-50%) translateY(0);}
+
+    /* PAGES */
+    .page{display:none;padding:36px 32px;max-width:1200px;margin:0 auto;}
+    .page.active{display:block;}
+
+    /* BOOKING */
+    .booking-wrapper{display:grid;grid-template-columns:1fr 380px;gap:28px;align-items:start;}
+    .card{background:var(--white);border-radius:18px;padding:32px;box-shadow:var(--shadow);}
+    .card h2{font-family:Georgia,serif;font-size:22px;color:var(--teal-dark);margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid var(--teal-light);display:flex;align-items:center;gap:8px;}
+    .form-group{margin-bottom:20px;}
+    label{display:block;font-size:13px;font-weight:600;color:var(--teal-dark);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;}
+    input[type="text"],input[type="email"],input[type="password"],input[type="date"],select,textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--text);background:var(--grey);transition:border-color .2s,box-shadow .2s;outline:none;}
+    /* time select replacement */
+    select#f-time{width:100%;}
+    input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(126,200,200,.2);background:var(--white);}
+    .row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+    .services-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+    .service-chip{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;background:var(--grey);font-size:13px;font-weight:500;user-select:none;text-transform:none;letter-spacing:normal;margin-bottom:0;color:var(--text);}
+    .service-chip input[type="checkbox"]{display:none;}
+    .service-chip .dot{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);background:var(--white);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+    .service-chip.selected{border-color:var(--teal-dark);background:var(--teal-light);}
+    .service-chip.selected .dot{background:var(--teal-dark);border-color:var(--teal-dark);}
+    .service-chip.selected .dot::after{content:'✓';color:white;font-size:11px;font-weight:900;}
+    .service-chip .emoji{font-size:18px;}
+
+    .btn-book{width:100%;padding:14px;background:var(--orange);color:var(--white);border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.5px;margin-top:8px;transition:background .2s,transform .1s;}
+    .btn-book:hover{background:#b5511f;transform:translateY(-1px);}
+    .btn-book:disabled{background:#ccc;cursor:not-allowed;transform:none;}
+
+    .appt-list{list-style:none;margin-top:4px;}
+    .appt-item{padding:12px 14px;border-radius:10px;margin-bottom:10px;background:var(--teal-light);border-left:4px solid var(--teal-dark);font-size:13px;}
+    .appt-item .name{font-weight:700;font-size:14px;color:var(--text);}
+    .appt-item .time{color:var(--teal-dark);font-weight:600;margin:2px 0;}
+    .appt-item .services{color:#666;}
+    .appt-item .delete-btn{float:right;background:none;border:none;color:#c00;cursor:pointer;font-size:15px;line-height:1;padding:0;}
+    .empty-msg{color:#aaa;font-size:13px;text-align:center;padding:20px 0;}
+
+    /* CALENDAR */
+    .cal-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;}
+    .cal-header h2{font-family:Georgia,serif;font-size:22px;color:var(--teal-dark);}
+    .cal-header-spacer{flex:1;}
+    .cal-nav-btn{width:36px;height:36px;border-radius:50%;border:2px solid var(--teal);background:var(--white);color:var(--teal-dark);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+    .cal-nav-btn:hover{background:var(--teal-dark);color:var(--white);border-color:var(--teal-dark);}
+    .view-btn{padding:7px 16px;border-radius:20px;border:1.5px solid var(--teal);background:transparent;color:var(--teal-dark);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+    .view-btn.active,.view-btn:hover{background:var(--teal-dark);color:white;border-color:var(--teal-dark);}
+    .month-grid{background:var(--white);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);}
+    .month-days-header{display:grid;grid-template-columns:repeat(7,1fr);background:var(--teal-dark);}
+    .month-days-header div{padding:12px 0;text-align:center;color:white;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+    .month-body{display:grid;grid-template-columns:repeat(7,1fr);}
+    .month-cell{min-height:100px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px;cursor:pointer;transition:background .15s;}
+    .month-cell:hover{background:var(--teal-light);}
+    .month-cell.other-month{background:#fafafa;}
+    .month-cell.today{background:#fff8f0;}
+    .cell-date{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
+    .month-cell.today .cell-date{background:var(--orange);color:white;}
+    .cell-appt{font-size:11px;background:var(--teal);color:white;border-radius:4px;padding:2px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .week-view{background:var(--white);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;}
+    .week-header-row{display:grid;background:var(--teal-dark);}
+    .week-header-row .time-col{width:70px;min-width:70px;background:var(--teal-dark);}
+    .week-day-head{padding:10px 6px;text-align:center;color:white;font-size:12px;font-weight:700;border-left:1px solid rgba(255,255,255,.2);}
+    .week-day-head.today{background:var(--orange);}
+    .week-day-head .day-num{font-size:20px;line-height:1;}
+    .week-body{overflow-y:auto;max-height:600px;}
+    .week-time-row{display:grid;min-height:60px;border-bottom:1px solid var(--border);}
+    .week-time-row .time-label{width:70px;min-width:70px;padding:6px 10px;font-size:11px;color:#888;font-weight:600;border-right:1px solid var(--border);text-align:right;}
+    .week-cell{border-left:1px solid var(--border);padding:2px 4px;position:relative;cursor:pointer;transition:background .15s;}
+    .week-cell:hover{background:var(--teal-light);}
+    .week-appt{background:var(--teal);color:white;border-radius:6px;padding:3px 6px;font-size:11px;font-weight:600;margin-bottom:2px;cursor:pointer;border-left:3px solid var(--teal-dark);}
+    .week-appt.orange{background:var(--orange-light);color:var(--orange);border-left-color:var(--orange);}
+    .week-appt.pink{background:#fce4f0;color:#c0559a;border-left-color:#c0559a;}
+    .week-appt.blue{background:#ddeeff;color:#3377bb;border-left-color:#3377bb;}
+
+    /* STAFF */
+    .staff-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+    .staff-header-row h2{font-family:Georgia,serif;font-size:26px;color:var(--teal-dark);}
+    .btn-add-staff{padding:11px 24px;background:var(--orange);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;}
+    .btn-add-staff:hover{background:#b5511f;}
+    .staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
+    .staff-card{background:var(--white);border-radius:16px;padding:22px;box-shadow:var(--shadow);border-top:4px solid var(--teal);position:relative;transition:transform .15s;}
+    .staff-card:hover{transform:translateY(-2px);}
+    .staff-card .sc-name{font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;}
+    .staff-card .sc-role{display:inline-block;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;margin-bottom:6px;}
+    .sc-role.admin{background:#fff3e0;color:#d4622a;}
+    .sc-role.user{background:var(--teal-light);color:var(--teal-dark);}
+    .staff-card .sc-specialty{font-size:12px;font-weight:600;color:var(--teal-dark);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+    .staff-card .sc-date{font-size:11px;color:#aaa;}
+    .staff-card .sc-actions{position:absolute;top:16px;right:16px;display:flex;gap:6px;}
+    .sc-edit-btn{background:var(--teal-light);border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--teal-dark);cursor:pointer;transition:background .2s;}
+    .sc-edit-btn:hover{background:var(--teal);color:white;}
+    .sc-del-btn{background:#fff0f0;border:1px solid #f5c0c0;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;color:#c00;cursor:pointer;transition:background .2s;}
+    .sc-del-btn:hover{background:#ffe0e0;}
+
+    /* MODALS */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:white;border-radius:18px;padding:32px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:pop .25s ease;}
+    @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+    .modal h3{font-family:Georgia,serif;color:var(--teal-dark);font-size:20px;margin-bottom:16px;}
+    .modal .detail{margin-bottom:8px;font-size:14px;}
+    .modal .detail strong{color:var(--teal-dark);}
+    .modal-btn-row{display:flex;gap:10px;margin-top:20px;}
+    .modal .close-btn{flex:1;padding:11px;border:none;border-radius:10px;background:var(--teal-dark);color:white;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;}
+    .modal .close-btn:hover{background:#357a7a;}
+    .modal .delete-appt-btn{flex:1;padding:11px;border:1.5px solid #f5c0c0;border-radius:10px;background:#fff0f0;color:#c00;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;}
+    .modal .delete-appt-btn:hover{background:#ffe0e0;}
+    .modal .edit-appt-btn{flex:1;padding:11px;border:1.5px solid var(--teal);border-radius:10px;background:var(--teal-light);color:var(--teal-dark);font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;}
+    .modal .edit-appt-btn:hover{background:var(--teal);color:white;}
+    .staff-form-modal{width:520px;}
+    .btn-save-staff{width:100%;padding:13px;background:var(--orange);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;transition:background .2s;}
+    .btn-save-staff:hover{background:#b5511f;}
+
+    /* LOGIN MODAL */
+    .login-modal-box{width:400px;text-align:center;}
+    .login-modal-box .login-logo{font-family:'Crimson Text',Georgia,serif;font-style:italic;font-weight:600;font-size:32px;color:var(--orange);margin-bottom:4px;}
+    .login-modal-box .login-logo span.christy-part{color:var(--text);}
+    .login-modal-box .login-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#aaa;margin-bottom:28px;}
+    .login-modal-box h3{font-family:Georgia,serif;font-size:20px;color:var(--teal-dark);margin-bottom:20px;text-align:left;}
+    .login-modal-box .form-group{text-align:left;}
+    .login-error{color:#e53935;font-size:13px;margin-top:-10px;margin-bottom:12px;display:none;}
+    .login-error.show{display:block;}
+    .login-info{color:var(--teal-dark);font-size:13px;margin-top:-10px;margin-bottom:12px;background:var(--teal-light);padding:8px 12px;border-radius:8px;display:none;}
+    .login-info.show{display:block;}
+    .btn-login-submit{width:100%;padding:13px;background:var(--orange);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:background .2s;}
+    .btn-login-submit:hover{background:#b5511f;}
+
+    /* CONFIRM */
+    .confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:center;justify-content:center;}
+    .confirm-overlay.open{display:flex;}
+    .confirm-modal{background:white;border-radius:18px;padding:32px;width:380px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:pop .25s ease;text-align:center;}
+    .confirm-modal .confirm-icon{font-size:40px;margin-bottom:12px;}
+    .confirm-modal h3{font-family:Georgia,serif;color:var(--text);font-size:20px;margin-bottom:10px;}
+    .confirm-modal p{font-size:14px;color:#666;margin-bottom:24px;line-height:1.5;}
+    .confirm-btn-row{display:flex;gap:10px;}
+    .confirm-cancel-btn{flex:1;padding:12px;border:2px solid var(--border);border-radius:10px;background:var(--white);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;}
+    .confirm-cancel-btn:hover{border-color:var(--teal-dark);color:var(--teal-dark);}
+    .confirm-delete-btn{flex:1;padding:12px;border:none;border-radius:10px;background:#e53935;color:white;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;}
+    .confirm-delete-btn:hover{background:#c62828;}
+
+    /* SERVICES PAGE */
+    .svc-page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+    .svc-page-header h2{font-family:Georgia,serif;font-size:26px;color:var(--teal-dark);}
+    .svc-page-layout{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;}
+    .svc-list-card{background:var(--white);border-radius:18px;padding:24px;box-shadow:var(--shadow);}
+    .svc-list-card h3{font-family:Georgia,serif;font-size:17px;color:var(--teal-dark);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--teal-light);}
+    .svc-list{list-style:none;}
+    .svc-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:background .15s;font-size:14px;font-weight:500;}
+    .svc-list-item:hover{background:var(--teal-light);}
+    .svc-list-item.active{background:var(--teal-light);border-left:3px solid var(--teal-dark);font-weight:700;}
+    .svc-list-item .svc-emoji{font-size:18px;}
+    .svc-list-item .svc-actions-sm{margin-left:auto;display:flex;gap:4px;opacity:0;transition:opacity .15s;}
+    .svc-list-item:hover .svc-actions-sm{opacity:1;}
+    .svc-list-item .svc-actions-sm button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 5px;border-radius:5px;}
+    .svc-list-item .svc-actions-sm .edit-svc{color:var(--teal-dark);}
+    .svc-list-item .svc-actions-sm .del-svc{color:#c00;}
+    .btn-add-svc{width:100%;margin-top:14px;padding:10px;background:var(--orange);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s;}
+    .btn-add-svc:hover{background:#b5511f;}
+    .subsvc-card{background:var(--white);border-radius:18px;padding:24px;box-shadow:var(--shadow);}
+    .subsvc-card h3{font-family:Georgia,serif;font-size:17px;color:var(--teal-dark);margin-bottom:6px;padding-bottom:10px;border-bottom:2px solid var(--teal-light);display:flex;align-items:center;justify-content:space-between;}
+    .btn-add-subsvc{padding:7px 16px;background:var(--orange);color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;}
+    .btn-add-subsvc:hover{background:#b5511f;}
+    .subsvc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px;}
+    .subsvc-item{background:var(--grey);border-radius:12px;padding:14px 16px;border:1.5px solid var(--border);display:flex;flex-direction:column;gap:4px;position:relative;}
+    .subsvc-item .ssname{font-size:14px;font-weight:600;color:var(--text);}
+    .subsvc-item .ssmeta{font-size:12px;color:#888;display:flex;gap:10px;}
+    .subsvc-item .ss-actions{position:absolute;top:10px;right:10px;display:flex;gap:4px;}
+    .subsvc-item .ss-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 5px;border-radius:5px;}
+    .subsvc-item .ss-edit{color:var(--teal-dark);background:var(--teal-light);}
+    .subsvc-item .ss-del{color:#c00;background:#fff0f0;}
+    .no-svc-selected{color:#aaa;font-size:14px;text-align:center;padding:40px 0;font-style:italic;}
+
+    /* SUB-SERVICE PICKER MODAL (booking flow) */
+    .subsvc-picker-modal{width:500px;}
+    .subsvc-picker-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;max-height:340px;overflow-y:auto;}
+    .subsvc-pick-item{padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;background:var(--grey);}
+    .subsvc-pick-item:hover{border-color:var(--teal-dark);background:var(--teal-light);}
+    .subsvc-pick-item.picked{border-color:var(--teal-dark);background:var(--teal-light);}
+    .subsvc-pick-item .sp-name{font-size:13px;font-weight:600;color:var(--text);}
+    .subsvc-pick-item .sp-meta{font-size:11px;color:#888;margin-top:2px;}
+    .no-subsvc-msg{color:#aaa;font-size:13px;text-align:center;padding:24px 0;font-style:italic;}
+
+    @media(max-width:760px){
+      .svc-page-layout{grid-template-columns:1fr;}
+      .subsvc-picker-grid{grid-template-columns:1fr;}
     }
   </style>
 </head>
 <body>
 
-<!-- ═══════════ HEADER ═══════════ -->
+<div id="loading-bar"></div>
+<div id="sync-status"><span class="dot"></span><span id="sync-text">Connected</span></div>
+
+<!-- HEADER -->
 <header>
   <div class="logo-area">
     <div class="logo-icon">Ch</div>
@@ -535,484 +247,1302 @@
       <span class="sub">Beauty Studio</span>
     </div>
   </div>
-  <nav>
-    <button class="active" onclick="showPage('booking', this)">📅 Book Appointment</button>
-    <button onclick="showPage('calendar', this)">🗓 Calendar</button>
-  </nav>
+  <div class="header-right">
+    <nav>
+      <button class="active" onclick="showPage('booking',this)">📅 Book Appointment</button>
+      <button onclick="showPage('calendar',this)">🗓 Calendar</button>
+      <button id="nav-staff-btn" onclick="showPage('staff',this)" style="display:none">👥 Staff</button>
+      <button id="nav-services-btn" onclick="showPage('services',this)" style="display:none">🛎 Services</button>
+    </nav>
+    <span id="logged-in-label"></span>
+    <button id="btn-login-nav" onclick="openLoginModal()">🔐 Login</button>
+    <button id="btn-logout-nav" onclick="doLogout()">Logout</button>
+  </div>
 </header>
 
-<!-- ═══════════ BOOKING PAGE ═══════════ -->
+<!-- BOOKING PAGE -->
 <div class="page active" id="page-booking">
   <div class="booking-wrapper">
-
-    <!-- Form -->
     <div class="card">
       <h2>💅 Book an Appointment</h2>
-
       <div class="form-group">
         <label>Customer Name</label>
-        <input type="text" id="f-name" placeholder="e.g. Sophie Williams" />
+        <input type="text" id="f-name" placeholder="" />
       </div>
-
       <div class="row-2">
         <div class="form-group">
           <label>Date</label>
-          <input type="date" id="f-date" />
+          <input type="date" id="f-date"/>
         </div>
         <div class="form-group">
           <label>Time</label>
-          <input type="time" id="f-time" />
+          <select id="f-time">
+            <option value="">— Select Time —</option>
+            <!-- populated by JS for 08:00–20:00 in 15min slots -->
+          </select>
         </div>
       </div>
-
       <div class="form-group">
         <label>Stylist / Therapist</label>
         <select id="f-stylist">
           <option value="">— Select Staff Member —</option>
-          <option>Maria</option>
-          <option>Christy</option>
-          <option>Sophie</option>
-          <option>Leanne</option>
-          <option>Any Available</option>
+          <option value="Any Available">Any Available</option>
         </select>
       </div>
-
       <div class="form-group">
         <label>Services (select all that apply)</label>
         <div class="services-grid" id="services-grid">
-          <label class="service-chip">
-            <input type="checkbox" value="Facial Treatment"/>
-            <span class="dot"></span>
-            <span class="emoji">✨</span> Facial Treatment
-          </label>
-          <label class="service-chip">
-            <input type="checkbox" value="Pedicure"/>
-            <span class="dot"></span>
-            <span class="emoji">🦶</span> Pedicure
-          </label>
-          <label class="service-chip">
-            <input type="checkbox" value="Manicure"/>
-            <span class="dot"></span>
-            <span class="emoji">💅</span> Manicure
-          </label>
-          <label class="service-chip">
-            <input type="checkbox" value="Mani &amp; Pedi"/>
-            <span class="dot"></span>
-            <span class="emoji">🌸</span> Mani &amp; Pedi
-          </label>
-          <label class="service-chip">
-            <input type="checkbox" value="Hair Styling"/>
-            <span class="dot"></span>
-            <span class="emoji">💇</span> Hair Styling
-          </label>
-          <label class="service-chip">
-            <input type="checkbox" value="Makeup"/>
-            <span class="dot"></span>
-            <span class="emoji">💄</span> Makeup
-          </label>
-          <label class="service-chip">
-            <input type="checkbox" value="Eyelash Thickening"/>
-            <span class="dot"></span>
-            <span class="emoji">👁️</span> Eyelash Thickening
-          </label>
-          <label class="service-chip">
-            <input type="checkbox" value="Nail Art"/>
-            <span class="dot"></span>
-            <span class="emoji">🎨</span> Nail Art
-          </label>
+          <label class="service-chip"><input type="checkbox" value="Facial Treatment"/><span class="dot"></span><span class="emoji">✨</span> Facial Treatment</label>
+          <label class="service-chip"><input type="checkbox" value="Pedicure"/><span class="dot"></span><span class="emoji">🦶</span> Pedicure</label>
+          <label class="service-chip"><input type="checkbox" value="Manicure"/><span class="dot"></span><span class="emoji">💅</span> Manicure</label>
+          <label class="service-chip"><input type="checkbox" value="Mani &amp; Pedi"/><span class="dot"></span><span class="emoji">🌸</span> Mani &amp; Pedi</label>
+          <label class="service-chip"><input type="checkbox" value="Hair Styling"/><span class="dot"></span><span class="emoji">💇</span> Hair Styling</label>
+          <label class="service-chip"><input type="checkbox" value="Makeup"/><span class="dot"></span><span class="emoji">💄</span> Makeup</label>
+          <label class="service-chip"><input type="checkbox" value="Eyelash Thickening"/><span class="dot"></span><span class="emoji">👁️</span> Eyelash Thickening</label>
+          <label class="service-chip"><input type="checkbox" value="Nail Art"/><span class="dot"></span><span class="emoji">🎨</span> Nail Art</label>
+          <label class="service-chip"><input type="checkbox" value="Cosmetology"/><span class="dot"></span><span class="emoji">🧴</span> Cosmetology</label>
+          <label class="service-chip"><input type="checkbox" value="Other"/><span class="dot"></span><span class="emoji">➕</span> Other</label>
         </div>
       </div>
-
       <div class="form-group">
-        <label>Notes (optional)</label>
+        <label>Notes (optional — required if "Other" selected)</label>
         <textarea id="f-notes" rows="3" placeholder="Any special requests or notes…"></textarea>
       </div>
-
-      <button class="btn-book" onclick="bookAppointment()">✦ Confirm Appointment</button>
+      <button class="btn-book" id="btn-book" onclick="bookAppointment()">✦ Confirm Appointment</button>
     </div>
-
-    <!-- Sidebar: upcoming -->
     <div class="summary-card">
       <div class="card">
         <h2>🗓 Upcoming Appointments</h2>
-        <ul class="appt-list" id="appt-list">
-          <li class="empty-msg" id="empty-msg">No appointments yet</li>
-        </ul>
+        <ul class="appt-list" id="appt-list"><li class="empty-msg">Loading…</li></ul>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- ═══════════ CALENDAR PAGE ═══════════ -->
+<!-- CALENDAR PAGE -->
 <div class="page" id="page-calendar">
-
   <div class="cal-header">
     <button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
     <h2 id="cal-title">Month</h2>
     <button class="cal-nav-btn" onclick="calNav(1)">›</button>
+    <div class="cal-header-spacer"></div>
     <button class="view-btn active" id="vbtn-month" onclick="setView('month',this)">Month</button>
     <button class="view-btn" id="vbtn-week" onclick="setView('week',this)">Week</button>
     <button class="view-btn" id="vbtn-day" onclick="setView('day',this)">Day</button>
-    <button class="cal-nav-btn" style="margin-left:auto" title="Jump to today" onclick="goToday()">●</button>
+    <button class="cal-nav-btn" title="Jump to today" onclick="goToday()">●</button>
   </div>
-
   <div id="cal-container"></div>
 </div>
 
-<!-- ═══════════ MODAL ═══════════ -->
+<!-- SERVICES PAGE -->
+<div class="page" id="page-services">
+  <div class="svc-page-header">
+    <h2>🛎 Services &amp; Sub-Services</h2>
+  </div>
+  <div class="svc-page-layout">
+    <div class="svc-list-card">
+      <h3>Services</h3>
+      <ul class="svc-list" id="svc-list"><li class="empty-msg">Loading…</li></ul>
+      <button class="btn-add-svc" onclick="openSvcForm()">+ Add Service</button>
+    </div>
+    <div class="subsvc-card">
+      <h3>
+        <span id="subsvc-title">Select a service</span>
+        <button class="btn-add-subsvc" id="btn-add-subsvc" onclick="openSubSvcForm()" style="display:none">+ Add Sub-Service</button>
+      </h3>
+      <div id="subsvc-container"><p class="no-svc-selected">← Select a service to manage its sub-services</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICE FORM MODAL -->
+<div class="modal-overlay" id="svc-modal">
+  <div class="modal" style="width:420px">
+    <h3 id="svc-modal-title">➕ Add Service</h3>
+    <input type="hidden" id="svc-id"/>
+    <div class="form-group">
+      <label>Service Name</label>
+      <input type="text" id="svc-name" placeholder="e.g. Manicure"/>
+    </div>
+    <div class="form-group">
+      <label>Emoji Icon</label>
+      <input type="text" id="svc-emoji" placeholder="e.g. 💅" maxlength="4"/>
+    </div>
+    <button class="btn-save-staff" onclick="saveSvc()">💾 Save Service</button>
+    <div class="modal-btn-row" style="margin-top:10px">
+      <button class="close-btn" onclick="closeSvcModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUB-SERVICE FORM MODAL -->
+<div class="modal-overlay" id="subsvc-modal">
+  <div class="modal" style="width:460px">
+    <h3 id="subsvc-modal-title">➕ Add Sub-Service</h3>
+    <input type="hidden" id="subsvc-id"/>
+    <input type="hidden" id="subsvc-service-id"/>
+    <div class="form-group">
+      <label>Sub-Service Name</label>
+      <input type="text" id="subsvc-name" placeholder="e.g. French Polish"/>
+    </div>
+    <div class="row-2">
+      <div class="form-group">
+        <label>Price (optional)</label>
+        <input type="text" id="subsvc-price" placeholder="e.g. £25"/>
+      </div>
+      <div class="form-group">
+        <label>Duration (optional)</label>
+        <input type="text" id="subsvc-duration" placeholder="e.g. 45 mins"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Description (optional)</label>
+      <textarea id="subsvc-desc" rows="2" placeholder="Brief description…"></textarea>
+    </div>
+    <button class="btn-save-staff" onclick="saveSubSvc()">💾 Save Sub-Service</button>
+    <div class="modal-btn-row" style="margin-top:10px">
+      <button class="close-btn" onclick="closeSubSvcModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUB-SERVICE PICKER MODAL (booking flow) -->
+<div class="modal-overlay" id="subsvc-picker-modal">
+  <div class="modal subsvc-picker-modal">
+    <h3 id="picker-title">Select a Sub-Service</h3>
+    <p style="font-size:13px;color:#888;margin-bottom:12px">Choose one or more options, or skip to book the main service only.</p>
+    <div class="subsvc-picker-grid" id="picker-grid"></div>
+    <div class="modal-btn-row">
+      <button class="close-btn" style="background:#888" onclick="skipSubSvcPicker()">Skip / No Sub-Service</button>
+      <button class="close-btn" onclick="confirmSubSvcPicker()">Confirm Selection</button>
+    </div>
+  </div>
+</div>
+
+<!-- STAFF PAGE -->
+<div class="page" id="page-staff">
+  <div class="staff-header-row">
+    <h2>👥 Staff Management</h2>
+    <button class="btn-add-staff" onclick="openStaffForm()">+ Add Staff Member</button>
+  </div>
+  <div class="staff-grid" id="staff-grid"><p class="empty-msg">Loading staff…</p></div>
+</div>
+
+<!-- APPOINTMENT DETAILS MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
     <h3>📋 Appointment Details</h3>
     <div id="modal-body"></div>
-    <button class="close-btn" onclick="closeModal()">Close</button>
+    <div class="modal-btn-row">
+      <button class="delete-appt-btn" id="modal-delete-btn" onclick="modalDeleteClick()" style="display:none">🗑 Delete</button>
+      <button class="edit-appt-btn" id="modal-edit-btn" onclick="modalEditClick()" style="display:none">✏️ Edit</button>
+      <button class="close-btn" onclick="closeModal()">Close</button>
+    </div>
   </div>
 </div>
 
-<!-- Toast -->
+<!-- EDIT APPOINTMENT MODAL -->
+<div class="modal-overlay" id="edit-appt-modal">
+  <div class="modal staff-form-modal">
+    <h3>✏️ Edit Appointment</h3>
+    <input type="hidden" id="ea-id"/>
+    <div class="form-group">
+      <label>Customer Name</label>
+      <input type="text" id="ea-name"/>
+    </div>
+    <div class="row-2">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="ea-date"/>
+      </div>
+      <div class="form-group">
+        <label>Time</label>
+        <select id="ea-time"></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Stylist / Therapist</label>
+      <select id="ea-stylist">
+        <option value="">— Select Staff Member —</option>
+        <option value="Any Available">Any Available</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Services (select all that apply)</label>
+      <div class="services-grid" id="ea-services-grid">
+        <label class="service-chip"><input type="checkbox" value="Facial Treatment"/><span class="dot"></span><span class="emoji">✨</span> Facial Treatment</label>
+        <label class="service-chip"><input type="checkbox" value="Pedicure"/><span class="dot"></span><span class="emoji">🦶</span> Pedicure</label>
+        <label class="service-chip"><input type="checkbox" value="Manicure"/><span class="dot"></span><span class="emoji">💅</span> Manicure</label>
+        <label class="service-chip"><input type="checkbox" value="Mani &amp; Pedi"/><span class="dot"></span><span class="emoji">🌸</span> Mani &amp; Pedi</label>
+        <label class="service-chip"><input type="checkbox" value="Hair Styling"/><span class="dot"></span><span class="emoji">💇</span> Hair Styling</label>
+        <label class="service-chip"><input type="checkbox" value="Makeup"/><span class="dot"></span><span class="emoji">💄</span> Makeup</label>
+        <label class="service-chip"><input type="checkbox" value="Eyelash Thickening"/><span class="dot"></span><span class="emoji">👁️</span> Eyelash Thickening</label>
+        <label class="service-chip"><input type="checkbox" value="Nail Art"/><span class="dot"></span><span class="emoji">🎨</span> Nail Art</label>
+        <label class="service-chip"><input type="checkbox" value="Cosmetology"/><span class="dot"></span><span class="emoji">🧴</span> Cosmetology</label>
+        <label class="service-chip"><input type="checkbox" value="Other"/><span class="dot"></span><span class="emoji">➕</span> Other</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="ea-notes" rows="3"></textarea>
+    </div>
+    <button class="btn-save-staff" onclick="saveEditedAppt()">💾 Save Changes</button>
+    <div class="modal-btn-row" style="margin-top:10px">
+      <button class="close-btn" onclick="closeEditApptModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- STAFF FORM MODAL -->
+<div class="modal-overlay" id="staff-modal">
+  <div class="modal staff-form-modal">
+    <h3 id="staff-modal-title">➕ Add Staff Member</h3>
+    <input type="hidden" id="sf-id"/>
+    <div class="row-2">
+      <div class="form-group">
+        <label>First Name</label>
+        <input type="text" id="sf-firstname" placeholder="First name"/>
+      </div>
+      <div class="form-group">
+        <label>Surname</label>
+        <input type="text" id="sf-surname" placeholder="Surname"/>
+      </div>
+    </div>
+    <div class="row-2">
+      <div class="form-group">
+        <label>Specialty Service</label>
+        <select id="sf-specialty">
+          <option value="">— Select Specialty —</option>
+          <option>Facial Treatment</option><option>Pedicure</option><option>Manicure</option>
+          <option>Mani &amp; Pedi</option><option>Hair Styling</option><option>Makeup</option>
+          <option>Eyelash Thickening</option><option>Nail Art</option><option>Cosmetology</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" id="sf-startdate"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Role</label>
+      <select id="sf-role">
+        <option value="general">General User</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Login Username <span style="font-size:11px;color:#aaa;text-transform:none;letter-spacing:0">(auto-generated from name)</span></label>
+      <input type="text" id="sf-email" placeholder="e.g. maria.garcia" readonly style="background:#f0f0f0;color:#888;cursor:default;"/>
+    </div>
+    <div class="form-group" id="sf-password-group">
+      <label>Password <span style="font-size:11px;color:#aaa;text-transform:none;letter-spacing:0">(leave blank to let staff set their own)</span></label>
+      <input type="password" id="sf-password" placeholder="Set a password or leave blank"/>
+    </div>
+    <button class="btn-save-staff" onclick="saveStaff()">💾 Save Staff Member</button>
+    <div class="modal-btn-row" style="margin-top:10px">
+      <button class="close-btn" onclick="closeStaffModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal login-modal-box">
+    <div class="login-logo"><span class="christy-part">Christy</span>An <span style="color:var(--text)">◆</span></div>
+    <div class="login-sub">Beauty Studio</div>
+    <h3 id="login-modal-title">Sign In</h3>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-username" placeholder=""/>
+    </div>
+    <div class="form-group" id="login-password-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Password"/>
+    </div>
+    <div class="form-group" id="login-newpassword-group" style="display:none">
+      <label>Create a Password</label>
+      <input type="password" id="login-newpassword" placeholder="Choose a password"/>
+    </div>
+    <div class="login-info" id="login-info"></div>
+    <div class="login-error" id="login-error"></div>
+    <button class="btn-login-submit" id="login-submit-btn" onclick="submitLogin()">Sign In</button>
+    <div class="modal-btn-row" style="margin-top:10px">
+      <button class="close-btn" onclick="closeLoginModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="confirm-overlay" id="confirm-modal">
+  <div class="confirm-modal">
+    <div class="confirm-icon">🗑️</div>
+    <h3 id="confirm-title">Delete?</h3>
+    <p id="confirm-msg">Are you sure? This cannot be undone.</p>
+    <div class="confirm-btn-row">
+      <button class="confirm-cancel-btn" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-delete-btn" onclick="confirmDelete()">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
-<!-- ═══════════ SCRIPT ═══════════ -->
-<script>
-  // ── DB (localStorage) ──────────────────────────────────────────────
-  const DB_KEY = 'christyan_appointments';
+<script type="module">
+  import { initializeApp }   from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, serverTimestamp, getDoc, setDoc }
+    from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+           createUserWithEmailAndPassword, updatePassword, fetchSignInMethodsForEmail }
+    from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-  function loadDB() {
-    try { return JSON.parse(localStorage.getItem(DB_KEY)) || []; }
-    catch { return []; }
+  const firebaseConfig = {
+    apiKey:"AIzaSyCKiA1OifHTGAQr1n7dz8xeuQ8pb89O7Sk",
+    authDomain:"beauty-salon-e212c.firebaseapp.com",
+    projectId:"beauty-salon-e212c",
+    storageBucket:"beauty-salon-e212c.firebasestorage.app",
+    messagingSenderId:"234547908369",
+    appId:"1:234547908369:web:7dad2df4267ec3777c06b0"
+  };
+
+  const app      = initializeApp(firebaseConfig);
+  const db       = getFirestore(app);
+  const auth     = getAuth(app);
+  const apptCol  = collection(db,'appointments');
+  const staffCol = collection(db,'staff');
+
+  const svcCol    = collection(db,'services');
+  const subSvcCol = collection(db,'subServices');
+
+  let appointmentsCache = [];
+  let staffCache        = [];
+  let servicesCache    = [];
+  let subServicesCache = [];
+  let activeSvcId      = null;
+  let currentUser      = null;
+  let currentRole      = null;
+
+  onSnapshot(svcCol, snap=>{
+    servicesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
+    servicesCache.sort((a,b)=>a.name.localeCompare(b.name));
+    renderBookingServiceChips();
+    if(document.getElementById('page-services').classList.contains('active')) renderSvcList();
+  }, err=>console.error('Services listener error:',err));
+
+  onSnapshot(subSvcCol, snap=>{
+    subServicesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(activeSvcId) renderSubSvcPanel(activeSvcId);
+  }, err=>console.error('SubServices listener error:',err));
+  // ── POPULATE TIME SELECT (15-min slots 08:00–20:00) ─────────────
+  (function(){
+    const sel = document.getElementById('f-time');
+    for(let h=8;h<=20;h++){
+      [0,15,30,45].forEach(m=>{
+        if(h===20&&m>0) return;
+        const hh=String(h).padStart(2,'0'), mm=String(m).padStart(2,'0');
+        const opt=document.createElement('option');
+        opt.value=`${hh}:${mm}`;
+        opt.textContent=`${hh}:${mm}`;
+        sel.appendChild(opt);
+      });
+    }
+  })();
+
+  // ── SYNC ─────────────────────────────────────────────────────────
+  let syncTimer;
+  function showSync(state,text){const el=document.getElementById('sync-status');document.getElementById('sync-text').textContent=text;el.className='show '+state;clearTimeout(syncTimer);if(state!=='syncing')syncTimer=setTimeout(()=>el.classList.remove('show'),3000);}
+  function setLoading(pct){const b=document.getElementById('loading-bar');b.style.width=pct+'%';if(pct>=100)setTimeout(()=>b.style.width='0',400);}
+
+  // Helper: convert first+surname to internal email used for Firebase Auth
+  function nameToEmail(firstName, surname){
+    const u = (firstName+'.'+surname).toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9.]/g,'');
+    return u+'@christyan.internal';
   }
 
-  function saveDB(data) {
-    localStorage.setItem(DB_KEY, JSON.stringify(data));
-  }
-
-  function getAppointments() { return loadDB(); }
-
-  function addAppointment(appt) {
-    const data = loadDB();
-    appt.id = Date.now().toString();
-    data.push(appt);
-    saveDB(data);
-    return appt;
-  }
-
-  function deleteAppointment(id) {
-    const data = loadDB().filter(a => a.id !== id);
-    saveDB(data);
-  }
-
-  // ── SERVICE CHIPS ──────────────────────────────────────────────────
-  document.getElementById('services-grid').addEventListener('change', function(e) {
-    if (e.target.type === 'checkbox') {
-      e.target.closest('.service-chip').classList.toggle('selected', e.target.checked);
+  // ── AUTH STATE ────────────────────────────────────────────────────
+  onAuthStateChanged(auth, async user => {
+    currentUser = user;
+    if(user){
+      const staffDoc = staffCache.find(s=>nameToEmail(s.firstName,s.surname)===user.email);
+      currentRole = staffDoc?.role || null;
+      if(!staffDoc){
+        const {getDocs,query,where} = await import("https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js");
+        const snap = await getDocs(query(staffCol,where('authEmail','==',user.email)));
+        currentRole = snap.docs[0]?.data()?.role || null;
+      }
+      const displayName = staffDoc ? `${staffDoc.firstName} ${staffDoc.surname}` : user.email;
+      document.getElementById('logged-in-label').textContent = '👤 '+displayName;
+      document.getElementById('logged-in-label').style.display='inline';
+      document.getElementById('btn-login-nav').style.display='none';
+      document.getElementById('btn-logout-nav').style.display='inline';
+      if(currentRole==='admin'){
+        document.getElementById('nav-staff-btn').style.display='inline';
+        document.getElementById('nav-services-btn').style.display='inline';
+      }
+    } else {
+      currentRole = null;
+      document.getElementById('logged-in-label').style.display='none';
+      document.getElementById('btn-login-nav').style.display='inline';
+      document.getElementById('btn-logout-nav').style.display='none';
+      document.getElementById('nav-staff-btn').style.display='none';
+      document.getElementById('nav-services-btn').style.display='none';
     }
   });
 
-  // ── NAVIGATION ─────────────────────────────────────────────────────
-  function showPage(name, btn) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-    document.getElementById('page-' + name).classList.add('active');
-    btn.classList.add('active');
-    if (name === 'calendar') renderCal();
-    if (name === 'booking') renderSidebar();
-  }
-
-  // ── BOOKING ────────────────────────────────────────────────────────
-  function bookAppointment() {
-    const name    = document.getElementById('f-name').value.trim();
-    const date    = document.getElementById('f-date').value;
-    const time    = document.getElementById('f-time').value;
-    const stylist = document.getElementById('f-stylist').value;
-    const notes   = document.getElementById('f-notes').value.trim();
-
-    const checked  = document.querySelectorAll('#services-grid input[type="checkbox"]:checked');
-    const services = Array.from(checked).map(c => c.value);
-
-    if (!name)            { showToast('⚠️ Please enter a customer name.'); return; }
-    if (!date)            { showToast('⚠️ Please select a date.'); return; }
-    if (!time)            { showToast('⚠️ Please select a time.'); return; }
-    if (!services.length) { showToast('⚠️ Please select at least one service.'); return; }
-
-    const appt = { name, date, time, stylist, services, notes };
-    addAppointment(appt);
-
-    // Reset form
-    document.getElementById('f-name').value    = '';
-    document.getElementById('f-date').value    = toDateStr(today);
-    document.getElementById('f-time').value    = '';
-    document.getElementById('f-stylist').value = '';
-    document.getElementById('f-notes').value   = '';
-    document.querySelectorAll('#services-grid input[type="checkbox"]').forEach(cb => {
-      cb.checked = false;
-      cb.closest('.service-chip').classList.remove('selected');
-    });
-
+  // ── FIRESTORE LISTENERS ───────────────────────────────────────────
+  onSnapshot(apptCol, snap=>{
+    appointmentsCache=snap.docs.map(d=>({id:d.id,...d.data()}));
+    appointmentsCache.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
     renderSidebar();
-    showToast('✅ Appointment booked for ' + name + '!');
+    if(document.getElementById('page-calendar').classList.contains('active')) renderCal();
+    showSync('synced','Up to date');
+  },err=>{console.error(err);showSync('error','Connection error');});
+
+  onSnapshot(staffCol, snap=>{
+    staffCache=snap.docs.map(d=>({id:d.id,...d.data()}));
+    staffCache.sort((a,b)=>(a.firstName+a.surname).localeCompare(b.firstName+b.surname));
+    renderStaffDropdown();
+    if(document.getElementById('page-staff').classList.contains('active')) renderStaffPage();
+    if(currentUser){
+      const me=staffCache.find(s=>nameToEmail(s.firstName,s.surname)===currentUser.email);
+      currentRole=me?.role||null;
+      if(currentRole==='admin'){
+        document.getElementById('nav-staff-btn').style.display='inline';
+        document.getElementById('nav-services-btn').style.display='inline';
+      } else {
+        document.getElementById('nav-staff-btn').style.display='none';
+        document.getElementById('nav-services-btn').style.display='none';
+      }
+    }
+  },err=>console.error(err));
+
+  // ── LOGIN MODAL ───────────────────────────────────────────────────
+  let loginMode = 'signin'; // 'signin' | 'setpassword'
+
+  function openLoginModal(){
+    loginMode='signin';
+    document.getElementById('login-modal-title').textContent='Sign In';
+    document.getElementById('login-username').value='';
+    document.getElementById('login-password').value='';
+    document.getElementById('login-newpassword').value='';
+    document.getElementById('login-error').className='login-error';
+    document.getElementById('login-info').className='login-info';
+    document.getElementById('login-password-group').style.display='';
+    document.getElementById('login-newpassword-group').style.display='none';
+    document.getElementById('login-submit-btn').textContent='Sign In';
+    document.getElementById('login-modal').classList.add('open');
   }
 
-  // ── SIDEBAR ────────────────────────────────────────────────────────
-  function renderSidebar() {
-    const list = document.getElementById('appt-list');
-    const data = getAppointments().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  function closeLoginModal(){ document.getElementById('login-modal').classList.remove('open'); }
 
-    list.innerHTML = '';
-    if (!data.length) {
-      list.innerHTML = '<li class="empty-msg">No appointments yet</li>';
+  async function submitLogin(){
+    const username  = document.getElementById('login-username').value.trim().toLowerCase();
+    const password  = document.getElementById('login-password').value;
+    const newpw     = document.getElementById('login-newpassword').value;
+    const errEl     = document.getElementById('login-error');
+    const infoEl    = document.getElementById('login-info');
+    errEl.className='login-error'; infoEl.className='login-info';
+
+    if(!username){ errEl.textContent='Please enter your username.'; errEl.className='login-error show'; return; }
+
+    const authEmail = username+'@christyan.internal';
+
+    if(loginMode==='setpassword'){
+      if(newpw.length<6){ errEl.textContent='Password must be at least 6 characters.'; errEl.className='login-error show'; return; }
+      try{
+        await createUserWithEmailAndPassword(auth, authEmail, newpw);
+        const staffMember = staffCache.find(s=>nameToEmail(s.firstName,s.surname)===authEmail);
+        if(staffMember) await updateDoc(doc(db,'staff',staffMember.id),{hasPassword:true});
+        closeLoginModal();
+        showToast('✅ Password set! You are now logged in.');
+      }catch(e){
+        errEl.textContent=friendlyAuthError(e.code);
+        errEl.className='login-error show';
+      }
       return;
     }
 
-    data.forEach(a => {
-      const li = document.createElement('li');
-      li.className = 'appt-item';
-      li.innerHTML = `
-        <button class="delete-btn" onclick="removeAppt('${a.id}')">✕</button>
-        <div class="name">${esc(a.name)}</div>
-        <div class="time">📅 ${fmtDate(a.date)} · ⏰ ${a.time}</div>
-        <div class="services">${esc(a.services.join(', '))}</div>
-        ${a.stylist ? `<div class="services">👤 ${esc(a.stylist)}</div>` : ''}
-      `;
+    if(!password){ errEl.textContent='Please enter your password.'; errEl.className='login-error show'; return; }
+
+    // Check a staff member exists with this username
+    const staffMember = staffCache.find(s=>nameToEmail(s.firstName,s.surname)===authEmail);
+    if(!staffMember){
+      errEl.textContent='No account found with that username.';
+      errEl.className='login-error show';
+      return;
+    }
+
+    try{
+      await signInWithEmailAndPassword(auth, authEmail, password);
+      closeLoginModal();
+      showToast('✅ Welcome back, '+staffMember.firstName+'!');
+    }catch(e){
+      if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'){
+        if(!staffMember.hasPassword){
+          loginMode='setpassword';
+          document.getElementById('login-modal-title').textContent='Create Your Password';
+          document.getElementById('login-password-group').style.display='none';
+          document.getElementById('login-newpassword-group').style.display='';
+          document.getElementById('login-submit-btn').textContent='Set Password & Login';
+          infoEl.textContent="You haven't set a password yet. Choose one below to activate your account.";
+          infoEl.className='login-info show';
+        } else {
+          errEl.textContent='Incorrect password. Please try again.';
+          errEl.className='login-error show';
+        }
+      } else {
+        errEl.textContent=friendlyAuthError(e.code);
+        errEl.className='login-error show';
+      }
+    }
+  }
+
+  function friendlyAuthError(code){
+    const m={
+      'auth/wrong-password':'Incorrect password. Please try again.',
+      'auth/invalid-email':'Please enter a valid email address.',
+      'auth/too-many-requests':'Too many attempts. Please try again later.',
+      'auth/email-already-in-use':'An account with this email already exists.',
+      'auth/weak-password':'Password must be at least 6 characters.',
+      'auth/invalid-credential':'Incorrect email or password.'
+    };
+    return m[code]||'Something went wrong. Please try again.';
+  }
+
+  async function doLogout(){
+    await signOut(auth);
+    showToast('Logged out.');
+    // If on staff page, redirect to booking
+    if(document.getElementById('page-staff').classList.contains('active')){
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+      document.getElementById('page-booking').classList.add('active');
+      document.querySelector('nav button').classList.add('active');
+    }
+  }
+
+  // ── NAVIGATION ────────────────────────────────────────────────────
+  function showPage(name,btn){
+    if((name==='staff'||name==='services')&&currentRole!=='admin'){showToast('⚠️ Admin access required.');return;}
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    document.getElementById('page-'+name).classList.add('active');
+    btn.classList.add('active');
+    if(name==='calendar') renderCal();
+    if(name==='booking')  renderSidebar();
+    if(name==='staff')    renderStaffPage();
+    if(name==='services'){ renderSvcList(); if(activeSvcId) renderSubSvcPanel(activeSvcId); }
+  }
+
+  // ── SERVICE CHIPS ─────────────────────────────────────────────────
+  document.querySelectorAll('#services-grid .service-chip').forEach(chip=>{
+    chip.addEventListener('click',function(){
+      const cb=this.querySelector('input[type="checkbox"]');
+      cb.checked=!cb.checked;
+      this.classList.toggle('selected',cb.checked);
+    });
+  });
+
+  // ── STAFF DROPDOWN ────────────────────────────────────────────────
+  function renderStaffDropdown(){
+    const sel=document.getElementById('f-stylist'),cur=sel.value;
+    sel.innerHTML='<option value="">— Select Staff Member —</option><option value="Any Available">Any Available</option>';
+    staffCache.forEach(s=>{
+      const o=document.createElement('option');
+      o.value=`${s.firstName} ${s.surname}`;
+      o.textContent=`${s.firstName} ${s.surname}`;
+      sel.appendChild(o);
+    });
+    if(cur) sel.value=cur;
+  }
+
+  // ── BOOK APPOINTMENT ──────────────────────────────────────────────
+  async function bookAppointment(){
+    const name    =document.getElementById('f-name').value.trim();
+    const date    =document.getElementById('f-date').value;
+    const time    =document.getElementById('f-time').value;
+    const stylist =document.getElementById('f-stylist').value;
+    const notes   =document.getElementById('f-notes').value.trim();
+    // Use dynamic DB-driven chips if services exist in DB, else use static checkboxes
+    const services = servicesCache.length
+      ? getSelectedServicesForBooking()
+      : Array.from(document.querySelectorAll('#services-grid input:checked')).map(c=>c.value);
+    if(!name)           {showToast('⚠️ Please enter a customer name.');return;}
+    if(!date)           {showToast('⚠️ Please select a date.');return;}
+    if(!time)           {showToast('⚠️ Please select a time.');return;}
+    if(!services.length){showToast('⚠️ Please select at least one service.');return;}
+    if(services.includes('Other')&&!notes){showToast('⚠️ Please describe the "Other" service in the Notes field.');return;}
+    const btn=document.getElementById('btn-book');
+    btn.disabled=true;btn.textContent='Saving…';
+    showSync('syncing','Saving…');setLoading(40);
+    try{
+      await addDoc(apptCol,{name,date,time,stylist,services,notes,createdAt:serverTimestamp()});
+      setLoading(100);
+      document.getElementById('f-name').value='';
+      document.getElementById('f-date').value=toDateStr(today);
+      document.getElementById('f-time').value='';
+      document.getElementById('f-stylist').value='';
+      document.getElementById('f-notes').value='';
+      // Reset chips
+      if(servicesCache.length){
+        resetServiceChips();
+      } else {
+        document.querySelectorAll('#services-grid input').forEach(cb=>{cb.checked=false;cb.closest('.service-chip')?.classList.remove('selected');});
+      }
+      showToast('✅ Appointment booked for '+name+'!');
+      showSync('synced','Saved');
+    }catch(err){console.error(err);showToast('❌ Error saving.');showSync('error','Save failed');setLoading(0);}
+    finally{btn.disabled=false;btn.textContent='✦ Confirm Appointment';}
+  }
+
+  // ── SIDEBAR ───────────────────────────────────────────────────────
+  function renderSidebar(){
+    const list=document.getElementById('appt-list');
+    if(!appointmentsCache.length){list.innerHTML='<li class="empty-msg">No appointments yet</li>';return;}
+    list.innerHTML='';
+    appointmentsCache.forEach(a=>{
+      const li=document.createElement('li');li.className='appt-item';
+      li.innerHTML=`<button class="delete-btn" onclick="removeAppt('${a.id}')">✕</button><div class="name">${esc(a.name)}</div><div class="time">📅 ${fmtDate(a.date)} · ⏰ ${a.time}</div><div class="services">${esc(a.services.join(', '))}</div>${a.stylist?`<div class="services">👤 ${esc(a.stylist)}</div>`:''}`;
       list.appendChild(li);
     });
   }
 
-  function removeAppt(id) {
-    deleteAppointment(id);
-    renderSidebar();
-    if (document.getElementById('page-calendar').classList.contains('active')) renderCal();
-    showToast('Appointment removed.');
+  // ── DELETE ────────────────────────────────────────────────────────
+  let pendingDeleteId=null,pendingDeleteType='appt';
+  function removeAppt(id){
+    const a=appointmentsCache.find(x=>x.id===id);
+    pendingDeleteId=id;pendingDeleteType='appt';
+    document.getElementById('confirm-title').textContent='Delete Appointment?';
+    document.getElementById('confirm-msg').textContent=`Are you sure you want to delete the appointment for ${a?a.name:'this client'}? This cannot be undone.`;
+    document.getElementById('confirm-modal').classList.add('open');
   }
-
-  // ── CALENDAR STATE ─────────────────────────────────────────────────
-  let calView = 'month';
-  const today = new Date();
-  let calDate = new Date(today);
-
-  function setView(v, btn) {
-    calView = v;
-    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderCal();
+  function removeStaff(id){
+    const s=staffCache.find(x=>x.id===id);
+    pendingDeleteId=id;pendingDeleteType='staff';
+    document.getElementById('confirm-title').textContent='Delete Staff Member?';
+    document.getElementById('confirm-msg').textContent=`Are you sure you want to remove ${s?s.firstName+' '+s.surname:'this staff member'}? This cannot be undone.`;
+    document.getElementById('confirm-modal').classList.add('open');
   }
-
-  function calNav(dir) {
-    if (calView === 'month')     calDate.setMonth(calDate.getMonth() + dir);
-    else if (calView === 'week') calDate.setDate(calDate.getDate() + dir * 7);
-    else                         calDate.setDate(calDate.getDate() + dir);
-    renderCal();
-  }
-
-  function goToday() { calDate = new Date(today); renderCal(); }
-
-  function renderCal() {
-    if (calView === 'month') renderMonth();
-    else renderWeekDay();
-  }
-
-  // ── MONTH VIEW ─────────────────────────────────────────────────────
-  function renderMonth() {
-    const year  = calDate.getFullYear();
-    const month = calDate.getMonth();
-    document.getElementById('cal-title').textContent =
-      calDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-
-    const appts   = getAppointments();
-    const apptMap = {};
-    appts.forEach(a => { (apptMap[a.date] = apptMap[a.date] || []).push(a); });
-
-    const firstDay    = new Date(year, month, 1).getDay();
-    const offset      = (firstDay + 6) % 7;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const todayStr    = toDateStr(today);
-
-    let html = `<div class="month-grid">
-      <div class="month-days-header">
-        ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div>${d}</div>`).join('')}
-      </div>
-      <div class="month-body">`;
-
-    const total = Math.ceil((offset + daysInMonth) / 7) * 7;
-
-    for (let i = 0; i < total; i++) {
-      const dayNum = i - offset + 1;
-      let cellClass = 'month-cell';
-      let displayNum = '';
-      let dateStr = '';
-
-      if (dayNum < 1) {
-        cellClass += ' other-month';
-        const prev = new Date(year, month, dayNum);
-        displayNum = prev.getDate();
-        dateStr = toDateStr(prev);
-      } else if (dayNum > daysInMonth) {
-        cellClass += ' other-month';
-        const next = new Date(year, month, dayNum);
-        displayNum = next.getDate();
-        dateStr = toDateStr(next);
+  function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');pendingDeleteId=null;}
+  async function confirmDelete(){
+    if(!pendingDeleteId)return;
+    const id=pendingDeleteId, type=pendingDeleteType;
+    closeConfirm(); closeModal();
+    showSync('syncing','Deleting…');
+    try{
+      if(type==='service'){
+        // Delete service and all its sub-services
+        await deleteDoc(doc(db,'services',id));
+        const subsToDelete = subServicesCache.filter(s=>s.serviceId===id);
+        await Promise.all(subsToDelete.map(s=>deleteDoc(doc(db,'subServices',s.id))));
+        if(activeSvcId===id){ activeSvcId=null; document.getElementById('subsvc-title').textContent='Select a service'; document.getElementById('subsvc-container').innerHTML='<p class="no-svc-selected">← Select a service to manage its sub-services</p>'; document.getElementById('btn-add-subsvc').style.display='none'; }
+        showToast('Service deleted.');
+      } else if(type==='subService'){
+        await deleteDoc(doc(db,'subServices',id));
+        showToast('Sub-service deleted.');
       } else {
-        displayNum = dayNum;
-        dateStr = toDateStr(new Date(year, month, dayNum));
-        if (dateStr === todayStr) cellClass += ' today';
+        await deleteDoc(doc(db,type==='staff'?'staff':'appointments',id));
+        showToast(type==='staff'?'Staff member removed.':'Appointment removed.');
       }
-
-      const dayAppts = apptMap[dateStr] || [];
-      const shown    = dayAppts.slice(0, 3);
-      const extra    = dayAppts.length - shown.length;
-
-      html += `<div class="${cellClass}" onclick="calDayClick('${dateStr}')">
-        <div class="cell-date">${displayNum}</div>
-        ${shown.map(a => `<div class="cell-appt">${esc(a.name)}</div>`).join('')}
-        ${extra > 0 ? `<div class="cell-appt">+${extra} more</div>` : ''}
-      </div>`;
-    }
-
-    html += '</div></div>';
-    document.getElementById('cal-container').innerHTML = html;
+      showSync('synced','Deleted');
+    }catch(err){ console.error(err); showToast('❌ Error deleting.'); showSync('error','Delete failed'); }
   }
+  function modalDeleteClick(){const id=document.getElementById('modal-delete-btn').dataset.id;if(id)removeAppt(id);}
 
-  function calDayClick(dateStr) {
-    const appts = getAppointments().filter(a => a.date === dateStr);
-    if (!appts.length) return;
-    const body = appts.map(a =>
-      `<div class="detail"><strong>${esc(a.name)}</strong> – ${a.time}</div>
-       <div class="detail">${esc(a.services.join(', '))}</div>
-       ${a.stylist ? `<div class="detail" style="color:#888">👤 ${esc(a.stylist)}</div>` : ''}
-       <hr style="margin:8px 0; border-color:#eee">`
-    ).join('');
-    openModal(`<div class="detail"><strong>📅 ${fmtDate(dateStr)}</strong></div><hr style="margin:8px 0"><br>${body}`);
-  }
-
-  // ── WEEK / DAY VIEW ────────────────────────────────────────────────
-  const COLOURS = ['', 'orange', 'pink', 'blue', '', 'orange', 'pink'];
-
-  function renderWeekDay() {
-    const appts    = getAppointments();
-    const todayStr = toDateStr(today);
-
-    let days = [];
-    if (calView === 'week') {
-      const dow = (calDate.getDay() + 6) % 7;
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(calDate);
-        d.setDate(d.getDate() - dow + i);
-        days.push(d);
-      }
-      const first = days[0], last = days[6];
-      document.getElementById('cal-title').textContent =
-        first.toLocaleDateString('en-GB', { day:'numeric', month:'short' }) + ' – ' +
-        last.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-    } else {
-      days = [new Date(calDate)];
-      document.getElementById('cal-title').textContent =
-        calDate.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-    }
-
-    const cols     = days.length;
-    const gridCols = `70px repeat(${cols}, 1fr)`;
-
-    const apptMap = {};
-    appts.forEach(a => {
-      const hour = parseInt(a.time.split(':')[0], 10);
-      const key  = a.date + '_' + hour;
-      (apptMap[key] = apptMap[key] || []).push(a);
-    });
-
-    let html = `<div class="week-view">
-      <div class="week-header-row" style="display:grid; grid-template-columns:${gridCols}">
-        <div class="time-col"></div>
-        ${days.map((d) => {
-          const isToday = toDateStr(d) === todayStr;
-          return `<div class="week-day-head${isToday ? ' today' : ''}">
-            <div class="day-num">${d.getDate()}</div>
-            <div>${d.toLocaleDateString('en-GB',{weekday:'short'})}</div>
-          </div>`;
-        }).join('')}
+  // ── STAFF PAGE ────────────────────────────────────────────────────
+  function renderStaffPage(){
+    const grid=document.getElementById('staff-grid');
+    if(!staffCache.length){grid.innerHTML='<p class="empty-msg" style="grid-column:1/-1">No staff members yet. Click "Add Staff Member" to get started.</p>';return;}
+    grid.innerHTML=staffCache.map(s=>`
+      <div class="staff-card">
+        <div class="sc-actions">
+          <button class="sc-edit-btn" onclick="openStaffForm('${s.id}')">✏️ Edit</button>
+          <button class="sc-del-btn" onclick="removeStaff('${s.id}')">🗑</button>
+        </div>
+        <div class="sc-name">${esc(s.firstName)} ${esc(s.surname)}</div>
+        <span class="sc-role ${s.role==='admin'?'admin':'user'}">${s.role==='admin'?'Admin':'General User'}</span>
+        <div class="sc-specialty">${esc(s.specialty||'No specialty set')}</div>
+        ${s.authEmail?`<div class="sc-date" style="color:#888;margin-bottom:4px">🔑 ${esc(s.authEmail.replace('@christyan.internal',''))}</div>`:''}
+        <div class="sc-date">Since: ${s.startDate?fmtDate(s.startDate):'—'}</div>
       </div>
-      <div class="week-body">`;
+    `).join('');
+  }
 
-    for (let h = 8; h <= 20; h++) {
-      const label = h < 12 ? h + ':00 am' : h === 12 ? '12:00 pm' : (h - 12) + ':00 pm';
-      html += `<div class="week-time-row" style="display:grid; grid-template-columns:${gridCols}">
-        <div class="time-label">${label}</div>
-        ${days.map((d, ci) => {
-          const key      = toDateStr(d) + '_' + h;
-          const dayAppts = apptMap[key] || [];
-          const inner    = dayAppts.map((a, ai) =>
-            `<div class="week-appt ${COLOURS[(ci + ai) % COLOURS.length]}" onclick="openApptModal('${a.id}')">
-              ${esc(a.name)}<br><small>${esc(a.services[0])}</small>
-            </div>`
-          ).join('');
-          return `<div class="week-cell">${inner}</div>`;
-        }).join('')}
-      </div>`;
+  function openStaffForm(id=null){
+    document.getElementById('sf-id').value='';
+    document.getElementById('sf-firstname').value='';
+    document.getElementById('sf-surname').value='';
+    document.getElementById('sf-specialty').value='';
+    document.getElementById('sf-startdate').value='';
+    document.getElementById('sf-role').value='general';
+    document.getElementById('sf-email').value='';
+    document.getElementById('sf-password').value='';
+
+    if(id){
+      const s=staffCache.find(x=>x.id===id);
+      if(s){
+        document.getElementById('staff-modal-title').textContent='✏️ Edit Staff Member';
+        document.getElementById('sf-id').value=id;
+        document.getElementById('sf-firstname').value=s.firstName||'';
+        document.getElementById('sf-surname').value=s.surname||'';
+        document.getElementById('sf-specialty').value=s.specialty||'';
+        document.getElementById('sf-startdate').value=s.startDate||'';
+        document.getElementById('sf-role').value=s.role||'general';
+        document.getElementById('sf-email').value=s.authEmail?s.authEmail.replace('@christyan.internal',''):nameToEmail(s.firstName||'',s.surname||'').replace('@christyan.internal','');
+        document.getElementById('sf-password-group').style.display='none';
+      }
+    } else {
+      document.getElementById('staff-modal-title').textContent='➕ Add Staff Member';
+      document.getElementById('sf-password-group').style.display='';
+      document.getElementById('sf-password-group').querySelector('label').innerHTML='Password <span style="font-size:11px;color:#aaa;text-transform:none;letter-spacing:0">(leave blank to let staff set their own)</span>';
+      document.getElementById('sf-password').placeholder='Set a password or leave blank';
+      document.getElementById('sf-password').disabled=false;
     }
-
-    html += '</div></div>';
-    document.getElementById('cal-container').innerHTML = html;
+    document.getElementById('staff-modal').classList.add('open');
   }
 
-  function openApptModal(id) {
-    const a = getAppointments().find(x => x.id === id);
-    if (!a) return;
-    openModal(`
-      <div class="detail"><strong>👤 Customer:</strong> ${esc(a.name)}</div>
-      <div class="detail"><strong>📅 Date:</strong> ${fmtDate(a.date)}</div>
-      <div class="detail"><strong>⏰ Time:</strong> ${a.time}</div>
-      <div class="detail"><strong>💅 Services:</strong> ${esc(a.services.join(', '))}</div>
-      ${a.stylist ? `<div class="detail"><strong>💁 Stylist:</strong> ${esc(a.stylist)}</div>` : ''}
-      ${a.notes   ? `<div class="detail"><strong>📝 Notes:</strong> ${esc(a.notes)}</div>`   : ''}
-    `);
+  function closeStaffModal(){document.getElementById('staff-modal').classList.remove('open');}
+
+  async function saveStaff(){
+    const id        =document.getElementById('sf-id').value;
+    const firstName =document.getElementById('sf-firstname').value.trim();
+    const surname   =document.getElementById('sf-surname').value.trim();
+    const specialty =document.getElementById('sf-specialty').value;
+    const startDate =document.getElementById('sf-startdate').value;
+    const role      =document.getElementById('sf-role').value;
+    const password  =document.getElementById('sf-password').value;
+
+    if(!firstName){showToast('⚠️ Please enter a first name.');return;}
+    if(!surname)  {showToast('⚠️ Please enter a surname.');return;}
+
+    const authEmail = nameToEmail(firstName, surname);
+    showSync('syncing','Saving…');
+    try{
+      const data={firstName,surname,specialty,startDate,role,authEmail};
+
+      if(password&&!id){
+        try{
+          await createUserWithEmailAndPassword(auth,authEmail,password);
+          data.hasPassword=true;
+        }catch(authErr){
+          if(authErr.code==='auth/email-already-in-use'){
+            data.hasPassword=true;
+          } else {
+            showToast('⚠️ Staff saved but could not create login: '+friendlyAuthError(authErr.code));
+          }
+        }
+      } else if(!password&&!id){
+        data.hasPassword=false;
+      }
+
+      if(id){
+        await updateDoc(doc(db,'staff',id),data);
+        showToast('✅ Staff member updated.');
+      } else {
+        await addDoc(staffCol,{...data,createdAt:serverTimestamp()});
+        showToast('✅ Staff member added.');
+      }
+      closeStaffModal();
+      showSync('synced','Saved');
+    }catch(err){console.error(err);showToast('❌ Error saving staff.');showSync('error','Save failed');}
   }
 
-  // ── MODAL ──────────────────────────────────────────────────────────
-  function openModal(html) {
-    document.getElementById('modal-body').innerHTML = html;
-    document.getElementById('modal').classList.add('open');
-  }
-
-  function closeModal() {
-    document.getElementById('modal').classList.remove('open');
-  }
-
-  document.getElementById('modal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
+  // Auto-update username preview as name is typed
+  ['sf-firstname','sf-surname'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',()=>{
+      const fn=document.getElementById('sf-firstname').value.trim();
+      const sn=document.getElementById('sf-surname').value.trim();
+      document.getElementById('sf-email').value=(fn&&sn)?nameToEmail(fn,sn).replace('@christyan.internal',''):'';
+    });
   });
 
-  // ── TOAST ──────────────────────────────────────────────────────────
-  let toastTimer;
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
-  }
+  // ── BOOKING SERVICE CHIPS (dynamic from Firestore) ────────────────
+  // Selected sub-services per service: { serviceId: [subSvcId, ...] }
+  let selectedSubSvcs = {};
+  // Which service chip is pending sub-service selection
+  let pendingPickerSvcId = null;
 
-  // ── UTILS ──────────────────────────────────────────────────────────
-  function toDateStr(d) {
-    return d.getFullYear() + '-' +
-           String(d.getMonth() + 1).padStart(2, '0') + '-' +
-           String(d.getDate()).padStart(2, '0');
-  }
+  function renderBookingServiceChips(){
+    // Only switch to dynamic chips if services exist in the DB
+    // If DB is empty, keep the static hardcoded chips untouched
+    if(!servicesCache.length) return;
 
-  function fmtDate(str) {
-    if (!str) return '';
-    const [y, m, d] = str.split('-');
-    return new Date(y, m - 1, d).toLocaleDateString('en-GB', {
-      weekday: 'short', day: 'numeric', month: 'long', year: 'numeric'
+    const grid = document.getElementById('services-grid');
+    grid.innerHTML = servicesCache.map(s=>`
+      <div class="service-chip" id="chip-${s.id}" onclick="handleChipClick('${s.id}')">
+        <span class="dot"></span>
+        <span class="emoji">${esc(s.emoji||'✦')}</span>
+        <span class="chip-label">${esc(s.name)}</span>
+      </div>
+    `).join('');
+    // Re-apply any existing selections
+    Object.keys(selectedSubSvcs).forEach(sid=>{
+      const chip = document.getElementById('chip-'+sid);
+      if(chip) chip.classList.add('selected');
     });
   }
 
-  function esc(s) {
-    return String(s || '')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;');
+  function handleChipClick(svcId){
+    // If already selected, clicking again deselects it
+    if(selectedSubSvcs.hasOwnProperty(svcId)){
+      const chip = document.getElementById('chip-'+svcId);
+      if(chip){
+        chip.classList.remove('selected');
+        const labelEl = chip.querySelector('.chip-label');
+        const svc = servicesCache.find(s=>s.id===svcId);
+        if(labelEl) labelEl.textContent = svc?.name||'';
+      }
+      delete selectedSubSvcs[svcId];
+      return;
+    }
+    const subs = subServicesCache.filter(s=>s.serviceId===svcId);
+    if(subs.length===0){
+      toggleChipNoSubs(svcId);
+    } else {
+      openSubSvcPicker(svcId);
+    }
   }
 
-  // ── INIT ───────────────────────────────────────────────────────────
-  document.getElementById('f-date').value = toDateStr(today);
-  renderSidebar();
+  function toggleChipNoSubs(svcId){
+    const chip = document.getElementById('chip-'+svcId);
+    if(!chip) return;
+    if(chip.classList.contains('selected')){
+      chip.classList.remove('selected');
+      delete selectedSubSvcs[svcId];
+    } else {
+      chip.classList.add('selected');
+      selectedSubSvcs[svcId] = []; // selected with no sub-service
+    }
+  }
+
+  // Sub-service picker state
+  let pickerTempSelections = [];
+
+  function openSubSvcPicker(svcId){
+    pendingPickerSvcId = svcId;
+    const svc = servicesCache.find(s=>s.id===svcId);
+    const subs = subServicesCache.filter(s=>s.serviceId===svcId);
+    pickerTempSelections = [...(selectedSubSvcs[svcId]||[])];
+
+    document.getElementById('picker-title').textContent = `${svc?.emoji||''} ${svc?.name||'Service'} — Choose Options`;
+
+    const grid = document.getElementById('picker-grid');
+    if(!subs.length){
+      grid.innerHTML='<p class="no-subsvc-msg">No sub-services added yet.</p>';
+    } else {
+      grid.innerHTML = subs.map(ss=>`
+        <div class="subsvc-pick-item ${pickerTempSelections.includes(ss.id)?'picked':''}" id="pick-${ss.id}" onclick="togglePickerItem('${ss.id}')">
+          <div class="sp-name">${esc(ss.name)}</div>
+          <div class="sp-meta">
+            ${ss.price?`<span>💷 ${esc(ss.price)}</span>`:''}
+            ${ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
+          </div>
+          ${ss.description?`<div class="sp-meta" style="margin-top:3px;font-style:italic">${esc(ss.description)}</div>`:''}
+        </div>
+      `).join('');
+    }
+    document.getElementById('subsvc-picker-modal').classList.add('open');
+  }
+
+  function togglePickerItem(subSvcId){
+    const el = document.getElementById('pick-'+subSvcId);
+    if(pickerTempSelections.includes(subSvcId)){
+      pickerTempSelections = pickerTempSelections.filter(x=>x!==subSvcId);
+      el?.classList.remove('picked');
+    } else {
+      pickerTempSelections.push(subSvcId);
+      el?.classList.add('picked');
+    }
+  }
+
+  function confirmSubSvcPicker(){
+    if(pendingPickerSvcId){
+      selectedSubSvcs[pendingPickerSvcId] = [...pickerTempSelections];
+      const chip = document.getElementById('chip-'+pendingPickerSvcId);
+      if(chip){
+        chip.classList.add('selected');
+        // Update chip label to show selected sub-services
+        const names = pickerTempSelections.map(id=>{
+          const ss = subServicesCache.find(x=>x.id===id);
+          return ss?.name||'';
+        }).filter(Boolean);
+        const labelEl = chip.querySelector('.chip-label');
+        const svc = servicesCache.find(s=>s.id===pendingPickerSvcId);
+        if(labelEl) labelEl.textContent = names.length ? `${svc?.name}: ${names.join(', ')}` : svc?.name||'';
+      }
+    }
+    document.getElementById('subsvc-picker-modal').classList.remove('open');
+    pendingPickerSvcId = null;
+  }
+
+  function skipSubSvcPicker(){
+    if(pendingPickerSvcId){
+      // Select the main service with no sub-service
+      selectedSubSvcs[pendingPickerSvcId] = [];
+      const chip = document.getElementById('chip-'+pendingPickerSvcId);
+      if(chip){
+        chip.classList.add('selected');
+        const labelEl = chip.querySelector('.chip-label');
+        const svc = servicesCache.find(s=>s.id===pendingPickerSvcId);
+        if(labelEl) labelEl.textContent = svc?.name||'';
+      }
+    }
+    document.getElementById('subsvc-picker-modal').classList.remove('open');
+    pendingPickerSvcId = null;
+  }
+
+  // Get selected services for booking submission
+  function getSelectedServicesForBooking(){
+    return Object.entries(selectedSubSvcs).map(([svcId, subIds])=>{
+      const svc = servicesCache.find(s=>s.id===svcId);
+      const subs = subIds.map(id=>subServicesCache.find(x=>x.id===id)?.name).filter(Boolean);
+      return subs.length ? `${svc?.name} (${subs.join(', ')})` : svc?.name||'';
+    }).filter(Boolean);
+  }
+
+  function resetServiceChips(){
+    selectedSubSvcs = {};
+    renderBookingServiceChips();
+  }
+
+  // ── SERVICES PAGE ─────────────────────────────────────────────────
+  function renderSvcList(){
+    const list = document.getElementById('svc-list');
+    if(!servicesCache.length){
+      list.innerHTML='<li class="empty-msg">No services yet</li>';
+      return;
+    }
+    list.innerHTML = servicesCache.map(s=>`
+      <li class="svc-list-item ${activeSvcId===s.id?'active':''}" onclick="selectSvc('${s.id}')">
+        <span class="svc-emoji">${esc(s.emoji||'✦')}</span>
+        <span>${esc(s.name)}</span>
+        <span class="svc-actions-sm">
+          <button class="edit-svc" onclick="event.stopPropagation();openSvcForm('${s.id}')">✏️</button>
+          <button class="del-svc" onclick="event.stopPropagation();deleteSvc('${s.id}')">🗑</button>
+        </span>
+      </li>
+    `).join('');
+  }
+
+  function selectSvc(id){
+    activeSvcId = id;
+    renderSvcList();
+    renderSubSvcPanel(id);
+    document.getElementById('btn-add-subsvc').style.display='';
+  }
+
+  function renderSubSvcPanel(svcId){
+    const svc = servicesCache.find(s=>s.id===svcId);
+    const subs = subServicesCache.filter(s=>s.serviceId===svcId);
+    document.getElementById('subsvc-title').textContent = svc ? `${svc.emoji||''} ${svc.name}` : 'Select a service';
+    const container = document.getElementById('subsvc-container');
+    if(!subs.length){
+      container.innerHTML='<p class="no-svc-selected">No sub-services yet. Click "+ Add Sub-Service" to add one.</p>';
+      return;
+    }
+    container.innerHTML=`<div class="subsvc-grid">${subs.map(ss=>`
+      <div class="subsvc-item">
+        <div class="ss-actions">
+          <button class="ss-edit" onclick="openSubSvcForm('${ss.id}')">✏️</button>
+          <button class="ss-del" onclick="deleteSubSvc('${ss.id}')">🗑</button>
+        </div>
+        <div class="ssname">${esc(ss.name)}</div>
+        <div class="ssmeta">
+          ${ss.price?`<span>💷 ${esc(ss.price)}</span>`:''}
+          ${ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
+        </div>
+        ${ss.description?`<div style="font-size:12px;color:#999;margin-top:2px;font-style:italic">${esc(ss.description)}</div>`:''}
+      </div>
+    `).join('')}</div>`;
+  }
+
+  // Service CRUD
+  function openSvcForm(id=null){
+    document.getElementById('svc-id').value=id||'';
+    document.getElementById('svc-name').value='';
+    document.getElementById('svc-emoji').value='';
+    if(id){
+      const s=servicesCache.find(x=>x.id===id);
+      if(s){ document.getElementById('svc-modal-title').textContent='✏️ Edit Service'; document.getElementById('svc-name').value=s.name||''; document.getElementById('svc-emoji').value=s.emoji||''; }
+    } else { document.getElementById('svc-modal-title').textContent='➕ Add Service'; }
+    document.getElementById('svc-modal').classList.add('open');
+  }
+  function closeSvcModal(){ document.getElementById('svc-modal').classList.remove('open'); }
+
+  async function saveSvc(){
+    const id   = document.getElementById('svc-id').value;
+    const name = document.getElementById('svc-name').value.trim();
+    const emoji= document.getElementById('svc-emoji').value.trim();
+    if(!name){ showToast('⚠️ Please enter a service name.'); return; }
+    showSync('syncing','Saving…');
+    try{
+      if(id){ await updateDoc(doc(db,'services',id),{name,emoji}); showToast('✅ Service updated.'); }
+      else   { await addDoc(svcCol,{name,emoji,createdAt:serverTimestamp()}); showToast('✅ Service added.'); }
+      closeSvcModal(); showSync('synced','Saved');
+    }catch(e){ console.error(e); showToast('❌ Error saving service.'); showSync('error','Save failed'); }
+  }
+
+  function deleteSvc(id){
+    const s=servicesCache.find(x=>x.id===id);
+    pendingDeleteId=id; pendingDeleteType='service';
+    document.getElementById('confirm-title').textContent='Delete Service?';
+    document.getElementById('confirm-msg').textContent=`Are you sure you want to delete "${s?.name||'this service'}"? All its sub-services will also be deleted.`;
+    document.getElementById('confirm-modal').classList.add('open');
+  }
+
+  // Sub-service CRUD
+  function openSubSvcForm(id=null){
+    document.getElementById('subsvc-id').value=id||'';
+    document.getElementById('subsvc-service-id').value=activeSvcId||'';
+    document.getElementById('subsvc-name').value='';
+    document.getElementById('subsvc-price').value='';
+    document.getElementById('subsvc-duration').value='';
+    document.getElementById('subsvc-desc').value='';
+    if(id){
+      const ss=subServicesCache.find(x=>x.id===id);
+      if(ss){ document.getElementById('subsvc-modal-title').textContent='✏️ Edit Sub-Service'; document.getElementById('subsvc-name').value=ss.name||''; document.getElementById('subsvc-price').value=ss.price||''; document.getElementById('subsvc-duration').value=ss.duration||''; document.getElementById('subsvc-desc').value=ss.description||''; }
+    } else { document.getElementById('subsvc-modal-title').textContent='➕ Add Sub-Service'; }
+    document.getElementById('subsvc-modal').classList.add('open');
+  }
+  function closeSubSvcModal(){ document.getElementById('subsvc-modal').classList.remove('open'); }
+
+  async function saveSubSvc(){
+    const id       = document.getElementById('subsvc-id').value;
+    const serviceId= document.getElementById('subsvc-service-id').value;
+    const name     = document.getElementById('subsvc-name').value.trim();
+    const price    = document.getElementById('subsvc-price').value.trim();
+    const duration = document.getElementById('subsvc-duration').value.trim();
+    const description=document.getElementById('subsvc-desc').value.trim();
+    if(!name){ showToast('⚠️ Please enter a sub-service name.'); return; }
+    if(!serviceId){ showToast('⚠️ No service selected.'); return; }
+    showSync('syncing','Saving…');
+    try{
+      if(id){ await updateDoc(doc(db,'subServices',id),{name,price,duration,description}); showToast('✅ Sub-service updated.'); }
+      else   { await addDoc(subSvcCol,{name,price,duration,description,serviceId,createdAt:serverTimestamp()}); showToast('✅ Sub-service added.'); }
+      closeSubSvcModal(); showSync('synced','Saved');
+    }catch(e){ console.error(e); showToast('❌ Error saving sub-service.'); showSync('error','Save failed'); }
+  }
+
+  function deleteSubSvc(id){
+    const ss=subServicesCache.find(x=>x.id===id);
+    pendingDeleteId=id; pendingDeleteType='subService';
+    document.getElementById('confirm-title').textContent='Delete Sub-Service?';
+    document.getElementById('confirm-msg').textContent=`Are you sure you want to delete "${ss?.name||'this sub-service'}"? This cannot be undone.`;
+    document.getElementById('confirm-modal').classList.add('open');
+  }
+
+  // ── CALENDAR ──────────────────────────────────────────────────────
+  let calView='month';
+  const today=new Date();
+  let calDate=new Date(today);
+  function setView(v,btn){calView=v;document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderCal();}
+  function calNav(dir){if(calView==='month')calDate.setMonth(calDate.getMonth()+dir);else if(calView==='week')calDate.setDate(calDate.getDate()+dir*7);else calDate.setDate(calDate.getDate()+dir);renderCal();}
+  function goToday(){calDate=new Date(today);renderCal();}
+  function renderCal(){calView==='month'?renderMonth():renderWeekDay();}
+
+  function renderMonth(){
+    const year=calDate.getFullYear(),month=calDate.getMonth();
+    document.getElementById('cal-title').textContent=calDate.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+    const am={};appointmentsCache.forEach(a=>{(am[a.date]=am[a.date]||[]).push(a);});
+    const offset=(new Date(year,month,1).getDay()+6)%7;
+    const dim=new Date(year,month+1,0).getDate();
+    const ts=toDateStr(today);
+    const total=Math.ceil((offset+dim)/7)*7;
+    let html=`<div class="month-grid"><div class="month-days-header">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div>${d}</div>`).join('')}</div><div class="month-body">`;
+    for(let i=0;i<total;i++){
+      const dn=i-offset+1;let cls='month-cell',ds='',num='';
+      if(dn<1){cls+=' other-month';const d=new Date(year,month,dn);num=d.getDate();ds=toDateStr(d);}
+      else if(dn>dim){cls+=' other-month';const d=new Date(year,month,dn);num=d.getDate();ds=toDateStr(d);}
+      else{num=dn;ds=toDateStr(new Date(year,month,dn));if(ds===ts)cls+=' today';}
+      const da=am[ds]||[],sh=da.slice(0,3),ex=da.length-sh.length;
+      html+=`<div class="${cls}" onclick="calDayClick('${ds}')"><div class="cell-date">${num}</div>${sh.map(a=>`<div class="cell-appt">${esc(a.name)}</div>`).join('')}${ex>0?`<div class="cell-appt">+${ex} more</div>`:''}</div>`;
+    }
+    html+='</div></div>';
+    document.getElementById('cal-container').innerHTML=html;
+  }
+
+  function calDayClick(ds){
+    const appts=appointmentsCache.filter(a=>a.date===ds);
+    if(!appts.length)return;
+    if(appts.length===1){openApptModal(appts[0].id);return;}
+
+    // Multiple appointments — show all with individual edit/delete buttons
+    const body = appts.map((a,i)=>`
+      <div style="margin-bottom:${i<appts.length-1?'16px':'0'}">
+        <div class="detail"><strong>👤 Customer:</strong> ${esc(a.name)}</div>
+        <div class="detail"><strong>📅 Date:</strong> ${fmtDate(a.date)}</div>
+        <div class="detail"><strong>⏰ Time:</strong> ${a.time}</div>
+        <div class="detail"><strong>💅 Services:</strong> ${esc(a.services.join(', '))}</div>
+        ${a.stylist?`<div class="detail"><strong>💁 Stylist:</strong> ${esc(a.stylist)}</div>`:''}
+        ${a.notes?`<div class="detail"><strong>📝 Notes:</strong> ${esc(a.notes)}</div>`:''}
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button onclick="closeModal();setTimeout(()=>openEditApptModal('${a.id}'),50)" style="flex:1;padding:8px;border:1.5px solid var(--teal);border-radius:8px;background:var(--teal-light);color:var(--teal-dark);font-size:13px;font-weight:700;cursor:pointer">✏️ Edit</button>
+          <button onclick="closeModal();removeAppt('${a.id}')" style="flex:1;padding:8px;border:1.5px solid #f5c0c0;border-radius:8px;background:#fff0f0;color:#c00;font-size:13px;font-weight:700;cursor:pointer">🗑 Delete</button>
+        </div>
+        ${i<appts.length-1?'<hr style="margin:16px 0;border-color:#eee">':''}
+      </div>
+    `).join('');
+
+    // Open modal without the global delete/edit buttons (they're per-appointment above)
+    openModal(body, null);
+  }
+
+  const COLOURS=['','orange','pink','blue','','orange','pink'];
+  function renderWeekDay(){
+    const ts=toDateStr(today);let days=[];
+    if(calView==='week'){const dow=(calDate.getDay()+6)%7;for(let i=0;i<7;i++){const d=new Date(calDate);d.setDate(d.getDate()-dow+i);days.push(d);}document.getElementById('cal-title').textContent=days[0].toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' – '+days[6].toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
+    else{days=[new Date(calDate)];document.getElementById('cal-title').textContent=calDate.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
+    const gc=`70px repeat(${days.length},1fr)`;
+    const am={};appointmentsCache.forEach(a=>{const h=parseInt(a.time.split(':')[0],10);const k=a.date+'_'+h;(am[k]=am[k]||[]).push(a);});
+    let html=`<div class="week-view"><div class="week-header-row" style="display:grid;grid-template-columns:${gc}"><div class="time-col"></div>${days.map(d=>{const it=toDateStr(d)===ts;return`<div class="week-day-head${it?' today':''}"><div class="day-num">${d.getDate()}</div><div>${d.toLocaleDateString('en-GB',{weekday:'short'})}</div></div>`;}).join('')}</div><div class="week-body">`;
+    for(let h=8;h<=20;h++){
+      const lbl=h<12?h+':00 am':h===12?'12:00 pm':(h-12)+':00 pm';
+      html+=`<div class="week-time-row" style="display:grid;grid-template-columns:${gc}"><div class="time-label">${lbl}</div>${days.map((d,ci)=>{const k=toDateStr(d)+'_'+h;const inner=(am[k]||[]).map((a,ai)=>`<div class="week-appt ${COLOURS[(ci+ai)%COLOURS.length]}" onclick="openApptModal('${a.id}')">${esc(a.name)}<br><small>${esc(a.services[0])}</small></div>`).join('');return`<div class="week-cell">${inner}</div>`;}).join('')}</div>`;
+    }
+    html+='</div></div>';
+    document.getElementById('cal-container').innerHTML=html;
+  }
+
+  function openApptModal(id){
+    const a=appointmentsCache.find(x=>x.id===id);if(!a)return;
+    openModal(`<div class="detail"><strong>👤 Customer:</strong> ${esc(a.name)}</div><div class="detail"><strong>📅 Date:</strong> ${fmtDate(a.date)}</div><div class="detail"><strong>⏰ Time:</strong> ${a.time}</div><div class="detail"><strong>💅 Services:</strong> ${esc(a.services.join(', '))}</div>${a.stylist?`<div class="detail"><strong>💁 Stylist:</strong> ${esc(a.stylist)}</div>`:''}${a.notes?`<div class="detail"><strong>📝 Notes:</strong> ${esc(a.notes)}</div>`:''}`,id);
+  }
+
+  function openModal(html,apptId=null){
+    document.getElementById('modal-body').innerHTML=html;
+    const delBtn=document.getElementById('modal-delete-btn');
+    const editBtn=document.getElementById('modal-edit-btn');
+    if(apptId){
+      delBtn.dataset.id=apptId; delBtn.style.display='';
+      editBtn.dataset.id=apptId; editBtn.style.display='';
+    } else {
+      delBtn.style.display='none';
+      editBtn.style.display='none';
+    }
+    document.getElementById('modal').classList.add('open');
+  }
+  function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+  function modalEditClick(){
+    const id=document.getElementById('modal-edit-btn').dataset.id;
+    if(id){ closeModal(); openEditApptModal(id); }
+  }
+
+  // ── EDIT APPOINTMENT ──────────────────────────────────────────────
+  // Populate time select in edit modal
+  (function(){
+    const sel=document.getElementById('ea-time');
+    for(let h=8;h<=20;h++){
+      [0,15,30,45].forEach(m=>{
+        if(h===20&&m>0)return;
+        const hh=String(h).padStart(2,'0'),mm=String(m).padStart(2,'0');
+        const o=document.createElement('option');
+        o.value=`${hh}:${mm}`; o.textContent=`${hh}:${mm}`;
+        sel.appendChild(o);
+      });
+    }
+  })();
+
+  // Service chips in edit modal
+  document.querySelectorAll('#ea-services-grid .service-chip').forEach(chip=>{
+    chip.addEventListener('click',function(){
+      const cb=this.querySelector('input[type="checkbox"]');
+      cb.checked=!cb.checked;
+      this.classList.toggle('selected',cb.checked);
+    });
+  });
+
+  function openEditApptModal(id){
+    const a=appointmentsCache.find(x=>x.id===id); if(!a)return;
+    document.getElementById('ea-id').value=id;
+    document.getElementById('ea-name').value=a.name||'';
+    document.getElementById('ea-date').value=a.date||'';
+    document.getElementById('ea-time').value=a.time||'';
+    document.getElementById('ea-notes').value=a.notes||'';
+
+    // Populate stylist dropdown
+    const sel=document.getElementById('ea-stylist');
+    sel.innerHTML='<option value="">— Select Staff Member —</option><option value="Any Available">Any Available</option>';
+    staffCache.forEach(s=>{
+      const o=document.createElement('option');
+      o.value=`${s.firstName} ${s.surname}`;
+      o.textContent=`${s.firstName} ${s.surname}`;
+      sel.appendChild(o);
+    });
+    sel.value=a.stylist||'';
+
+    // Reset then tick the right service chips
+    document.querySelectorAll('#ea-services-grid input').forEach(cb=>{
+      cb.checked=false; cb.closest('.service-chip').classList.remove('selected');
+    });
+    (a.services||[]).forEach(svc=>{
+      const cb=document.querySelector(`#ea-services-grid input[value="${svc}"]`);
+      if(cb){cb.checked=true; cb.closest('.service-chip').classList.add('selected');}
+    });
+
+    document.getElementById('edit-appt-modal').classList.add('open');
+  }
+
+  function closeEditApptModal(){document.getElementById('edit-appt-modal').classList.remove('open');}
+
+  async function saveEditedAppt(){
+    const id      =document.getElementById('ea-id').value;
+    const name    =document.getElementById('ea-name').value.trim();
+    const date    =document.getElementById('ea-date').value;
+    const time    =document.getElementById('ea-time').value;
+    const stylist =document.getElementById('ea-stylist').value;
+    const notes   =document.getElementById('ea-notes').value.trim();
+    const services=Array.from(document.querySelectorAll('#ea-services-grid input:checked')).map(c=>c.value);
+
+    if(!name)           {showToast('⚠️ Please enter a customer name.');return;}
+    if(!date)           {showToast('⚠️ Please select a date.');return;}
+    if(!time)           {showToast('⚠️ Please select a time.');return;}
+    if(!services.length){showToast('⚠️ Please select at least one service.');return;}
+    if(services.includes('Other')&&!notes){showToast('⚠️ Please describe the "Other" service in the Notes field.');return;}
+
+    showSync('syncing','Saving…');
+    try{
+      await updateDoc(doc(db,'appointments',id),{name,date,time,stylist,services,notes});
+      closeEditApptModal();
+      showToast('✅ Appointment updated!');
+      showSync('synced','Saved');
+    }catch(err){
+      console.error(err); showToast('❌ Error saving changes.'); showSync('error','Save failed');
+    }
+  }
+
+  document.getElementById('svc-modal').addEventListener('click',function(e){if(e.target===this)closeSvcModal();});
+  document.getElementById('subsvc-modal').addEventListener('click',function(e){if(e.target===this)closeSubSvcModal();});
+  document.getElementById('subsvc-picker-modal').addEventListener('click',function(e){if(e.target===this)skipSubSvcPicker();});
+  document.getElementById('edit-appt-modal').addEventListener('click',function(e){if(e.target===this)closeEditApptModal();});
+  document.getElementById('confirm-modal').addEventListener('click',function(e){if(e.target===this)closeConfirm();});
+  document.getElementById('staff-modal').addEventListener('click',function(e){if(e.target===this)closeStaffModal();});
+  document.getElementById('login-modal').addEventListener('click',function(e){if(e.target===this)closeLoginModal();});
+  document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('login-modal').classList.contains('open'))submitLogin();});
+
+  let toastTimer;
+  function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3500);}
+  function toDateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  function fmtDate(str){if(!str)return'';const[y,m,d]=str.split('-');return new Date(y,m-1,d).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});}
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+  document.getElementById('f-date').value=toDateStr(today);
+
+  // EXPOSE GLOBALS
+  window.showPage=showPage;window.bookAppointment=bookAppointment;
+  window.removeAppt=removeAppt;window.removeStaff=removeStaff;
+  window.closeConfirm=closeConfirm;window.confirmDelete=confirmDelete;
+  window.modalDeleteClick=modalDeleteClick;window.modalEditClick=modalEditClick;
+  window.closeEditApptModal=closeEditApptModal;window.saveEditedAppt=saveEditedAppt;
+  window.setView=setView;window.calNav=calNav;window.goToday=goToday;
+  window.calDayClick=calDayClick;window.openApptModal=openApptModal;window.closeModal=closeModal;
+  window.openStaffForm=openStaffForm;window.closeStaffModal=closeStaffModal;window.saveStaff=saveStaff;
+  window.openLoginModal=openLoginModal;window.closeLoginModal=closeLoginModal;window.submitLogin=submitLogin;window.doLogout=doLogout;
+  window.openSvcForm=openSvcForm;window.closeSvcModal=closeSvcModal;window.saveSvc=saveSvc;
+  window.deleteSvc=deleteSvc;window.selectSvc=selectSvc;
+  window.openSubSvcForm=openSubSvcForm;window.closeSubSvcModal=closeSubSvcModal;window.saveSubSvc=saveSubSvc;
+  window.deleteSubSvc=deleteSubSvc;
+  window.handleChipClick=handleChipClick;window.togglePickerItem=togglePickerItem;
+  window.confirmSubSvcPicker=confirmSubSvcPicker;window.skipSubSvcPicker=skipSubSvcPicker;
 </script>
 </body>
 </html>
