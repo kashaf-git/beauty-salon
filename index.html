@@ -35,7 +35,17 @@
     #btn-logout-nav:hover{border-color:#c00;color:#c00;}
     #logged-in-label{font-size:12px;color:var(--teal-dark);font-weight:600;display:none;}
 
-    /* UTIL */
+    /* LANGUAGE SELECTOR */
+    .lang-selector{position:relative;display:flex;align-items:center;}
+    .lang-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border:1.5px solid var(--border);border-radius:20px;background:var(--white);font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:all .2s;}
+    .lang-btn:hover{border-color:var(--teal-dark);color:var(--teal-dark);}
+    .lang-btn .lang-flag{font-size:16px;}
+    .lang-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--white);border:1.5px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;min-width:160px;z-index:200;}
+    .lang-dropdown.open{display:block;}
+    .lang-option{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;font-size:13px;font-weight:500;transition:background .15s;}
+    .lang-option:hover{background:var(--teal-light);}
+    .lang-option.active{background:var(--teal-light);color:var(--teal-dark);font-weight:700;}
+    .lang-option .lf{font-size:18px;}
     #loading-bar{position:fixed;top:0;left:0;height:3px;background:var(--orange);width:0;transition:width .3s ease;z-index:9999;}
     #sync-status{position:fixed;bottom:28px;right:24px;background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:var(--shadow);opacity:0;transition:opacity .3s;z-index:998;}
     #sync-status.show{opacity:1;}
@@ -227,6 +237,20 @@
     .subsvc-pick-item .sp-meta{font-size:11px;color:#888;margin-top:2px;}
     .no-subsvc-msg{color:#aaa;font-size:13px;text-align:center;padding:24px 0;font-style:italic;}
 
+    .pct-group { display: flex; gap: 10px; margin-top: 6px; }
+    .pct-btn {
+      flex: 1; padding: 11px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--grey);
+      font-size: 14px; font-weight: 700;
+      color: var(--charcoal, var(--text));
+      cursor: pointer; transition: all .2s;
+      text-align: center;
+    }
+    .pct-btn:hover { border-color: var(--teal-dark); background: var(--teal-light); }
+    .pct-btn.pct-selected { border-color: var(--teal-dark); background: var(--teal-light); color: var(--teal-dark); }
+
     @media(max-width:760px){
       .svc-page-layout{grid-template-columns:1fr;}
       .subsvc-picker-grid{grid-template-columns:1fr;}
@@ -249,14 +273,26 @@
   </div>
   <div class="header-right">
     <nav>
-      <button class="active" onclick="showPage('booking',this)">📅 Book Appointment</button>
-      <button onclick="showPage('calendar',this)">🗓 Calendar</button>
-      <button id="nav-staff-btn" onclick="showPage('staff',this)" style="display:none">👥 Staff</button>
-      <button id="nav-services-btn" onclick="showPage('services',this)" style="display:none">🛎 Services</button>
+      <button class="active" onclick="showPage('booking',this)" data-i18n="nav_book">📅 Book Appointment</button>
+      <button onclick="showPage('calendar',this)" data-i18n="nav_calendar">🗓 Calendar</button>
+      <button id="nav-staff-btn" onclick="showPage('staff',this)" style="display:none" data-i18n="nav_staff">👥 Staff</button>
+      <button id="nav-services-btn" onclick="showPage('services',this)" style="display:none" data-i18n="nav_services">🛎 Services</button>
     </nav>
     <span id="logged-in-label"></span>
-    <button id="btn-login-nav" onclick="openLoginModal()">🔐 Login</button>
-    <button id="btn-logout-nav" onclick="doLogout()">Logout</button>
+    <button id="btn-login-nav" onclick="openLoginModal()" data-i18n="btn_login">🔐 Login</button>
+    <button id="btn-logout-nav" onclick="doLogout()" data-i18n="btn_logout">Logout</button>
+    <div class="lang-selector">
+      <button class="lang-btn" onclick="toggleLangDropdown()">
+        <span class="lang-flag" id="lang-flag">🇬🇧</span>
+        <span id="lang-label">EN</span>
+        <span>▾</span>
+      </button>
+      <div class="lang-dropdown" id="lang-dropdown">
+        <div class="lang-option active" id="lang-opt-en" onclick="setLang('en')"><span class="lf">🇬🇧</span> English</div>
+        <div class="lang-option" id="lang-opt-hy" onclick="setLang('hy')"><span class="lf">🇦🇲</span> Հայերեն</div>
+        <div class="lang-option" id="lang-opt-ru" onclick="setLang('ru')"><span class="lf">🇷🇺</span> Русский</div>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -264,33 +300,33 @@
 <div class="page active" id="page-booking">
   <div class="booking-wrapper">
     <div class="card">
-      <h2>💅 Book an Appointment</h2>
+      <h2 data-i18n="book_title">💅 Book an Appointment</h2>
       <div class="form-group">
-        <label>Customer Name</label>
+        <label data-i18n="lbl_customer">Customer Name</label>
         <input type="text" id="f-name" placeholder="" />
       </div>
       <div class="row-2">
         <div class="form-group">
-          <label>Date</label>
+          <label data-i18n="lbl_date">Date</label>
           <input type="date" id="f-date"/>
         </div>
         <div class="form-group">
-          <label>Time</label>
+          <label data-i18n="lbl_time">Time</label>
           <select id="f-time">
-            <option value="">— Select Time —</option>
+            <option value="" data-i18n="sel_time">— Select Time —</option>
             <!-- populated by JS for 08:00–20:00 in 15min slots -->
           </select>
         </div>
       </div>
       <div class="form-group">
-        <label>Stylist / Therapist</label>
+        <label data-i18n="lbl_stylist">Stylist / Therapist</label>
         <select id="f-stylist">
-          <option value="">— Select Staff Member —</option>
-          <option value="Any Available">Any Available</option>
+          <option value="" data-i18n="sel_stylist">— Select Staff Member —</option>
+          <option value="Any Available" data-i18n="opt_any">Any Available</option>
         </select>
       </div>
       <div class="form-group">
-        <label>Services (select all that apply)</label>
+        <label data-i18n="lbl_services">Services (select all that apply)</label>
         <div class="services-grid" id="services-grid">
           <label class="service-chip"><input type="checkbox" value="Facial Treatment"/><span class="dot"></span><span class="emoji">✨</span> Facial Treatment</label>
           <label class="service-chip"><input type="checkbox" value="Pedicure"/><span class="dot"></span><span class="emoji">🦶</span> Pedicure</label>
@@ -305,14 +341,23 @@
         </div>
       </div>
       <div class="form-group">
-        <label>Notes (optional — required if "Other" selected)</label>
-        <textarea id="f-notes" rows="3" placeholder="Any special requests or notes…"></textarea>
+        <label data-i18n="lbl_notes">Notes (optional — required if "Other" selected)</label>
+        <textarea id="f-notes" rows="3" data-i18n-placeholder="ph_notes" placeholder="Any special requests or notes…"></textarea>
       </div>
-      <button class="btn-book" id="btn-book" onclick="bookAppointment()">✦ Confirm Appointment</button>
+      <div class="form-group">
+        <label data-i18n="lbl_booking_pct">Booking Percentage</label>
+        <div class="pct-group">
+          <button type="button" class="pct-btn" id="pct-70-30" onclick="selectPct('70/30')">70/30</button>
+          <button type="button" class="pct-btn" id="pct-60-40" onclick="selectPct('60/40')">60/40</button>
+          <button type="button" class="pct-btn" id="pct-50-50" onclick="selectPct('50/50')">50/50</button>
+          <button type="button" class="pct-btn" id="pct-0" onclick="selectPct('0%')">0%</button>
+        </div>
+      </div>
+      <button class="btn-book" id="btn-book" onclick="bookAppointment()" data-i18n="btn_confirm">✦ Confirm Appointment</button>
     </div>
     <div class="summary-card">
       <div class="card">
-        <h2>🗓 Upcoming Appointments</h2>
+        <h2 data-i18n="upcoming_appts">🗓 Upcoming Appointments</h2>
         <ul class="appt-list" id="appt-list"><li class="empty-msg">Loading…</li></ul>
       </div>
     </div>
@@ -326,9 +371,9 @@
     <h2 id="cal-title">Month</h2>
     <button class="cal-nav-btn" onclick="calNav(1)">›</button>
     <div class="cal-header-spacer"></div>
-    <button class="view-btn active" id="vbtn-month" onclick="setView('month',this)">Month</button>
-    <button class="view-btn" id="vbtn-week" onclick="setView('week',this)">Week</button>
-    <button class="view-btn" id="vbtn-day" onclick="setView('day',this)">Day</button>
+    <button class="view-btn active" id="vbtn-month" onclick="setView('month',this)" data-i18n="cal_month">Month</button>
+    <button class="view-btn" id="vbtn-week" onclick="setView('week',this)" data-i18n="cal_week">Week</button>
+    <button class="view-btn" id="vbtn-day" onclick="setView('day',this)" data-i18n="cal_day">Day</button>
     <button class="cal-nav-btn" title="Jump to today" onclick="goToday()">●</button>
   </div>
   <div id="cal-container"></div>
@@ -422,8 +467,8 @@
 <!-- STAFF PAGE -->
 <div class="page" id="page-staff">
   <div class="staff-header-row">
-    <h2>👥 Staff Management</h2>
-    <button class="btn-add-staff" onclick="openStaffForm()">+ Add Staff Member</button>
+    <h2 data-i18n="staff_title">👥 Staff Management</h2>
+    <button class="btn-add-staff" onclick="openStaffForm()" data-i18n="btn_add_staff">+ Add Staff Member</button>
   </div>
   <div class="staff-grid" id="staff-grid"><p class="empty-msg">Loading staff…</p></div>
 </div>
@@ -875,7 +920,7 @@
     btn.disabled=true;btn.textContent='Saving…';
     showSync('syncing','Saving…');setLoading(40);
     try{
-      await addDoc(apptCol,{name,date,time,stylist,services,notes,createdAt:serverTimestamp()});
+      await addDoc(apptCol,{name,date,time,stylist,services,notes,bookingPct:selectedPct||'',createdAt:serverTimestamp()});
       setLoading(100);
       document.getElementById('f-name').value='';
       document.getElementById('f-date').value=toDateStr(today);
@@ -888,6 +933,9 @@
       } else {
         document.querySelectorAll('#services-grid input').forEach(cb=>{cb.checked=false;cb.closest('.service-chip')?.classList.remove('selected');});
       }
+      // Reset percentage
+      selectedPct = null;
+      document.querySelectorAll('.pct-btn').forEach(b=>b.classList.remove('pct-selected'));
       showToast('✅ Appointment booked for '+name+'!');
       showSync('synced','Saved');
     }catch(err){console.error(err);showToast('❌ Error saving.');showSync('error','Save failed');setLoading(0);}
@@ -1055,7 +1103,16 @@
     });
   });
 
-  // ── BOOKING SERVICE CHIPS (dynamic from Firestore) ────────────────
+  // ── BOOKING PERCENTAGE ────────────────────────────────────────────
+  let selectedPct = null;
+
+  function selectPct(val){
+    selectedPct = val;
+    document.querySelectorAll('.pct-btn').forEach(b=>b.classList.remove('pct-selected'));
+    const idMap = {'70/30':'pct-70-30','60/40':'pct-60-40','50/50':'pct-50-50','0%':'pct-0'};
+    const btn = document.getElementById(idMap[val]);
+    if(btn) btn.classList.add('pct-selected');
+  }
   // Selected sub-services per service: { serviceId: [subSvcId, ...] }
   let selectedSubSvcs = {};
   // Which service chip is pending sub-service selection
@@ -1366,21 +1423,51 @@
     if(appts.length===1){openApptModal(appts[0].id);return;}
 
     // Multiple appointments — show all with individual edit/delete buttons
-    const body = appts.map((a,i)=>`
+    const body = appts.map((a,i)=>{
+      const priceLines = getApptPriceInfo(a.services||[]);
+      const total      = getTotalPrice(a.services||[]);
+      let priceHtml = '';
+      if(priceLines.length){
+        priceHtml += `<div class="detail" style="margin-top:8px;padding-top:8px;border-top:1px solid #eee"><strong>💷 Price:</strong><br>${priceLines.map(l=>`<span style="display:block;font-size:13px;color:#555;margin-top:2px">${l}</span>`).join('')}</div>`;
+        if(a.bookingPct && total!==null){
+          const split = calcIncomeSplit(total, a.bookingPct);
+          if(split){
+            if(split.isFree){
+              priceHtml+=`<div style="margin-top:8px;padding:8px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:12px">🎁 Free booking — no income generated</div>`;
+            } else {
+              priceHtml+=`<div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div style="background:var(--teal-light);border-radius:8px;padding:10px;text-align:center">
+                  <div style="font-size:10px;font-weight:700;color:var(--teal-dark);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Shop</div>
+                  <div style="font-size:17px;font-weight:700;color:var(--teal-dark)">${fmt(split.shop)}</div>
+                </div>
+                <div style="background:var(--orange-light);border-radius:8px;padding:10px;text-align:center">
+                  <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Stylist</div>
+                  <div style="font-size:17px;font-weight:700;color:var(--orange)">${fmt(split.stylist)}</div>
+                </div>
+              </div>`;
+            }
+          }
+        } else if(a.bookingPct==='0%'){
+          priceHtml+=`<div style="margin-top:8px;padding:8px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:12px">🎁 Free booking — no income generated</div>`;
+        }
+      }
+      return `
       <div style="margin-bottom:${i<appts.length-1?'16px':'0'}">
+        ${a.stylist?`<div class="detail"><strong>💁 Stylist:</strong> ${esc(a.stylist)}</div>`:''}
         <div class="detail"><strong>👤 Customer:</strong> ${esc(a.name)}</div>
         <div class="detail"><strong>📅 Date:</strong> ${fmtDate(a.date)}</div>
         <div class="detail"><strong>⏰ Time:</strong> ${a.time}</div>
         <div class="detail"><strong>💅 Services:</strong> ${esc(a.services.join(', '))}</div>
-        ${a.stylist?`<div class="detail"><strong>💁 Stylist:</strong> ${esc(a.stylist)}</div>`:''}
+        ${a.bookingPct?`<div class="detail"><strong>📊 Booking %:</strong> ${esc(a.bookingPct)}</div>`:''}
         ${a.notes?`<div class="detail"><strong>📝 Notes:</strong> ${esc(a.notes)}</div>`:''}
+        ${priceHtml}
         <div style="display:flex;gap:8px;margin-top:10px">
           <button onclick="closeModal();setTimeout(()=>openEditApptModal('${a.id}'),50)" style="flex:1;padding:8px;border:1.5px solid var(--teal);border-radius:8px;background:var(--teal-light);color:var(--teal-dark);font-size:13px;font-weight:700;cursor:pointer">✏️ Edit</button>
           <button onclick="closeModal();removeAppt('${a.id}')" style="flex:1;padding:8px;border:1.5px solid #f5c0c0;border-radius:8px;background:#fff0f0;color:#c00;font-size:13px;font-weight:700;cursor:pointer">🗑 Delete</button>
         </div>
         ${i<appts.length-1?'<hr style="margin:16px 0;border-color:#eee">':''}
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
 
     // Open modal without the global delete/edit buttons (they're per-appointment above)
     openModal(body, null);
@@ -1402,9 +1489,104 @@
     document.getElementById('cal-container').innerHTML=html;
   }
 
+  function getApptPriceInfo(services){
+    const lines = services.map(svcStr=>{
+      const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
+      if(match){
+        const subName = match[2].trim();
+        const sub = subServicesCache.find(s=>s.name===subName);
+        if(sub?.price) return `${esc(svcStr)} — 💷 ${esc(sub.price)}`;
+      }
+      const sub = subServicesCache.find(s=>s.name===svcStr.trim());
+      if(sub?.price) return `${esc(svcStr)} — 💷 ${esc(sub.price)}`;
+      return null;
+    }).filter(Boolean);
+    return lines;
+  }
+
+  // Parse a price string like "£25" or "25.00" → number, or null
+  function parsePrice(priceStr){
+    if(!priceStr) return null;
+    const n = parseFloat(String(priceStr).replace(/[^0-9.]/g,''));
+    return isNaN(n) ? null : n;
+  }
+
+  // Get total numeric price from appointment services
+  function getTotalPrice(services){
+    let total = 0; let found = false;
+    services.forEach(svcStr=>{
+      const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
+      let sub = null;
+      if(match){ sub = subServicesCache.find(s=>s.name===match[2].trim()); }
+      if(!sub)  { sub = subServicesCache.find(s=>s.name===svcStr.trim()); }
+      const p = parsePrice(sub?.price);
+      if(p!==null){ total+=p; found=true; }
+    });
+    return found ? total : null;
+  }
+
+  function calcIncomeSplit(total, pct){
+    if(pct==='0%')    return { shop:0, stylist:0, isFree:true };
+    if(pct==='70/30') return { shop:total*0.7, stylist:total*0.3, isFree:false };
+    if(pct==='60/40') return { shop:total*0.6, stylist:total*0.4, isFree:false };
+    if(pct==='50/50') return { shop:total*0.5, stylist:total*0.5, isFree:false };
+    return null;
+  }
+
+  function fmt(n){ return '£'+n.toFixed(2); }
+
   function openApptModal(id){
-    const a=appointmentsCache.find(x=>x.id===id);if(!a)return;
-    openModal(`<div class="detail"><strong>👤 Customer:</strong> ${esc(a.name)}</div><div class="detail"><strong>📅 Date:</strong> ${fmtDate(a.date)}</div><div class="detail"><strong>⏰ Time:</strong> ${a.time}</div><div class="detail"><strong>💅 Services:</strong> ${esc(a.services.join(', '))}</div>${a.stylist?`<div class="detail"><strong>💁 Stylist:</strong> ${esc(a.stylist)}</div>`:''}${a.notes?`<div class="detail"><strong>📝 Notes:</strong> ${esc(a.notes)}</div>`:''}`,id);
+    const a=appointmentsCache.find(x=>x.id===id); if(!a) return;
+    const priceLines = getApptPriceInfo(a.services||[]);
+    const total      = getTotalPrice(a.services||[]);
+
+    let priceHtml = '';
+    if(priceLines.length){
+      priceHtml += `<div class="detail" style="margin-top:10px;padding-top:10px;border-top:1px solid #eee">
+        <strong>💷 Price:</strong><br>
+        ${priceLines.map(l=>`<span style="display:block;font-size:13px;color:#555;margin-top:3px">${l}</span>`).join('')}
+      </div>`;
+
+      // Income split
+      if(a.bookingPct && total!==null){
+        const split = calcIncomeSplit(total, a.bookingPct);
+        if(split){
+          if(split.isFree){
+            priceHtml += `<div class="detail" style="margin-top:10px;padding:10px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:13px">
+              🎁 Free booking — no income generated
+            </div>`;
+          } else {
+            priceHtml += `<div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div style="background:var(--teal-light);border-radius:10px;padding:12px;text-align:center">
+                <div style="font-size:11px;font-weight:700;color:var(--teal-dark);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Shop Income</div>
+                <div style="font-size:20px;font-weight:700;color:var(--teal-dark)">${fmt(split.shop)}</div>
+                <div style="font-size:11px;color:#888;margin-top:2px">${a.bookingPct.split('/')[0]}%</div>
+              </div>
+              <div style="background:var(--orange-light);border-radius:10px;padding:12px;text-align:center">
+                <div style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Stylist Income</div>
+                <div style="font-size:20px;font-weight:700;color:var(--orange)">${fmt(split.stylist)}</div>
+                <div style="font-size:11px;color:#888;margin-top:2px">${a.bookingPct.split('/')[1]||'0'}%</div>
+              </div>
+            </div>`;
+          }
+        }
+      } else if(a.bookingPct==='0%'){
+        priceHtml += `<div class="detail" style="margin-top:10px;padding:10px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:13px">
+          🎁 Free booking — no income generated
+        </div>`;
+      }
+    }
+
+    openModal(`
+      ${a.stylist?`<div class="detail"><strong>💁 Stylist:</strong> ${esc(a.stylist)}</div>`:''}
+      <div class="detail"><strong>👤 Customer:</strong> ${esc(a.name)}</div>
+      <div class="detail"><strong>📅 Date:</strong> ${fmtDate(a.date)}</div>
+      <div class="detail"><strong>⏰ Time:</strong> ${a.time}</div>
+      <div class="detail"><strong>💅 Services:</strong> ${esc(a.services.join(', '))}</div>
+      ${a.bookingPct?`<div class="detail"><strong>📊 Booking %:</strong> ${esc(a.bookingPct)}</div>`:''}
+      ${a.notes?`<div class="detail"><strong>📝 Notes:</strong> ${esc(a.notes)}</div>`:''}
+      ${priceHtml}
+    `, id);
   }
 
   function openModal(html,apptId=null){
@@ -1527,7 +1709,135 @@
 
   document.getElementById('f-date').value=toDateStr(today);
 
-  // EXPOSE GLOBALS
+  document.getElementById('f-date').value=toDateStr(today);
+
+  // ── TRANSLATIONS ─────────────────────────────────────────────────
+  const TRANSLATIONS = {
+    en: {
+      nav_book:'📅 Book Appointment', nav_calendar:'🗓 Calendar',
+      nav_staff:'👥 Staff', nav_services:'🛎 Services',
+      btn_login:'🔐 Login', btn_logout:'Logout',
+      book_title:'💅 Book an Appointment',
+      lbl_customer:'Customer Name', lbl_date:'Date', lbl_time:'Time',
+      lbl_stylist:'Stylist / Therapist', lbl_services:'Services (select all that apply)',
+      lbl_notes:'Notes (optional — required if "Other" selected)',
+      lbl_booking_pct:'Booking Percentage',
+      btn_confirm:'✦ Confirm Appointment',
+      sel_time:'— Select Time —', sel_stylist:'— Select Staff Member —',
+      opt_any:'Any Available',
+      ph_notes:'Any special requests or notes…',
+      upcoming_appts:'🗓 Upcoming Appointments',
+      cal_month:'Month', cal_week:'Week', cal_day:'Day',
+      staff_title:'👥 Staff Management', btn_add_staff:'+ Add Staff Member',
+      login_title:'Sign In', login_submit:'Sign In', login_cancel:'Cancel',
+      modal_close:'Close', modal_delete:'🗑 Delete', modal_edit:'✏️ Edit',
+      confirm_cancel:'Cancel', confirm_yes:'Yes, Delete',
+      empty_appts:'No appointments yet', loading:'Loading…',
+      sub_beauty:'BEAUTY STUDIO',
+    },
+    hy: {
+    hy: {
+      nav_book:'📅 Ամрагрел', nav_calendar:'🗓 Оračuyc',
+      nav_staff:'👥 Andznakazm', nav_services:'🛎 Tsarayutyunner',
+      btn_login:'🔐 Mutn', btn_logout:'Elq',
+      book_title:'💅 Amaragrel Handipoum',
+      lbl_customer:'Hachakhordhi Anoun', lbl_date:'Amsativ', lbl_time:'Zham',
+      lbl_stylist:'Vochabar / Therapeut', lbl_services:'Tsarayutyunner (entrel bolor)',
+      lbl_notes:'Nshumner (kamntir)',
+      lbl_booking_pct:'Amaragrman Tocos',
+      btn_confirm:'✦ Hastatel Amaragroumy',
+      sel_time:'— Entrel Zham —', sel_stylist:'— Entrel Ashkhatakits —',
+      opt_any:'Tsankazats Hasaneli',
+      ph_notes:'Hatuk khndrankner kam nshumner...',
+      upcoming_appts:'🗓 Arajika Amaragrumner',
+      cal_month:'Amis', cal_week:'Shabat', cal_day:'Or',
+      staff_title:'👥 Andznakazmi Karavaroum', btn_add_staff:'+ Avelatstnel Ashkhatakits',
+      login_title:'Mutn Gorcel', login_submit:'Mutn', login_cancel:'Merjarel',
+      modal_close:'Vagrel', modal_delete:'🗑 Jnjel', modal_edit:'✏️ Khmbagragurel',
+      confirm_cancel:'Merjarel', confirm_yes:'Ayo, Jnjel',
+      empty_appts:'Amaragrumner chkan', loading:'Mshakuma...',
+      sub_beauty:'GEGHECAGRUTYUN STUDIA',
+    },
+      nav_book:'📅 Записаться', nav_calendar:'🗓 Календарь',
+      nav_staff:'👥 Персонал', nav_services:'🛎 Услуги',
+      btn_login:'🔐 Войти', btn_logout:'Выйти',
+      book_title:'💅 Записаться на приём',
+      lbl_customer:'Имя клиента', lbl_date:'Дата', lbl_time:'Время',
+      lbl_stylist:'Стилист / Терапевт', lbl_services:'Услуги (выбрать все подходящие)',
+      lbl_notes:'Примечания (необязательно)',
+      lbl_booking_pct:'Процент бронирования',
+      btn_confirm:'✦ Подтвердить запись',
+      sel_time:'— Выберите время —', sel_stylist:'— Выберите сотрудника —',
+      opt_any:'Любой доступный',
+      ph_notes:'Любые пожелания или примечания…',
+      upcoming_appts:'🗓 Предстоящие записи',
+      cal_month:'Месяц', cal_week:'Неделя', cal_day:'День',
+      staff_title:'👥 Управление персоналом', btn_add_staff:'+ Добавить сотрудника',
+      login_title:'Войти', login_submit:'Войти', login_cancel:'Отмена',
+      modal_close:'Закрыть', modal_delete:'🗑 Удалить', modal_edit:'✏️ Изменить',
+      confirm_cancel:'Отмена', confirm_yes:'Да, удалить',
+      empty_appts:'Записей пока нет', loading:'Загрузка…',
+      sub_beauty:'СТУДИЯ КРАСОТЫ',
+    }
+  };
+
+  let currentLang = localStorage.getItem('christyan_lang') || 'en';
+  function t(key){ return TRANSLATIONS[currentLang]?.[key] || TRANSLATIONS.en[key] || key; }
+
+  function applyTranslations(){
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+      el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+    });
+    document.querySelector('.logo-text .sub').textContent = t('sub_beauty');
+    document.documentElement.lang = currentLang;
+    // Dynamically generated elements
+    try{ document.getElementById('login-modal-title').textContent = t('login_title'); }catch(e){}
+    try{ document.getElementById('login-submit-btn').textContent  = t('login_submit'); }catch(e){}
+    const mc=document.querySelector('#modal .close-btn');
+    const md=document.getElementById('modal-delete-btn');
+    const me=document.getElementById('modal-edit-btn');
+    if(mc) mc.textContent=t('modal_close');
+    if(md) md.textContent=t('modal_delete');
+    if(me) me.textContent=t('modal_edit');
+    const cc=document.querySelector('.confirm-cancel-btn');
+    const cd=document.querySelector('.confirm-delete-btn');
+    if(cc) cc.textContent=t('confirm_cancel');
+    if(cd) cd.textContent=t('confirm_yes');
+    const emEl=document.querySelector('#appt-list .empty-msg');
+    if(emEl) emEl.textContent=t('empty_appts');
+  }
+
+  function setLang(lang){
+    currentLang=lang;
+    localStorage.setItem('christyan_lang',lang);
+    const flags={en:'🇬🇧',hy:'🇦🇲',ru:'🇷🇺'};
+    const labels={en:'EN',hy:'ՀՅ',ru:'РУ'};
+    document.getElementById('lang-flag').textContent  = flags[lang];
+    document.getElementById('lang-label').textContent = labels[lang];
+    ['en','hy','ru'].forEach(l=>{
+      const opt=document.getElementById('lang-opt-'+l);
+      if(opt) opt.classList.toggle('active',l===lang);
+    });
+    document.getElementById('lang-dropdown').classList.remove('open');
+    applyTranslations();
+    showToast(lang==='en'?'Language: English':lang==='hy'?'Լեզու: Հայերեն':'Язык: Русский');
+  }
+
+  function toggleLangDropdown(){
+    document.getElementById('lang-dropdown').classList.toggle('open');
+  }
+
+  document.addEventListener('click',e=>{
+    const sel=document.querySelector('.lang-selector');
+    if(sel&&!sel.contains(e.target)) document.getElementById('lang-dropdown').classList.remove('open');
+  });
+
+  // Apply saved language on load
+  applyTranslations();
+  if(currentLang!=='en') setLang(currentLang);
   window.showPage=showPage;window.bookAppointment=bookAppointment;
   window.removeAppt=removeAppt;window.removeStaff=removeStaff;
   window.closeConfirm=closeConfirm;window.confirmDelete=confirmDelete;
@@ -1537,7 +1847,8 @@
   window.calDayClick=calDayClick;window.openApptModal=openApptModal;window.closeModal=closeModal;
   window.openStaffForm=openStaffForm;window.closeStaffModal=closeStaffModal;window.saveStaff=saveStaff;
   window.openLoginModal=openLoginModal;window.closeLoginModal=closeLoginModal;window.submitLogin=submitLogin;window.doLogout=doLogout;
-  window.openSvcForm=openSvcForm;window.closeSvcModal=closeSvcModal;window.saveSvc=saveSvc;
+  window.selectPct=selectPct;
+  window.setLang=setLang;window.toggleLangDropdown=toggleLangDropdown;
   window.deleteSvc=deleteSvc;window.selectSvc=selectSvc;
   window.openSubSvcForm=openSubSvcForm;window.closeSubSvcModal=closeSubSvcModal;window.saveSubSvc=saveSubSvc;
   window.deleteSubSvc=deleteSubSvc;
