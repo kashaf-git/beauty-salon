@@ -382,71 +382,77 @@
 <!-- SERVICES PAGE -->
 <div class="page" id="page-services">
   <div class="svc-page-header">
-    <h2>🛎 Services &amp; Sub-Services</h2>
+    <h2 data-i18n="svc_page_title">🛎 Services &amp; Sub-Services</h2>
   </div>
   <div class="svc-page-layout">
     <div class="svc-list-card">
-      <h3>Services</h3>
+      <h3 data-i18n="nav_services_short">Services</h3>
       <ul class="svc-list" id="svc-list"><li class="empty-msg">Loading…</li></ul>
-      <button class="btn-add-svc" onclick="openSvcForm()">+ Add Service</button>
+      <button class="btn-add-svc" onclick="openSvcForm()" data-i18n="btn_add_svc">+ Add Service</button>
     </div>
     <div class="subsvc-card">
       <h3>
-        <span id="subsvc-title">Select a service</span>
-        <button class="btn-add-subsvc" id="btn-add-subsvc" onclick="openSubSvcForm()" style="display:none">+ Add Sub-Service</button>
+        <span id="subsvc-title" data-i18n="sel_svc">Select a service</span>
+        <button class="btn-add-subsvc" id="btn-add-subsvc" onclick="openSubSvcForm()" style="display:none" data-i18n="btn_add_subsvc">+ Add Sub-Service</button>
       </h3>
-      <div id="subsvc-container"><p class="no-svc-selected">← Select a service to manage its sub-services</p></div>
+      <div id="subsvc-container"><p class="no-svc-selected" data-i18n="no_subsvc_select">← Select a service to manage its sub-services</p></div>
     </div>
   </div>
 </div>
 
 <!-- SERVICE FORM MODAL -->
 <div class="modal-overlay" id="svc-modal">
-  <div class="modal" style="width:420px">
-    <h3 id="svc-modal-title">➕ Add Service</h3>
+  <div class="modal" style="width:460px">
+    <h3 id="svc-modal-title" data-i18n="add_service_modal">➕ Add Service</h3>
     <input type="hidden" id="svc-id"/>
     <div class="form-group">
-      <label>Service Name</label>
-      <input type="text" id="svc-name" placeholder="e.g. Manicure"/>
+      <label data-i18n="svc_name_lbl">Service Name</label>
+      <input type="text" id="svc-name-en" placeholder="English" style="margin-bottom:8px"/>
+      <input type="text" id="svc-name-hy" placeholder="Հայերեն" style="margin-bottom:8px"/>
+      <input type="text" id="svc-name-ru" placeholder="Русский"/>
     </div>
     <div class="form-group">
-      <label>Emoji Icon</label>
-      <input type="text" id="svc-emoji" placeholder="e.g. 💅" maxlength="4"/>
+      <label data-i18n="svc_emoji_lbl">Emoji Icon</label>
+      <input type="text" id="svc-emoji" data-i18n-placeholder="svc_emoji_ph" placeholder="e.g. 💅" maxlength="4"/>
     </div>
-    <button class="btn-save-staff" onclick="saveSvc()">💾 Save Service</button>
+    <button class="btn-save-staff" onclick="saveSvc()" data-i18n="btn_save_svc">💾 Save Service</button>
     <div class="modal-btn-row" style="margin-top:10px">
-      <button class="close-btn" onclick="closeSvcModal()">Cancel</button>
+      <button class="close-btn" onclick="closeSvcModal()" data-i18n="confirm_cancel">Cancel</button>
     </div>
   </div>
 </div>
 
 <!-- SUB-SERVICE FORM MODAL -->
 <div class="modal-overlay" id="subsvc-modal">
-  <div class="modal" style="width:460px">
-    <h3 id="subsvc-modal-title">➕ Add Sub-Service</h3>
+  <div class="modal" style="width:480px">
+    <h3 id="subsvc-modal-title" data-i18n="add_subsvc_modal">➕ Add Sub-Service</h3>
     <input type="hidden" id="subsvc-id"/>
     <input type="hidden" id="subsvc-service-id"/>
     <div class="form-group">
-      <label>Sub-Service Name</label>
-      <input type="text" id="subsvc-name" placeholder="e.g. French Polish"/>
+      <label data-i18n="subsvc_name_lbl">Sub-Service Name</label>
+      <input type="text" id="subsvc-name-en" placeholder="English" style="margin-bottom:8px"/>
+      <input type="text" id="subsvc-name-hy" placeholder="Հայերեն" style="margin-bottom:8px"/>
+      <input type="text" id="subsvc-name-ru" placeholder="Русский"/>
     </div>
     <div class="row-2">
       <div class="form-group">
-        <label>Price (optional)</label>
-        <input type="text" id="subsvc-price" placeholder="e.g. £25"/>
+        <label data-i18n="subsvc_price_lbl">Price (optional)</label>
+        <input type="text" id="subsvc-price" data-i18n-placeholder="subsvc_price_ph" placeholder="e.g. 25"/>
       </div>
       <div class="form-group">
-        <label>Duration (optional)</label>
-        <input type="text" id="subsvc-duration" placeholder="e.g. 45 mins"/>
+        <label data-i18n="subsvc_duration_lbl">Duration (optional)</label>
+        <input type="text" id="subsvc-duration" data-i18n-placeholder="subsvc_duration_ph" placeholder="e.g. 45 mins"/>
       </div>
     </div>
     <div class="form-group">
-      <label>Description (optional)</label>
-      <textarea id="subsvc-desc" rows="2" placeholder="Brief description…"></textarea>
+      <label data-i18n="subsvc_desc_lbl">Description (optional)</label>
+      <textarea id="subsvc-desc-en" rows="2" placeholder="English" style="margin-bottom:8px"></textarea>
+      <textarea id="subsvc-desc-hy" rows="2" placeholder="Հայերեն" style="margin-bottom:8px"></textarea>
+      <textarea id="subsvc-desc-ru" rows="2" placeholder="Русский"></textarea>
     </div>
-    <button class="btn-save-staff" onclick="saveSubSvc()">💾 Save Sub-Service</button>
+    <button class="btn-save-staff" onclick="saveSubSvc()" data-i18n="btn_save_subsvc">💾 Save Sub-Service</button>
     <div class="modal-btn-row" style="margin-top:10px">
-      <button class="close-btn" onclick="closeSubSvcModal()">Cancel</button>
+      <button class="close-btn" onclick="closeSubSvcModal()" data-i18n="confirm_cancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -476,7 +482,7 @@
 <!-- APPOINTMENT DETAILS MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
-    <h3>📋 Appointment Details</h3>
+    <h3 data-i18n="modal_appt_title">📋 Appointment Details</h3>
     <div id="modal-body"></div>
     <div class="modal-btn-row">
       <button class="delete-appt-btn" id="modal-delete-btn" onclick="modalDeleteClick()" style="display:none">🗑 Delete</button>
@@ -541,51 +547,51 @@
 <!-- STAFF FORM MODAL -->
 <div class="modal-overlay" id="staff-modal">
   <div class="modal staff-form-modal">
-    <h3 id="staff-modal-title">➕ Add Staff Member</h3>
+    <h3 id="staff-modal-title" data-i18n="add_staff_modal">➕ Add Staff Member</h3>
     <input type="hidden" id="sf-id"/>
     <div class="row-2">
       <div class="form-group">
-        <label>First Name</label>
-        <input type="text" id="sf-firstname" placeholder="First name"/>
+        <label data-i18n="sf_firstname">First Name</label>
+        <input type="text" id="sf-firstname" data-i18n-placeholder="sf_firstname" placeholder="First name"/>
       </div>
       <div class="form-group">
-        <label>Surname</label>
-        <input type="text" id="sf-surname" placeholder="Surname"/>
+        <label data-i18n="sf_surname">Surname</label>
+        <input type="text" id="sf-surname" data-i18n-placeholder="sf_surname" placeholder="Surname"/>
       </div>
     </div>
     <div class="row-2">
       <div class="form-group">
-        <label>Specialty Service</label>
+        <label data-i18n="sf_specialty">Specialty Service</label>
         <select id="sf-specialty">
-          <option value="">— Select Specialty —</option>
-          <option>Facial Treatment</option><option>Pedicure</option><option>Manicure</option>
-          <option>Mani &amp; Pedi</option><option>Hair Styling</option><option>Makeup</option>
-          <option>Eyelash Thickening</option><option>Nail Art</option><option>Cosmetology</option><option>Other</option>
+          <option value="" data-i18n="sf_sel_specialty">— Select Specialty —</option>
+          <option data-i18n="svc_facial">Facial Treatment</option><option data-i18n="svc_pedicure">Pedicure</option><option data-i18n="svc_manicure">Manicure</option>
+          <option data-i18n="svc_manipedi">Mani &amp; Pedi</option><option data-i18n="svc_hair">Hair Styling</option><option data-i18n="svc_makeup">Makeup</option>
+          <option data-i18n="svc_eyelash">Eyelash Thickening</option><option data-i18n="svc_nailart">Nail Art</option><option data-i18n="svc_cosmetology">Cosmetology</option><option data-i18n="svc_other">Other</option>
         </select>
       </div>
       <div class="form-group">
-        <label>Start Date</label>
+        <label data-i18n="sf_startdate">Start Date</label>
         <input type="date" id="sf-startdate"/>
       </div>
     </div>
     <div class="form-group">
-      <label>Role</label>
+      <label data-i18n="sf_role">Role</label>
       <select id="sf-role">
-        <option value="general">General User</option>
-        <option value="admin">Admin</option>
+        <option value="general" data-i18n="sf_role_general">General User</option>
+        <option value="admin" data-i18n="sf_role_admin">Admin</option>
       </select>
     </div>
     <div class="form-group">
-      <label>Login Username <span style="font-size:11px;color:#aaa;text-transform:none;letter-spacing:0">(auto-generated from name)</span></label>
+      <label><span data-i18n="sf_username">Login Username</span> <span style="font-size:11px;color:#aaa;text-transform:none;letter-spacing:0" data-i18n="sf_username_hint">(auto-generated from name)</span></label>
       <input type="text" id="sf-email" placeholder="e.g. maria.garcia" readonly style="background:#f0f0f0;color:#888;cursor:default;"/>
     </div>
     <div class="form-group" id="sf-password-group">
-      <label>Password <span style="font-size:11px;color:#aaa;text-transform:none;letter-spacing:0">(leave blank to let staff set their own)</span></label>
-      <input type="password" id="sf-password" placeholder="Set a password or leave blank"/>
+      <label><span data-i18n="sf_password">Password</span> <span style="font-size:11px;color:#aaa;text-transform:none;letter-spacing:0" data-i18n="sf_password_hint">(leave blank to let staff set their own)</span></label>
+      <input type="password" id="sf-password" data-i18n-placeholder="sf_password_ph" placeholder="Set a password or leave blank"/>
     </div>
-    <button class="btn-save-staff" onclick="saveStaff()">💾 Save Staff Member</button>
+    <button class="btn-save-staff" onclick="saveStaff()" data-i18n="btn_save_staff">💾 Save Staff Member</button>
     <div class="modal-btn-row" style="margin-top:10px">
-      <button class="close-btn" onclick="closeStaffModal()">Cancel</button>
+      <button class="close-btn" onclick="closeStaffModal()" data-i18n="confirm_cancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -597,11 +603,11 @@
     <div class="login-sub">Beauty Studio</div>
     <h3 id="login-modal-title">Sign In</h3>
     <div class="form-group">
-      <label>Username</label>
+      <label data-i18n="lbl_username">Username</label>
       <input type="text" id="login-username" placeholder=""/>
     </div>
     <div class="form-group" id="login-password-group">
-      <label>Password</label>
+      <label data-i18n="lbl_password">Password</label>
       <input type="password" id="login-password" placeholder="Password"/>
     </div>
     <div class="form-group" id="login-newpassword-group" style="display:none">
@@ -610,9 +616,9 @@
     </div>
     <div class="login-info" id="login-info"></div>
     <div class="login-error" id="login-error"></div>
-    <button class="btn-login-submit" id="login-submit-btn" onclick="submitLogin()">Sign In</button>
+    <button class="btn-login-submit" id="login-submit-btn" onclick="submitLogin()" data-i18n="login_submit">Sign In</button>
     <div class="modal-btn-row" style="margin-top:10px">
-      <button class="close-btn" onclick="closeLoginModal()">Cancel</button>
+      <button class="close-btn" onclick="closeLoginModal()" data-i18n="login_cancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -637,7 +643,8 @@
   import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, serverTimestamp, getDoc, setDoc }
     from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
-           createUserWithEmailAndPassword, updatePassword, fetchSignInMethodsForEmail }
+           createUserWithEmailAndPassword, updatePassword, fetchSignInMethodsForEmail,
+           setPersistence, inMemoryPersistence }
     from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -652,6 +659,8 @@
   const app      = initializeApp(firebaseConfig);
   const db       = getFirestore(app);
   const auth     = getAuth(app);
+  // Log out automatically on page refresh (session not persisted at all)
+  setPersistence(auth, inMemoryPersistence).catch(err=>console.error('Persistence error:',err));
   const apptCol  = collection(db,'appointments');
   const staffCol = collection(db,'staff');
 
@@ -668,7 +677,7 @@
 
   onSnapshot(svcCol, snap=>{
     servicesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
-    servicesCache.sort((a,b)=>a.name.localeCompare(b.name));
+    servicesCache.sort((a,b)=>(a.name_en||a.name||'').localeCompare(b.name_en||b.name||''));
     renderBookingServiceChips();
     if(document.getElementById('page-services').classList.contains('active')) renderSvcList();
   }, err=>console.error('Services listener error:',err));
@@ -707,13 +716,13 @@
   onAuthStateChanged(auth, async user => {
     currentUser = user;
     if(user){
-      const staffDoc = staffCache.find(s=>nameToEmail(s.firstName,s.surname)===user.email);
-      currentRole = staffDoc?.role || null;
+      let staffDoc = staffCache.find(s=>nameToEmail(s.firstName,s.surname)===user.email);
       if(!staffDoc){
         const {getDocs,query,where} = await import("https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js");
         const snap = await getDocs(query(staffCol,where('authEmail','==',user.email)));
-        currentRole = snap.docs[0]?.data()?.role || null;
+        staffDoc = snap.docs[0]?.data();
       }
+      currentRole = staffDoc?.role || null;
       const displayName = staffDoc ? `${staffDoc.firstName} ${staffDoc.surname}` : user.email;
       document.getElementById('logged-in-label').textContent = '👤 '+displayName;
       document.getElementById('logged-in-label').style.display='inline';
@@ -765,7 +774,7 @@
 
   function openLoginModal(){
     loginMode='signin';
-    document.getElementById('login-modal-title').textContent='Sign In';
+    document.getElementById('login-modal-title').textContent=t('login_title');
     document.getElementById('login-username').value='';
     document.getElementById('login-password').value='';
     document.getElementById('login-newpassword').value='';
@@ -773,7 +782,7 @@
     document.getElementById('login-info').className='login-info';
     document.getElementById('login-password-group').style.display='';
     document.getElementById('login-newpassword-group').style.display='none';
-    document.getElementById('login-submit-btn').textContent='Sign In';
+    document.getElementById('login-submit-btn').textContent=t('login_submit');
     document.getElementById('login-modal').classList.add('open');
   }
 
@@ -824,10 +833,10 @@
       if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'){
         if(!staffMember.hasPassword){
           loginMode='setpassword';
-          document.getElementById('login-modal-title').textContent='Create Your Password';
+          document.getElementById('login-modal-title').textContent=t('login_create_pw')||'Create Your Password';
           document.getElementById('login-password-group').style.display='none';
           document.getElementById('login-newpassword-group').style.display='';
-          document.getElementById('login-submit-btn').textContent='Set Password & Login';
+          document.getElementById('login-submit-btn').textContent=t('login_set_pw')||'Set Password & Login';
           infoEl.textContent="You haven't set a password yet. Choose one below to activate your account.";
           infoEl.className='login-info show';
         } else {
@@ -890,7 +899,7 @@
   // ── STAFF DROPDOWN ────────────────────────────────────────────────
   function renderStaffDropdown(){
     const sel=document.getElementById('f-stylist'),cur=sel.value;
-    sel.innerHTML='<option value="">— Select Staff Member —</option><option value="Any Available">Any Available</option>';
+    sel.innerHTML=`<option value="">${t('sel_stylist')}</option><option value="Any Available">${t('opt_any')}</option>`;
     staffCache.forEach(s=>{
       const o=document.createElement('option');
       o.value=`${s.firstName} ${s.surname}`;
@@ -959,15 +968,15 @@
   function removeAppt(id){
     const a=appointmentsCache.find(x=>x.id===id);
     pendingDeleteId=id;pendingDeleteType='appt';
-    document.getElementById('confirm-title').textContent='Delete Appointment?';
-    document.getElementById('confirm-msg').textContent=`Are you sure you want to delete the appointment for ${a?a.name:'this client'}? This cannot be undone.`;
+    document.getElementById('confirm-title').textContent=t('delete_appt_title');
+    document.getElementById('confirm-msg').textContent=`${t('delete_appt_msg')} ${a?a.name:''}`;
     document.getElementById('confirm-modal').classList.add('open');
   }
   function removeStaff(id){
     const s=staffCache.find(x=>x.id===id);
     pendingDeleteId=id;pendingDeleteType='staff';
-    document.getElementById('confirm-title').textContent='Delete Staff Member?';
-    document.getElementById('confirm-msg').textContent=`Are you sure you want to remove ${s?s.firstName+' '+s.surname:'this staff member'}? This cannot be undone.`;
+    document.getElementById('confirm-title').textContent=t('delete_staff_title');
+    document.getElementById('confirm-msg').textContent=`${t('delete_staff_msg')} ${s?s.firstName+' '+s.surname:''}`;
     document.getElementById('confirm-modal').classList.add('open');
   }
   function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');pendingDeleteId=null;}
@@ -982,14 +991,14 @@
         await deleteDoc(doc(db,'services',id));
         const subsToDelete = subServicesCache.filter(s=>s.serviceId===id);
         await Promise.all(subsToDelete.map(s=>deleteDoc(doc(db,'subServices',s.id))));
-        if(activeSvcId===id){ activeSvcId=null; document.getElementById('subsvc-title').textContent='Select a service'; document.getElementById('subsvc-container').innerHTML='<p class="no-svc-selected">← Select a service to manage its sub-services</p>'; document.getElementById('btn-add-subsvc').style.display='none'; }
-        showToast('Service deleted.');
+        if(activeSvcId===id){ activeSvcId=null; document.getElementById('subsvc-title').textContent=t('sel_svc'); document.getElementById('subsvc-container').innerHTML=`<p class="no-svc-selected">← ${t('no_subsvc_select')}</p>`; document.getElementById('btn-add-subsvc').style.display='none'; }
+        showToast(t('toast_service_deleted'));
       } else if(type==='subService'){
         await deleteDoc(doc(db,'subServices',id));
-        showToast('Sub-service deleted.');
+        showToast(t('toast_subsvc_deleted'));
       } else {
         await deleteDoc(doc(db,type==='staff'?'staff':'appointments',id));
-        showToast(type==='staff'?'Staff member removed.':'Appointment removed.');
+        showToast(type==='staff'?t('toast_staff_removed'):t('toast_appt_removed'));
       }
       showSync('synced','Deleted');
     }catch(err){ console.error(err); showToast('❌ Error deleting.'); showSync('error','Delete failed'); }
@@ -999,18 +1008,18 @@
   // ── STAFF PAGE ────────────────────────────────────────────────────
   function renderStaffPage(){
     const grid=document.getElementById('staff-grid');
-    if(!staffCache.length){grid.innerHTML='<p class="empty-msg" style="grid-column:1/-1">No staff members yet. Click "Add Staff Member" to get started.</p>';return;}
+    if(!staffCache.length){grid.innerHTML=`<p class="empty-msg" style="grid-column:1/-1">${t('no_staff_yet')}</p>`;return;}
     grid.innerHTML=staffCache.map(s=>`
       <div class="staff-card">
         <div class="sc-actions">
-          <button class="sc-edit-btn" onclick="openStaffForm('${s.id}')">✏️ Edit</button>
+          <button class="sc-edit-btn" onclick="openStaffForm('${s.id}')">${t('modal_edit')}</button>
           <button class="sc-del-btn" onclick="removeStaff('${s.id}')">🗑</button>
         </div>
         <div class="sc-name">${esc(s.firstName)} ${esc(s.surname)}</div>
-        <span class="sc-role ${s.role==='admin'?'admin':'user'}">${s.role==='admin'?'Admin':'General User'}</span>
-        <div class="sc-specialty">${esc(s.specialty||'No specialty set')}</div>
+        <span class="sc-role ${s.role==='admin'?'admin':'user'}">${s.role==='admin'?t('sf_role_admin'):t('sf_role_general')}</span>
+        <div class="sc-specialty">${esc(s.specialty||t('no_specialty'))}</div>
         ${s.authEmail?`<div class="sc-date" style="color:#888;margin-bottom:4px">🔑 ${esc(s.authEmail.replace('@christyan.internal',''))}</div>`:''}
-        <div class="sc-date">Since: ${s.startDate?fmtDate(s.startDate):'—'}</div>
+        <div class="sc-date">${t('staff_since')}: ${s.startDate?fmtDate(s.startDate):'—'}</div>
       </div>
     `).join('');
   }
@@ -1028,7 +1037,7 @@
     if(id){
       const s=staffCache.find(x=>x.id===id);
       if(s){
-        document.getElementById('staff-modal-title').textContent='✏️ Edit Staff Member';
+        document.getElementById('staff-modal-title').textContent=t('edit_staff_modal');
         document.getElementById('sf-id').value=id;
         document.getElementById('sf-firstname').value=s.firstName||'';
         document.getElementById('sf-surname').value=s.surname||'';
@@ -1039,10 +1048,10 @@
         document.getElementById('sf-password-group').style.display='none';
       }
     } else {
-      document.getElementById('staff-modal-title').textContent='➕ Add Staff Member';
+      document.getElementById('staff-modal-title').textContent=t('add_staff_modal');
       document.getElementById('sf-password-group').style.display='';
-      document.getElementById('sf-password-group').querySelector('label').innerHTML='Password <span style="font-size:11px;color:#aaa;text-transform:none;letter-spacing:0">(leave blank to let staff set their own)</span>';
-      document.getElementById('sf-password').placeholder='Set a password or leave blank';
+      document.getElementById('sf-password-group').querySelector('label').innerHTML=`${t('sf_password')} <span style="font-size:11px;color:#aaa;text-transform:none;letter-spacing:0">${t('sf_password_hint')}</span>`;
+      document.getElementById('sf-password').placeholder=t('sf_password_ph');
       document.getElementById('sf-password').disabled=false;
     }
     document.getElementById('staff-modal').classList.add('open');
@@ -1119,22 +1128,32 @@
   let pendingPickerSvcId = null;
 
   function renderBookingServiceChips(){
-    // Only switch to dynamic chips if services exist in the DB
-    // If DB is empty, keep the static hardcoded chips untouched
-    if(!servicesCache.length) return;
-
     const grid = document.getElementById('services-grid');
+
+    // If DB has no services, show an empty-state message instead of any chips
+    if(!servicesCache.length){
+      grid.dataset.dynamic = 'true';
+      grid.innerHTML = `<p class="empty-msg" style="grid-column:1/-1">${t('no_services_available')}</p>`;
+      return;
+    }
+
+    grid.dataset.dynamic = 'true';
     grid.innerHTML = servicesCache.map(s=>`
       <div class="service-chip" id="chip-${s.id}" onclick="handleChipClick('${s.id}')">
         <span class="dot"></span>
         <span class="emoji">${esc(s.emoji||'✦')}</span>
-        <span class="chip-label">${esc(s.name)}</span>
+        <span class="chip-label">${esc(getLocalizedName(s))}</span>
       </div>
     `).join('');
-    // Re-apply any existing selections
-    Object.keys(selectedSubSvcs).forEach(sid=>{
+    // Re-apply any existing selections, including sub-service labels in the current language
+    Object.entries(selectedSubSvcs).forEach(([sid, subIds])=>{
       const chip = document.getElementById('chip-'+sid);
-      if(chip) chip.classList.add('selected');
+      if(!chip) return;
+      chip.classList.add('selected');
+      const svc = servicesCache.find(s=>s.id===sid);
+      const names = (subIds||[]).map(id=>getLocalizedName(subServicesCache.find(x=>x.id===id))).filter(Boolean);
+      const labelEl = chip.querySelector('.chip-label');
+      if(labelEl) labelEl.textContent = names.length ? `${getLocalizedName(svc)}: ${names.join(', ')}` : getLocalizedName(svc);
     });
   }
 
@@ -1146,7 +1165,7 @@
         chip.classList.remove('selected');
         const labelEl = chip.querySelector('.chip-label');
         const svc = servicesCache.find(s=>s.id===svcId);
-        if(labelEl) labelEl.textContent = svc?.name||'';
+        if(labelEl) labelEl.textContent = getLocalizedName(svc);
       }
       delete selectedSubSvcs[svcId];
       return;
@@ -1180,7 +1199,7 @@
     const subs = subServicesCache.filter(s=>s.serviceId===svcId);
     pickerTempSelections = [...(selectedSubSvcs[svcId]||[])];
 
-    document.getElementById('picker-title').textContent = `${svc?.emoji||''} ${svc?.name||'Service'} — Choose Options`;
+    document.getElementById('picker-title').textContent = `${svc?.emoji||''} ${getLocalizedName(svc)||'Service'} — ${t('choose_options')}`;
 
     const grid = document.getElementById('picker-grid');
     if(!subs.length){
@@ -1188,12 +1207,12 @@
     } else {
       grid.innerHTML = subs.map(ss=>`
         <div class="subsvc-pick-item ${pickerTempSelections.includes(ss.id)?'picked':''}" id="pick-${ss.id}" onclick="togglePickerItem('${ss.id}')">
-          <div class="sp-name">${esc(ss.name)}</div>
+          <div class="sp-name">${esc(getLocalizedName(ss))}</div>
           <div class="sp-meta">
             ${ss.price?`<span>💷 ${esc(ss.price)}</span>`:''}
             ${ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
           </div>
-          ${ss.description?`<div class="sp-meta" style="margin-top:3px;font-style:italic">${esc(ss.description)}</div>`:''}
+          ${getLocalizedDesc(ss)?`<div class="sp-meta" style="margin-top:3px;font-style:italic">${esc(getLocalizedDesc(ss))}</div>`:''}
         </div>
       `).join('');
     }
@@ -1220,11 +1239,11 @@
         // Update chip label to show selected sub-services
         const names = pickerTempSelections.map(id=>{
           const ss = subServicesCache.find(x=>x.id===id);
-          return ss?.name||'';
+          return getLocalizedName(ss);
         }).filter(Boolean);
         const labelEl = chip.querySelector('.chip-label');
         const svc = servicesCache.find(s=>s.id===pendingPickerSvcId);
-        if(labelEl) labelEl.textContent = names.length ? `${svc?.name}: ${names.join(', ')}` : svc?.name||'';
+        if(labelEl) labelEl.textContent = names.length ? `${getLocalizedName(svc)}: ${names.join(', ')}` : getLocalizedName(svc);
       }
     }
     document.getElementById('subsvc-picker-modal').classList.remove('open');
@@ -1240,7 +1259,7 @@
         chip.classList.add('selected');
         const labelEl = chip.querySelector('.chip-label');
         const svc = servicesCache.find(s=>s.id===pendingPickerSvcId);
-        if(labelEl) labelEl.textContent = svc?.name||'';
+        if(labelEl) labelEl.textContent = getLocalizedName(svc);
       }
     }
     document.getElementById('subsvc-picker-modal').classList.remove('open');
@@ -1251,8 +1270,8 @@
   function getSelectedServicesForBooking(){
     return Object.entries(selectedSubSvcs).map(([svcId, subIds])=>{
       const svc = servicesCache.find(s=>s.id===svcId);
-      const subs = subIds.map(id=>subServicesCache.find(x=>x.id===id)?.name).filter(Boolean);
-      return subs.length ? `${svc?.name} (${subs.join(', ')})` : svc?.name||'';
+      const subs = subIds.map(id=>getLocalizedName(subServicesCache.find(x=>x.id===id))).filter(Boolean);
+      return subs.length ? `${getLocalizedName(svc)} (${subs.join(', ')})` : getLocalizedName(svc);
     }).filter(Boolean);
   }
 
@@ -1271,7 +1290,7 @@
     list.innerHTML = servicesCache.map(s=>`
       <li class="svc-list-item ${activeSvcId===s.id?'active':''}" onclick="selectSvc('${s.id}')">
         <span class="svc-emoji">${esc(s.emoji||'✦')}</span>
-        <span>${esc(s.name)}</span>
+        <span>${esc(getLocalizedName(s))}</span>
         <span class="svc-actions-sm">
           <button class="edit-svc" onclick="event.stopPropagation();openSvcForm('${s.id}')">✏️</button>
           <button class="del-svc" onclick="event.stopPropagation();deleteSvc('${s.id}')">🗑</button>
@@ -1290,10 +1309,10 @@
   function renderSubSvcPanel(svcId){
     const svc = servicesCache.find(s=>s.id===svcId);
     const subs = subServicesCache.filter(s=>s.serviceId===svcId);
-    document.getElementById('subsvc-title').textContent = svc ? `${svc.emoji||''} ${svc.name}` : 'Select a service';
+    document.getElementById('subsvc-title').textContent = svc ? `${svc.emoji||''} ${getLocalizedName(svc)}` : t('sel_svc');
     const container = document.getElementById('subsvc-container');
     if(!subs.length){
-      container.innerHTML='<p class="no-svc-selected">No sub-services yet. Click "+ Add Sub-Service" to add one.</p>';
+      container.innerHTML=`<p class="no-svc-selected">${t('no_subsvc_yet')}</p>`;
       return;
     }
     container.innerHTML=`<div class="subsvc-grid">${subs.map(ss=>`
@@ -1302,38 +1321,63 @@
           <button class="ss-edit" onclick="openSubSvcForm('${ss.id}')">✏️</button>
           <button class="ss-del" onclick="deleteSubSvc('${ss.id}')">🗑</button>
         </div>
-        <div class="ssname">${esc(ss.name)}</div>
+        <div class="ssname">${esc(getLocalizedName(ss))}</div>
         <div class="ssmeta">
           ${ss.price?`<span>💷 ${esc(ss.price)}</span>`:''}
           ${ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
         </div>
-        ${ss.description?`<div style="font-size:12px;color:#999;margin-top:2px;font-style:italic">${esc(ss.description)}</div>`:''}
+        ${getLocalizedDesc(ss)?`<div style="font-size:12px;color:#999;margin-top:2px;font-style:italic">${esc(getLocalizedDesc(ss))}</div>`:''}
       </div>
     `).join('')}</div>`;
+  }
+
+  // ── LOCALIZATION HELPERS ──────────────────────────────────────────
+  // Get the localized name for a service/sub-service, falling back to
+  // English, then the legacy single `name`/`description` field.
+  function getLocalizedName(item){
+    if(!item) return '';
+    const key = 'name_'+currentLang;
+    return item[key] || item.name_en || item.name || '';
+  }
+  function getLocalizedDesc(item){
+    if(!item) return '';
+    const key = 'desc_'+currentLang;
+    return item[key] || item.desc_en || item.description || '';
   }
 
   // Service CRUD
   function openSvcForm(id=null){
     document.getElementById('svc-id').value=id||'';
-    document.getElementById('svc-name').value='';
+    document.getElementById('svc-name-en').value='';
+    document.getElementById('svc-name-hy').value='';
+    document.getElementById('svc-name-ru').value='';
     document.getElementById('svc-emoji').value='';
     if(id){
       const s=servicesCache.find(x=>x.id===id);
-      if(s){ document.getElementById('svc-modal-title').textContent='✏️ Edit Service'; document.getElementById('svc-name').value=s.name||''; document.getElementById('svc-emoji').value=s.emoji||''; }
-    } else { document.getElementById('svc-modal-title').textContent='➕ Add Service'; }
+      if(s){
+        document.getElementById('svc-modal-title').textContent=t('edit_service');
+        document.getElementById('svc-name-en').value=s.name_en||s.name||'';
+        document.getElementById('svc-name-hy').value=s.name_hy||'';
+        document.getElementById('svc-name-ru').value=s.name_ru||'';
+        document.getElementById('svc-emoji').value=s.emoji||'';
+      }
+    } else { document.getElementById('svc-modal-title').textContent=t('add_service_modal'); }
     document.getElementById('svc-modal').classList.add('open');
   }
   function closeSvcModal(){ document.getElementById('svc-modal').classList.remove('open'); }
 
   async function saveSvc(){
-    const id   = document.getElementById('svc-id').value;
-    const name = document.getElementById('svc-name').value.trim();
-    const emoji= document.getElementById('svc-emoji').value.trim();
-    if(!name){ showToast('⚠️ Please enter a service name.'); return; }
+    const id      = document.getElementById('svc-id').value;
+    const name_en = document.getElementById('svc-name-en').value.trim();
+    const name_hy = document.getElementById('svc-name-hy').value.trim();
+    const name_ru = document.getElementById('svc-name-ru').value.trim();
+    const emoji   = document.getElementById('svc-emoji').value.trim();
+    if(!name_en && !name_hy && !name_ru){ showToast('⚠️ Please enter a service name in at least one language.'); return; }
     showSync('syncing','Saving…');
     try{
-      if(id){ await updateDoc(doc(db,'services',id),{name,emoji}); showToast('✅ Service updated.'); }
-      else   { await addDoc(svcCol,{name,emoji,createdAt:serverTimestamp()}); showToast('✅ Service added.'); }
+      const data = { name_en, name_hy, name_ru, emoji, name: name_en || name_hy || name_ru };
+      if(id){ await updateDoc(doc(db,'services',id),data); showToast('✅ Service updated.'); }
+      else   { await addDoc(svcCol,{...data,createdAt:serverTimestamp()}); showToast('✅ Service added.'); }
       closeSvcModal(); showSync('synced','Saved');
     }catch(e){ console.error(e); showToast('❌ Error saving service.'); showSync('error','Save failed'); }
   }
@@ -1341,8 +1385,8 @@
   function deleteSvc(id){
     const s=servicesCache.find(x=>x.id===id);
     pendingDeleteId=id; pendingDeleteType='service';
-    document.getElementById('confirm-title').textContent='Delete Service?';
-    document.getElementById('confirm-msg').textContent=`Are you sure you want to delete "${s?.name||'this service'}"? All its sub-services will also be deleted.`;
+    document.getElementById('confirm-title').textContent=t('delete_service_title');
+    document.getElementById('confirm-msg').textContent=`${t('delete_service_msg')} "${getLocalizedName(s)}"`;
     document.getElementById('confirm-modal').classList.add('open');
   }
 
@@ -1350,31 +1394,55 @@
   function openSubSvcForm(id=null){
     document.getElementById('subsvc-id').value=id||'';
     document.getElementById('subsvc-service-id').value=activeSvcId||'';
-    document.getElementById('subsvc-name').value='';
+    document.getElementById('subsvc-name-en').value='';
+    document.getElementById('subsvc-name-hy').value='';
+    document.getElementById('subsvc-name-ru').value='';
     document.getElementById('subsvc-price').value='';
     document.getElementById('subsvc-duration').value='';
-    document.getElementById('subsvc-desc').value='';
+    document.getElementById('subsvc-desc-en').value='';
+    document.getElementById('subsvc-desc-hy').value='';
+    document.getElementById('subsvc-desc-ru').value='';
     if(id){
       const ss=subServicesCache.find(x=>x.id===id);
-      if(ss){ document.getElementById('subsvc-modal-title').textContent='✏️ Edit Sub-Service'; document.getElementById('subsvc-name').value=ss.name||''; document.getElementById('subsvc-price').value=ss.price||''; document.getElementById('subsvc-duration').value=ss.duration||''; document.getElementById('subsvc-desc').value=ss.description||''; }
-    } else { document.getElementById('subsvc-modal-title').textContent='➕ Add Sub-Service'; }
+      if(ss){
+        document.getElementById('subsvc-modal-title').textContent=t('edit_subsvc');
+        document.getElementById('subsvc-name-en').value=ss.name_en||ss.name||'';
+        document.getElementById('subsvc-name-hy').value=ss.name_hy||'';
+        document.getElementById('subsvc-name-ru').value=ss.name_ru||'';
+        document.getElementById('subsvc-price').value=ss.price||'';
+        document.getElementById('subsvc-duration').value=ss.duration||'';
+        document.getElementById('subsvc-desc-en').value=ss.desc_en||ss.description||'';
+        document.getElementById('subsvc-desc-hy').value=ss.desc_hy||'';
+        document.getElementById('subsvc-desc-ru').value=ss.desc_ru||'';
+      }
+    } else { document.getElementById('subsvc-modal-title').textContent=t('add_subsvc_modal'); }
     document.getElementById('subsvc-modal').classList.add('open');
   }
   function closeSubSvcModal(){ document.getElementById('subsvc-modal').classList.remove('open'); }
 
   async function saveSubSvc(){
-    const id       = document.getElementById('subsvc-id').value;
-    const serviceId= document.getElementById('subsvc-service-id').value;
-    const name     = document.getElementById('subsvc-name').value.trim();
-    const price    = document.getElementById('subsvc-price').value.trim();
-    const duration = document.getElementById('subsvc-duration').value.trim();
-    const description=document.getElementById('subsvc-desc').value.trim();
-    if(!name){ showToast('⚠️ Please enter a sub-service name.'); return; }
+    const id        = document.getElementById('subsvc-id').value;
+    const serviceId = document.getElementById('subsvc-service-id').value;
+    const name_en   = document.getElementById('subsvc-name-en').value.trim();
+    const name_hy   = document.getElementById('subsvc-name-hy').value.trim();
+    const name_ru   = document.getElementById('subsvc-name-ru').value.trim();
+    const price     = document.getElementById('subsvc-price').value.trim();
+    const duration  = document.getElementById('subsvc-duration').value.trim();
+    const desc_en   = document.getElementById('subsvc-desc-en').value.trim();
+    const desc_hy   = document.getElementById('subsvc-desc-hy').value.trim();
+    const desc_ru   = document.getElementById('subsvc-desc-ru').value.trim();
+    if(!name_en && !name_hy && !name_ru){ showToast('⚠️ Please enter a sub-service name in at least one language.'); return; }
     if(!serviceId){ showToast('⚠️ No service selected.'); return; }
     showSync('syncing','Saving…');
     try{
-      if(id){ await updateDoc(doc(db,'subServices',id),{name,price,duration,description}); showToast('✅ Sub-service updated.'); }
-      else   { await addDoc(subSvcCol,{name,price,duration,description,serviceId,createdAt:serverTimestamp()}); showToast('✅ Sub-service added.'); }
+      const data = {
+        name_en, name_hy, name_ru, price, duration,
+        desc_en, desc_hy, desc_ru,
+        name: name_en || name_hy || name_ru,
+        description: desc_en || desc_hy || desc_ru,
+      };
+      if(id){ await updateDoc(doc(db,'subServices',id),data); showToast('✅ Sub-service updated.'); }
+      else   { await addDoc(subSvcCol,{...data,serviceId,createdAt:serverTimestamp()}); showToast('✅ Sub-service added.'); }
       closeSubSvcModal(); showSync('synced','Saved');
     }catch(e){ console.error(e); showToast('❌ Error saving sub-service.'); showSync('error','Save failed'); }
   }
@@ -1382,8 +1450,8 @@
   function deleteSubSvc(id){
     const ss=subServicesCache.find(x=>x.id===id);
     pendingDeleteId=id; pendingDeleteType='subService';
-    document.getElementById('confirm-title').textContent='Delete Sub-Service?';
-    document.getElementById('confirm-msg').textContent=`Are you sure you want to delete "${ss?.name||'this sub-service'}"? This cannot be undone.`;
+    document.getElementById('confirm-title').textContent=t('delete_subsvc_title');
+    document.getElementById('confirm-msg').textContent=`${t('delete_subsvc_msg')} "${getLocalizedName(ss)}"`;
     document.getElementById('confirm-modal').classList.add('open');
   }
 
@@ -1428,42 +1496,42 @@
       const total      = getTotalPrice(a.services||[]);
       let priceHtml = '';
       if(priceLines.length){
-        priceHtml += `<div class="detail" style="margin-top:8px;padding-top:8px;border-top:1px solid #eee"><strong>💷 Price:</strong><br>${priceLines.map(l=>`<span style="display:block;font-size:13px;color:#555;margin-top:2px">${l}</span>`).join('')}</div>`;
+        priceHtml += `<div class="detail" style="margin-top:8px;padding-top:8px;border-top:1px solid #eee"><strong>💷 ${t('det_price')}:</strong><br>${priceLines.map(l=>`<span style="display:block;font-size:13px;color:#555;margin-top:2px">${l}</span>`).join('')}</div>`;
         if(a.bookingPct && total!==null){
           const split = calcIncomeSplit(total, a.bookingPct);
           if(split){
             if(split.isFree){
-              priceHtml+=`<div style="margin-top:8px;padding:8px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:12px">🎁 Free booking — no income generated</div>`;
+              priceHtml+=`<div style="margin-top:8px;padding:8px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:12px">${t('det_free')}</div>`;
             } else {
               priceHtml+=`<div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                 <div style="background:var(--teal-light);border-radius:8px;padding:10px;text-align:center">
-                  <div style="font-size:10px;font-weight:700;color:var(--teal-dark);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Shop</div>
+                  <div style="font-size:10px;font-weight:700;color:var(--teal-dark);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">${t('det_shop')}</div>
                   <div style="font-size:17px;font-weight:700;color:var(--teal-dark)">${fmt(split.shop)}</div>
                 </div>
                 <div style="background:var(--orange-light);border-radius:8px;padding:10px;text-align:center">
-                  <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Stylist</div>
+                  <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">${t('det_stylist_income')}</div>
                   <div style="font-size:17px;font-weight:700;color:var(--orange)">${fmt(split.stylist)}</div>
                 </div>
               </div>`;
             }
           }
         } else if(a.bookingPct==='0%'){
-          priceHtml+=`<div style="margin-top:8px;padding:8px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:12px">🎁 Free booking — no income generated</div>`;
+          priceHtml+=`<div style="margin-top:8px;padding:8px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:12px">${t('det_free')}</div>`;
         }
       }
       return `
       <div style="margin-bottom:${i<appts.length-1?'16px':'0'}">
-        ${a.stylist?`<div class="detail"><strong>💁 Stylist:</strong> ${esc(a.stylist)}</div>`:''}
-        <div class="detail"><strong>👤 Customer:</strong> ${esc(a.name)}</div>
-        <div class="detail"><strong>📅 Date:</strong> ${fmtDate(a.date)}</div>
-        <div class="detail"><strong>⏰ Time:</strong> ${a.time}</div>
-        <div class="detail"><strong>💅 Services:</strong> ${esc(a.services.join(', '))}</div>
-        ${a.bookingPct?`<div class="detail"><strong>📊 Booking %:</strong> ${esc(a.bookingPct)}</div>`:''}
-        ${a.notes?`<div class="detail"><strong>📝 Notes:</strong> ${esc(a.notes)}</div>`:''}
+        ${a.stylist?`<div class="detail"><strong>💁 ${t('det_stylist')}:</strong> ${esc(a.stylist)}</div>`:''}
+        <div class="detail"><strong>👤 ${t('det_customer')}:</strong> ${esc(a.name)}</div>
+        <div class="detail"><strong>📅 ${t('det_date')}:</strong> ${fmtDate(a.date)}</div>
+        <div class="detail"><strong>⏰ ${t('det_time')}:</strong> ${a.time}</div>
+        <div class="detail"><strong>💅 ${t('det_services')}:</strong> ${esc(a.services.join(', '))}</div>
+        ${a.bookingPct?`<div class="detail"><strong>📊 ${t('det_pct')}:</strong> ${esc(a.bookingPct)}</div>`:''}
+        ${a.notes?`<div class="detail"><strong>📝 ${t('det_notes')}:</strong> ${esc(a.notes)}</div>`:''}
         ${priceHtml}
         <div style="display:flex;gap:8px;margin-top:10px">
-          <button onclick="closeModal();setTimeout(()=>openEditApptModal('${a.id}'),50)" style="flex:1;padding:8px;border:1.5px solid var(--teal);border-radius:8px;background:var(--teal-light);color:var(--teal-dark);font-size:13px;font-weight:700;cursor:pointer">✏️ Edit</button>
-          <button onclick="closeModal();removeAppt('${a.id}')" style="flex:1;padding:8px;border:1.5px solid #f5c0c0;border-radius:8px;background:#fff0f0;color:#c00;font-size:13px;font-weight:700;cursor:pointer">🗑 Delete</button>
+          <button onclick="closeModal();setTimeout(()=>openEditApptModal('${a.id}'),50)" style="flex:1;padding:8px;border:1.5px solid var(--teal);border-radius:8px;background:var(--teal-light);color:var(--teal-dark);font-size:13px;font-weight:700;cursor:pointer">${t('modal_edit')}</button>
+          <button onclick="closeModal();removeAppt('${a.id}')" style="flex:1;padding:8px;border:1.5px solid #f5c0c0;border-radius:8px;background:#fff0f0;color:#c00;font-size:13px;font-weight:700;cursor:pointer">${t('modal_delete')}</button>
         </div>
         ${i<appts.length-1?'<hr style="margin:16px 0;border-color:#eee">':''}
       </div>`;
@@ -1489,15 +1557,25 @@
     document.getElementById('cal-container').innerHTML=html;
   }
 
+  // Find a sub-service whose name in ANY language matches the given string
+  // (appointments store the name in whatever language was active at booking time)
+  function findSubServiceByAnyName(nameStr){
+    if(!nameStr) return null;
+    const target = nameStr.trim();
+    return subServicesCache.find(s=>
+      s.name_en===target || s.name_hy===target || s.name_ru===target || s.name===target
+    );
+  }
+
   function getApptPriceInfo(services){
     const lines = services.map(svcStr=>{
       const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
       if(match){
         const subName = match[2].trim();
-        const sub = subServicesCache.find(s=>s.name===subName);
+        const sub = findSubServiceByAnyName(subName);
         if(sub?.price) return `${esc(svcStr)} — 💷 ${esc(sub.price)}`;
       }
-      const sub = subServicesCache.find(s=>s.name===svcStr.trim());
+      const sub = findSubServiceByAnyName(svcStr.trim());
       if(sub?.price) return `${esc(svcStr)} — 💷 ${esc(sub.price)}`;
       return null;
     }).filter(Boolean);
@@ -1517,8 +1595,8 @@
     services.forEach(svcStr=>{
       const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
       let sub = null;
-      if(match){ sub = subServicesCache.find(s=>s.name===match[2].trim()); }
-      if(!sub)  { sub = subServicesCache.find(s=>s.name===svcStr.trim()); }
+      if(match){ sub = findSubServiceByAnyName(match[2].trim()); }
+      if(!sub)  { sub = findSubServiceByAnyName(svcStr.trim()); }
       const p = parsePrice(sub?.price);
       if(p!==null){ total+=p; found=true; }
     });
@@ -1533,7 +1611,7 @@
     return null;
   }
 
-  function fmt(n){ return '£'+n.toFixed(2); }
+  function fmt(n){ return n.toFixed(2); }
 
   function openApptModal(id){
     const a=appointmentsCache.find(x=>x.id===id); if(!a) return;
@@ -1543,7 +1621,7 @@
     let priceHtml = '';
     if(priceLines.length){
       priceHtml += `<div class="detail" style="margin-top:10px;padding-top:10px;border-top:1px solid #eee">
-        <strong>💷 Price:</strong><br>
+        <strong>💷 ${t('det_price')}:</strong><br>
         ${priceLines.map(l=>`<span style="display:block;font-size:13px;color:#555;margin-top:3px">${l}</span>`).join('')}
       </div>`;
 
@@ -1553,17 +1631,17 @@
         if(split){
           if(split.isFree){
             priceHtml += `<div class="detail" style="margin-top:10px;padding:10px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:13px">
-              🎁 Free booking — no income generated
+              ${t('det_free')}
             </div>`;
           } else {
             priceHtml += `<div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
               <div style="background:var(--teal-light);border-radius:10px;padding:12px;text-align:center">
-                <div style="font-size:11px;font-weight:700;color:var(--teal-dark);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Shop Income</div>
+                <div style="font-size:11px;font-weight:700;color:var(--teal-dark);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${t('det_shop')}</div>
                 <div style="font-size:20px;font-weight:700;color:var(--teal-dark)">${fmt(split.shop)}</div>
                 <div style="font-size:11px;color:#888;margin-top:2px">${a.bookingPct.split('/')[0]}%</div>
               </div>
               <div style="background:var(--orange-light);border-radius:10px;padding:12px;text-align:center">
-                <div style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Stylist Income</div>
+                <div style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${t('det_stylist_income')}</div>
                 <div style="font-size:20px;font-weight:700;color:var(--orange)">${fmt(split.stylist)}</div>
                 <div style="font-size:11px;color:#888;margin-top:2px">${a.bookingPct.split('/')[1]||'0'}%</div>
               </div>
@@ -1572,19 +1650,19 @@
         }
       } else if(a.bookingPct==='0%'){
         priceHtml += `<div class="detail" style="margin-top:10px;padding:10px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:13px">
-          🎁 Free booking — no income generated
+          ${t('det_free')}
         </div>`;
       }
     }
 
     openModal(`
-      ${a.stylist?`<div class="detail"><strong>💁 Stylist:</strong> ${esc(a.stylist)}</div>`:''}
-      <div class="detail"><strong>👤 Customer:</strong> ${esc(a.name)}</div>
-      <div class="detail"><strong>📅 Date:</strong> ${fmtDate(a.date)}</div>
-      <div class="detail"><strong>⏰ Time:</strong> ${a.time}</div>
-      <div class="detail"><strong>💅 Services:</strong> ${esc(a.services.join(', '))}</div>
-      ${a.bookingPct?`<div class="detail"><strong>📊 Booking %:</strong> ${esc(a.bookingPct)}</div>`:''}
-      ${a.notes?`<div class="detail"><strong>📝 Notes:</strong> ${esc(a.notes)}</div>`:''}
+      ${a.stylist?`<div class="detail"><strong>💁 ${t('det_stylist')}:</strong> ${esc(a.stylist)}</div>`:''}
+      <div class="detail"><strong>👤 ${t('det_customer')}:</strong> ${esc(a.name)}</div>
+      <div class="detail"><strong>📅 ${t('det_date')}:</strong> ${fmtDate(a.date)}</div>
+      <div class="detail"><strong>⏰ ${t('det_time')}:</strong> ${a.time}</div>
+      <div class="detail"><strong>💅 ${t('det_services')}:</strong> ${esc(a.services.join(', '))}</div>
+      ${a.bookingPct?`<div class="detail"><strong>📊 ${t('det_pct')}:</strong> ${esc(a.bookingPct)}</div>`:''}
+      ${a.notes?`<div class="detail"><strong>📝 ${t('det_notes')}:</strong> ${esc(a.notes)}</div>`:''}
       ${priceHtml}
     `, id);
   }
@@ -1729,34 +1807,146 @@
       upcoming_appts:'🗓 Upcoming Appointments',
       cal_month:'Month', cal_week:'Week', cal_day:'Day',
       staff_title:'👥 Staff Management', btn_add_staff:'+ Add Staff Member',
-      login_title:'Sign In', login_submit:'Sign In', login_cancel:'Cancel',
-      modal_close:'Close', modal_delete:'🗑 Delete', modal_edit:'✏️ Edit',
+      login_title:'Sign In', login_submit:'Sign In', login_cancel:'Cancel', login_create_pw:'Create Your Password', login_set_pw:'Set Password & Login', lbl_username:'Username', lbl_password:'Password',
+      modal_close:'Close', modal_delete:'🗑 Delete', modal_edit:'✏️ Edit', modal_appt_title:'📋 Appointment Details',
       confirm_cancel:'Cancel', confirm_yes:'Yes, Delete',
       empty_appts:'No appointments yet', loading:'Loading…',
       sub_beauty:'BEAUTY STUDIO',
+      svc_page_title:'🛎 Services & Sub-Services', nav_services_short:'Services',
+      btn_add_svc:'+ Add Service', btn_add_subsvc:'+ Add Sub-Service',
+      sel_svc:'Select a service', no_subsvc_select:'Select a service to manage its sub-services',
+      no_subsvc_yet:'No sub-services yet. Click "+ Add Sub-Service" to add one.',
+      edit_service:'✏️ Edit Service', add_service_modal:'➕ Add Service',
+      edit_subsvc:'✏️ Edit Sub-Service', add_subsvc_modal:'➕ Add Sub-Service',
+      delete_service_title:'Delete Service?', delete_service_msg:'Are you sure you want to delete this service? All its sub-services will also be deleted.',
+      delete_subsvc_title:'Delete Sub-Service?', delete_subsvc_msg:'Are you sure you want to delete this sub-service?',
+      delete_appt_title:'Delete Appointment?', delete_appt_msg:'Are you sure you want to delete the appointment for',
+      delete_staff_title:'Delete Staff Member?', delete_staff_msg:'Are you sure you want to remove',
+      toast_service_deleted:'Service deleted.', toast_subsvc_deleted:'Sub-service deleted.',
+      toast_staff_removed:'Staff member removed.', toast_appt_removed:'Appointment removed.',
+      det_customer:'Customer', det_date:'Date', det_time:'Time', det_services:'Services',
+      det_stylist:'Stylist', det_notes:'Notes', det_pct:'Booking %', det_price:'Price',
+      det_shop:'Shop Income', det_stylist_income:'Stylist Income',
+      det_free:'🎁 Free booking — no income generated',
+      add_staff_modal:'➕ Add Staff Member', edit_staff_modal:'✏️ Edit Staff Member',
+      sf_firstname:'First Name', sf_surname:'Surname', sf_specialty:'Specialty Service',
+      sf_sel_specialty:'— Select Specialty —', sf_startdate:'Start Date',
+      sf_role:'Role', sf_role_general:'General User', sf_role_admin:'Admin',
+      sf_username:'Login Username', sf_username_hint:'(auto-generated from name)',
+      sf_password:'Password', sf_password_hint:'(leave blank to let staff set their own)',
+      sf_password_ph:'Set a password or leave blank',
+      btn_save_staff:'💾 Save Staff Member',
+      no_staff_yet:'No staff members yet. Click "Add Staff Member" to get started.',
+      no_specialty:'No specialty set', staff_since:'Since',
+      svc_facial:'Facial Treatment', svc_pedicure:'Pedicure', svc_manicure:'Manicure',
+      svc_manipedi:'Mani & Pedi', svc_hair:'Hair Styling', svc_makeup:'Makeup',
+      svc_eyelash:'Eyelash Thickening', svc_nailart:'Nail Art', svc_cosmetology:'Cosmetology', svc_other:'Other',
+      svc_name_lbl:'Service Name', svc_name_ph:'e.g. Manicure',
+      svc_emoji_lbl:'Emoji Icon', svc_emoji_ph:'e.g. 💅',
+      btn_save_svc:'💾 Save Service',
+      subsvc_name_lbl:'Sub-Service Name', subsvc_name_ph:'e.g. French Polish',
+      subsvc_price_lbl:'Price (optional)', subsvc_price_ph:'e.g. 25',
+      subsvc_duration_lbl:'Duration (optional)', subsvc_duration_ph:'e.g. 45 mins',
+      subsvc_desc_lbl:'Description (optional)', subsvc_desc_ph:'Brief description…',
+      btn_save_subsvc:'💾 Save Sub-Service',
+      choose_options:'Choose Options',
+      lang_name_en:'English', lang_name_hy:'Armenian', lang_name_ru:'Russian',
+      no_services_available:'No services available yet. Please check back soon.',
     },
     hy: {
-      nav_book:'📅 Ամрагрел', nav_calendar:'🗓 Оračuyc',
-      nav_staff:'👥 Andznakazm', nav_services:'🛎 Tsarayutyunner',
-      btn_login:'🔐 Mutn', btn_logout:'Elq',
-      book_title:'💅 Amaragrel Handipoum',
-      lbl_customer:'Hachakhordhi Anoun', lbl_date:'Amsativ', lbl_time:'Zham',
-      lbl_stylist:'Vochabar / Therapeut', lbl_services:'Tsarayutyunner (entrel bolor)',
-      lbl_notes:'Nshumner (kamntir)',
-      lbl_booking_pct:'Amaragrman Tocos',
-      btn_confirm:'✦ Hastatel Amaragroumy',
-      sel_time:'— Entrel Zham —', sel_stylist:'— Entrel Ashkhatakits —',
-      opt_any:'Tsankazats Hasaneli',
-      ph_notes:'Hatuk khndrankner kam nshumner...',
-      upcoming_appts:'🗓 Arajika Amaragrumner',
-      cal_month:'Amis', cal_week:'Shabat', cal_day:'Or',
-      staff_title:'👥 Andznakazmi Karavaroum', btn_add_staff:'+ Avelatstnel Ashkhatakits',
-      login_title:'Mutn Gorcel', login_submit:'Mutn', login_cancel:'Merjarel',
-      modal_close:'Vagrel', modal_delete:'🗑 Jnjel', modal_edit:'✏️ Khmbagragurel',
-      confirm_cancel:'Merjarel', confirm_yes:'Ayo, Jnjel',
-      empty_appts:'Amaragrumner chkan', loading:'Mshakuma...',
-      sub_beauty:'GEGHECAGRUTYUN STUDIA',
+      nav_book:'📅 Ամրագրել այց',
+      nav_calendar:'🗓 Ամրագրումների օրացույց',
+      nav_staff:'👥 Մասնագետներ',
+      nav_services:'🛎 Մեր ծառայությունները',
+      btn_login:'🔐 Մուտք գործել',
+      btn_logout:'Դուրս գալ',
+      book_title:'💅 Ամրագրել այց',
+      lbl_customer:'Հաճախորդի անունը',
+      lbl_date:'Այցի ամսաթիվը',
+      lbl_time:'Այցի ժամը',
+      lbl_stylist:'Սպասարկող մասնագետ',
+      lbl_services:'Ընտրված ծառայություններ (նշեք բոլոր համապատասխան ծառայությունները)',
+      lbl_notes:'Լրացուցիչ նշումներ (ըստ ցանկության)',
+      lbl_booking_pct:'Կանխավճարի տոկոսը (%)',
+      btn_confirm:'✦ Հաստատել ամրագրումը',
+      sel_time:'— Ընտրեք ժամը —',
+      sel_stylist:'— Ընտրեք մասնագետին —',
+      opt_any:'Ցանկացած հասանելի մասնագետ',
+      ph_notes:'Հատուկ ցանկություններ կամ լրացուցիչ նշումներ',
+      upcoming_appts:'🗓 Առաջիկա այցեր',
+      cal_month:'Ամսական տեսք',
+      cal_week:'Շաբաթական տեսք',
+      cal_day:'Օրվա տեսք',
+      staff_title:'👥 Մասնագետների կառավարում',
+      btn_add_staff:'+ Ավելացնել նոր մասնագետ',
+      login_title:'Մուտք գործել',
+      login_submit:'Մուտք',
+      login_cancel:'Չեղարկել գործողությունը',
+      login_create_pw:'Ստեղծել գաղտնաբառ',
+      login_set_pw:'Սահմանել գաղտնաբառ',
+      lbl_username:'Օգտանուն',
+      lbl_password:'Գաղտնաբառ',
+      modal_close:'Փակել պատուհանը',
+      modal_appt_title:'📋 Ամրագրման մանրամասներ',
+      modal_delete:'🗑 Հեռացնել',
+      modal_edit:'✏️ Փոփոխել',
+      confirm_cancel:'Չեղարկել գործողությունը',
+      confirm_yes:'Այո, ջնջել',
+      empty_appts:'Առայժմ գրանցված այցեր չկան',
+      loading:'Տվյալները բեռնվում են…',
+      sub_beauty:'Beauty Studio',
+      svc_page_title:'Ծառայությունների կառավարում',
+      btn_add_svc:'+ Ավելացնել նոր ծառայություն',
+      btn_add_subsvc:'+ Ավելացնել նոր ենթածառայություն',
+      sel_svc:'Ընտրեք ծառայություն',
+      det_customer:'Հաճախորդ',
+      det_date:'Ամսաթիվ',
+      det_time:'Ժամ',
+      det_services:'Ծառայություններ',
+      det_stylist:'Մասնագետ',
+      det_notes:'Նշումներ',
+      det_pct:'Տոկոս (%)',
+      det_price:'Արժեք',
+      det_shop:'Սրահի եկամուտ',
+      det_stylist_income:'Մասնագետի վարձատրություն',
+      det_free:'🎁 Անվճար այց (եկամուտ չի հաշվարկվում)',
+      nav_services_short:'Ծառայություններ',
+      no_subsvc_select:'Ընտրեք ծառայություն՝ ենթածառայությունները կառավարելու համար',
+      no_subsvc_yet:'Առայժմ ենթածառայություններ չկան։ Սեղմեք "+ Ավելացնել նոր ենթածառայություն"',
+      edit_service:'✏️ Փոփոխել ծառայությունը', add_service_modal:'➕ Ավելացնել ծառայություն',
+      edit_subsvc:'✏️ Փոփոխել ենթածառայությունը', add_subsvc_modal:'➕ Ավելացնել ենթածառայություն',
+      delete_service_title:'Ջնջել ծառայությունը?', delete_service_msg:'Վստահ եք, որ ցանկանում եք ջնջել այս ծառայությունը: Բոլոր դրա ենթածառայությունները նույնպես կջնջվեն',
+      delete_subsvc_title:'Ջնջել ենթածառայությունը?', delete_subsvc_msg:'Վստահ եք, որ ցանկանում եք ջնջել այս ենթածառայությունը',
+      delete_appt_title:'Ջնջել ամրագրումը?', delete_appt_msg:'Վստահ եք, որ ցանկանում եք ջնջել ամրագրումը՝',
+      delete_staff_title:'Ջնջել մասնագետին?', delete_staff_msg:'Վստահ եք, որ ցանկանում եք հեռացնել՝',
+      toast_service_deleted:'Ծառայությունը ջնջվեց։', toast_subsvc_deleted:'Ենթածառայությունը ջնջվեց։',
+      toast_staff_removed:'Մասնագետը հեռացվեց։', toast_appt_removed:'Ամրագրումը հեռացվեց։',
+      add_staff_modal:'➕ Ավելացնել մասնագետ', edit_staff_modal:'✏️ Փոփոխել մասնագետին',
+      sf_firstname:'Անուն', sf_surname:'Ազգանուն', sf_specialty:'Մասնագիտացում',
+      sf_sel_specialty:'— Ընտրեք մասնագիտացում —', sf_startdate:'Աշխատանքի սկիզբ',
+      sf_role:'Դերակատարում', sf_role_general:'Սովորական օգտատեր', sf_role_admin:'Ադմինիստրատոր',
+      sf_username:'Մուտքի օգտանուն', sf_username_hint:'(ստեղծվում է ավտոմատ՝ անունից)',
+      sf_password:'Գաղտնաբառ', sf_password_hint:'(թողեք դատարկ, որպեսզի մասնագետն ինքը սահմանի)',
+      sf_password_ph:'Սահմանեք գաղտնաբառ կամ թողեք դատարկ',
+      btn_save_staff:'💾 Պահպանել մասնագետին',
+      no_staff_yet:'Առայժմ մասնագետներ չկան: Սեղմեք "Ավելացնել նոր մասնագետ"՝ սկսելու համար',
+      no_specialty:'Մասնագիտացում նշված չէ', staff_since:'Աշխատում է',
+      svc_facial:'Դիմախնամք', svc_pedicure:'Պեդիկյուր', svc_manicure:'Մանիկյուր',
+      svc_manipedi:'Մանիկյուր և Պեդիկյուր', svc_hair:'Մազերի ձևավորում', svc_makeup:'Դիմահարդարում',
+      svc_eyelash:'Թարթիչների խտացում', svc_nailart:'Եղունգների գեղարվեստ', svc_cosmetology:'Կոսմետոլոգիա', svc_other:'Այլ',
+      svc_name_lbl:'Ծառայության անվանումը', svc_name_ph:'օրինակ՝ Մանիկյուր',
+      svc_emoji_lbl:'Էմոջի պատկերակ', svc_emoji_ph:'օրինակ՝ 💅',
+      btn_save_svc:'💾 Պահպանել ծառայությունը',
+      subsvc_name_lbl:'Ենթածառայության անվանումը', subsvc_name_ph:'օրինակ՝ Ֆրանսիական մատնահարդարում',
+      subsvc_price_lbl:'Արժեք (ըստ ցանկության)', subsvc_price_ph:'օրինակ՝ 25',
+      subsvc_duration_lbl:'Տևողություն (ըստ ցանկության)', subsvc_duration_ph:'օրինակ՝ 45 րոպե',
+      subsvc_desc_lbl:'Նկարագրություն (ըստ ցանկության)', subsvc_desc_ph:'Կարճ նկարագրություն…',
+      btn_save_subsvc:'💾 Պահպանել ենթածառայությունը',
+      choose_options:'Ընտրեք տարբերակ',
+      lang_name_en:'Անգլերեն', lang_name_hy:'Հայերեն', lang_name_ru:'Ռուսերեն',
+      no_services_available:'Առայժմ ծառայություններ հասանելի չեն: Խնդրում ենք փորձել ավելի ուշ:',
     },
+
     ru: {
       nav_book:'📅 Записаться', nav_calendar:'🗓 Календарь',
       nav_staff:'👥 Персонал', nav_services:'🛎 Услуги',
@@ -1773,11 +1963,51 @@
       upcoming_appts:'🗓 Предстоящие записи',
       cal_month:'Месяц', cal_week:'Неделя', cal_day:'День',
       staff_title:'👥 Управление персоналом', btn_add_staff:'+ Добавить сотрудника',
-      login_title:'Войти', login_submit:'Войти', login_cancel:'Отмена',
-      modal_close:'Закрыть', modal_delete:'🗑 Удалить', modal_edit:'✏️ Изменить',
+      login_title:'Войти', login_submit:'Войти', login_cancel:'Отмена', login_create_pw:'Создать пароль', login_set_pw:'Задать пароль и войти', lbl_username:'Имя пользователя', lbl_password:'Пароль',
+      modal_close:'Закрыть', modal_delete:'🗑 Удалить', modal_edit:'✏️ Изменить', modal_appt_title:'📋 Детали записи',
       confirm_cancel:'Отмена', confirm_yes:'Да, удалить',
       empty_appts:'Записей пока нет', loading:'Загрузка…',
       sub_beauty:'СТУДИЯ КРАСОТЫ',
+      svc_page_title:'🛎 Услуги и подуслуги', nav_services_short:'Услуги',
+      btn_add_svc:'+ Добавить услугу', btn_add_subsvc:'+ Добавить подуслугу',
+      sel_svc:'Выберите услугу', no_subsvc_select:'Выберите услугу для управления её подуслугами',
+      no_subsvc_yet:'Подуслуг пока нет. Нажмите "+ Добавить подуслугу", чтобы добавить.',
+      edit_service:'✏️ Изменить услугу', add_service_modal:'➕ Добавить услугу',
+      edit_subsvc:'✏️ Изменить подуслугу', add_subsvc_modal:'➕ Добавить подуслугу',
+      delete_service_title:'Удалить услугу?', delete_service_msg:'Вы уверены, что хотите удалить эту услугу? Все её подуслуги также будут удалены.',
+      delete_subsvc_title:'Удалить подуслугу?', delete_subsvc_msg:'Вы уверены, что хотите удалить эту подуслугу?',
+      delete_appt_title:'Удалить запись?', delete_appt_msg:'Вы уверены, что хотите удалить запись для',
+      delete_staff_title:'Удалить сотрудника?', delete_staff_msg:'Вы уверены, что хотите удалить',
+      toast_service_deleted:'Услуга удалена.', toast_subsvc_deleted:'Подуслуга удалена.',
+      toast_staff_removed:'Сотрудник удалён.', toast_appt_removed:'Запись удалена.',
+      det_customer:'Клиент', det_date:'Дата', det_time:'Время', det_services:'Услуги',
+      det_stylist:'Стилист', det_notes:'Примечания', det_pct:'Процент бронирования', det_price:'Цена',
+      det_shop:'Доход салона', det_stylist_income:'Доход стилиста',
+      det_free:'🎁 Бесплатная запись — доход не формируется',
+      add_staff_modal:'➕ Добавить сотрудника', edit_staff_modal:'✏️ Изменить сотрудника',
+      sf_firstname:'Имя', sf_surname:'Фамилия', sf_specialty:'Специализация',
+      sf_sel_specialty:'— Выберите специализацию —', sf_startdate:'Дата начала работы',
+      sf_role:'Роль', sf_role_general:'Обычный пользователь', sf_role_admin:'Администратор',
+      sf_username:'Имя пользователя для входа', sf_username_hint:'(создаётся автоматически из имени)',
+      sf_password:'Пароль', sf_password_hint:'(оставьте пустым, чтобы сотрудник задал свой)',
+      sf_password_ph:'Задайте пароль или оставьте пустым',
+      btn_save_staff:'💾 Сохранить сотрудника',
+      no_staff_yet:'Сотрудников пока нет. Нажмите "Добавить сотрудника", чтобы начать.',
+      no_specialty:'Специализация не указана', staff_since:'Работает с',
+      svc_facial:'Уход за лицом', svc_pedicure:'Педикюр', svc_manicure:'Маникюр',
+      svc_manipedi:'Маникюр и педикюр', svc_hair:'Укладка волос', svc_makeup:'Макияж',
+      svc_eyelash:'Уплотнение ресниц', svc_nailart:'Дизайн ногтей', svc_cosmetology:'Косметология', svc_other:'Другое',
+      svc_name_lbl:'Название услуги', svc_name_ph:'например, Маникюр',
+      svc_emoji_lbl:'Значок (эмодзи)', svc_emoji_ph:'например, 💅',
+      btn_save_svc:'💾 Сохранить услугу',
+      subsvc_name_lbl:'Название подуслуги', subsvc_name_ph:'например, Французский маникюр',
+      subsvc_price_lbl:'Цена (необязательно)', subsvc_price_ph:'например, 25',
+      subsvc_duration_lbl:'Длительность (необязательно)', subsvc_duration_ph:'например, 45 минут',
+      subsvc_desc_lbl:'Описание (необязательно)', subsvc_desc_ph:'Краткое описание…',
+      btn_save_subsvc:'💾 Сохранить подуслугу',
+      choose_options:'Выберите вариант',
+      lang_name_en:'Английский', lang_name_hy:'Армянский', lang_name_ru:'Русский',
+      no_services_available:'Услуги пока недоступны. Пожалуйста, попробуйте позже.',
     }
   };
 
@@ -1808,6 +2038,20 @@
     if(cd) cd.textContent=t('confirm_yes');
     const emEl=document.querySelector('#appt-list .empty-msg');
     if(emEl) emEl.textContent=t('empty_appts');
+
+    // Re-render dynamic pages so they pick up new language for generated content
+    renderStaffDropdown();
+    renderBookingServiceChips();
+    if(document.getElementById('page-calendar')?.classList.contains('active')) renderCal();
+    if(document.getElementById('page-staff')?.classList.contains('active')) renderStaffPage();
+    if(document.getElementById('page-services')?.classList.contains('active')){
+      renderSvcList();
+      if(activeSvcId) renderSubSvcPanel(activeSvcId);
+      else {
+        document.getElementById('subsvc-title').textContent = t('sel_svc');
+        document.getElementById('subsvc-container').innerHTML = `<p class="no-svc-selected">← ${t('no_subsvc_select')}</p>`;
+      }
+    }
   }
 
   function setLang(lang){
@@ -1850,6 +2094,7 @@
   window.selectPct=selectPct;
   window.setLang=setLang;window.toggleLangDropdown=toggleLangDropdown;
   window.deleteSvc=deleteSvc;window.selectSvc=selectSvc;
+  window.openSvcForm=openSvcForm;window.closeSvcModal=closeSvcModal;window.saveSvc=saveSvc;
   window.openSubSvcForm=openSubSvcForm;window.closeSubSvcModal=closeSubSvcModal;window.saveSubSvc=saveSubSvc;
   window.deleteSubSvc=deleteSubSvc;
   window.handleChipClick=handleChipClick;window.togglePickerItem=togglePickerItem;
