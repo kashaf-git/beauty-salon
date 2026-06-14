@@ -273,9 +273,64 @@
       .svc-page-layout{grid-template-columns:1fr;}
       .subsvc-picker-grid{grid-template-columns:1fr;}
     }
+
+    /* AUTH GATE */
+    #app-content.locked{
+      filter:blur(14px);
+      pointer-events:none;
+      user-select:none;
+    }
+    #auth-gate{
+      position:fixed; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(40,60,60,.35);
+      backdrop-filter:blur(2px);
+      z-index:500;
+    }
+    #auth-gate.hidden{display:none;}
+    .gate-box{
+      background:var(--white);
+      border-radius:20px;
+      padding:36px 40px;
+      width:400px; max-width:92vw;
+      text-align:center;
+      box-shadow:0 20px 60px rgba(0,0,0,.25);
+      animation:pop .25s ease;
+    }
+    .gate-box .login-logo{font-family:'Crimson Text',Georgia,serif;font-style:italic;font-weight:600;font-size:32px;color:var(--orange);margin-bottom:4px;}
+    .gate-box .login-logo .christy-part{color:var(--text);}
+    .gate-box .login-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#aaa;margin-bottom:24px;}
+    .gate-box h3{font-family:Georgia,serif;font-size:20px;color:var(--teal-dark);margin-bottom:20px;}
+    .gate-box .form-group{text-align:left;margin-bottom:16px;}
   </style>
 </head>
 <body>
+
+<!-- AUTH GATE -->
+<div id="auth-gate">
+  <div class="gate-box">
+    <div class="login-logo"><span class="christy-part">Christy</span>An <span style="color:var(--text)">◆</span></div>
+    <div class="login-sub">Beauty Studio</div>
+    <h3 data-i18n="login_title">Sign In</h3>
+    <div class="form-group">
+      <label data-i18n="lbl_username">Username</label>
+      <input type="text" id="gate-username" placeholder=""/>
+    </div>
+    <div class="form-group" id="gate-password-group">
+      <label data-i18n="lbl_password">Password</label>
+      <input type="password" id="gate-password" placeholder="Password"/>
+    </div>
+    <div class="form-group" id="gate-newpassword-group" style="display:none">
+      <label data-i18n="login_create_pw">Create a Password</label>
+      <input type="password" id="gate-newpassword" placeholder="Choose a password"/>
+    </div>
+    <div class="login-info" id="gate-info"></div>
+    <div class="login-error" id="gate-error"></div>
+    <button class="btn-login-submit" id="gate-submit-btn" onclick="submitGateLogin()" data-i18n="login_submit">Sign In</button>
+  </div>
+</div>
+
+<div id="app-content" class="locked">
 
 <div id="loading-bar"></div>
 <div id="sync-status"><span class="dot"></span><span id="sync-text">Connected</span></div>
@@ -599,6 +654,10 @@
         <option value="admin" data-i18n="sf_role_admin">Admin</option>
       </select>
     </div>
+    <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+      <input type="checkbox" id="sf-is-stylist" checked style="width:18px;height:18px;cursor:pointer;"/>
+      <label for="sf-is-stylist" style="margin:0;text-transform:none;letter-spacing:normal;font-size:13px;color:var(--text);cursor:pointer;" data-i18n="sf_is_stylist">Show in Stylist / Therapist list on booking form</label>
+    </div>
     <div class="form-group">
       <label><span data-i18n="sf_username">Login Username</span> <span style="font-size:11px;color:#aaa;text-transform:none;letter-spacing:0" data-i18n="sf_username_hint">(auto-generated from name)</span></label>
       <input type="text" id="sf-email" placeholder="e.g. maria.garcia" readonly style="background:#f0f0f0;color:#888;cursor:default;"/>
@@ -750,6 +809,7 @@
         document.getElementById('nav-staff-btn').style.display='inline';
         document.getElementById('nav-services-btn').style.display='inline';
       }
+      hideAuthGate();
     } else {
       currentRole = null;
       document.getElementById('logged-in-label').style.display='none';
@@ -757,6 +817,7 @@
       document.getElementById('btn-logout-nav').style.display='none';
       document.getElementById('nav-staff-btn').style.display='none';
       document.getElementById('nav-services-btn').style.display='none';
+      showAuthGate();
     }
   });
 
@@ -789,6 +850,7 @@
 
   // ── LOGIN MODAL ───────────────────────────────────────────────────
   let loginMode = 'signin'; // 'signin' | 'setpassword'
+  let gateLoginMode = 'signin';
 
   function openLoginModal(){
     loginMode='signin';
@@ -806,25 +868,29 @@
 
   function closeLoginModal(){ document.getElementById('login-modal').classList.remove('open'); }
 
-  async function submitLogin(){
-    const username  = document.getElementById('login-username').value.trim().toLowerCase();
-    const password  = document.getElementById('login-password').value;
-    const newpw     = document.getElementById('login-newpassword').value;
-    const errEl     = document.getElementById('login-error');
-    const infoEl    = document.getElementById('login-info');
+  // Generic login handler. `prefix` is 'login' (in-app modal) or 'gate' (full-screen gate).
+  async function performLogin(prefix){
+    const isGate   = prefix==='gate';
+    const username = document.getElementById(prefix+'-username').value.trim().toLowerCase();
+    const password = document.getElementById(prefix+'-password').value;
+    const newpw    = document.getElementById(prefix+'-newpassword').value;
+    const errEl    = document.getElementById(prefix+'-error');
+    const infoEl   = document.getElementById(prefix+'-info');
     errEl.className='login-error'; infoEl.className='login-info';
+
+    let mode = isGate ? gateLoginMode : loginMode;
 
     if(!username){ errEl.textContent='Please enter your username.'; errEl.className='login-error show'; return; }
 
     const authEmail = username+'@christyan.internal';
 
-    if(loginMode==='setpassword'){
+    if(mode==='setpassword'){
       if(newpw.length<6){ errEl.textContent='Password must be at least 6 characters.'; errEl.className='login-error show'; return; }
       try{
         await createUserWithEmailAndPassword(auth, authEmail, newpw);
         const staffMember = staffCache.find(s=>nameToEmail(s.firstName,s.surname)===authEmail);
         if(staffMember) await updateDoc(doc(db,'staff',staffMember.id),{hasPassword:true});
-        closeLoginModal();
+        if(isGate) hideAuthGate(); else closeLoginModal();
         showToast('✅ Password set! You are now logged in.');
       }catch(e){
         errEl.textContent=friendlyAuthError(e.code);
@@ -845,16 +911,17 @@
 
     try{
       await signInWithEmailAndPassword(auth, authEmail, password);
-      closeLoginModal();
+      if(isGate) hideAuthGate(); else closeLoginModal();
       showToast('✅ Welcome back, '+staffMember.firstName+'!');
     }catch(e){
       if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'){
         if(!staffMember.hasPassword){
-          loginMode='setpassword';
-          document.getElementById('login-modal-title').textContent=t('login_create_pw')||'Create Your Password';
-          document.getElementById('login-password-group').style.display='none';
-          document.getElementById('login-newpassword-group').style.display='';
-          document.getElementById('login-submit-btn').textContent=t('login_set_pw')||'Set Password & Login';
+          if(isGate) gateLoginMode='setpassword'; else loginMode='setpassword';
+          if(prefix==='login') document.getElementById('login-modal-title').textContent=t('login_create_pw')||'Create Your Password';
+          else document.querySelector('#auth-gate h3').textContent=t('login_create_pw')||'Create Your Password';
+          document.getElementById(prefix+'-password-group').style.display='none';
+          document.getElementById(prefix+'-newpassword-group').style.display='';
+          document.getElementById(prefix+'-submit-btn').textContent=t('login_set_pw')||'Set Password & Login';
           infoEl.textContent="You haven't set a password yet. Choose one below to activate your account.";
           infoEl.className='login-info show';
         } else {
@@ -866,6 +933,29 @@
         errEl.className='login-error show';
       }
     }
+  }
+
+  async function submitLogin(){ await performLogin('login'); }
+  async function submitGateLogin(){ await performLogin('gate'); }
+
+  function showAuthGate(){
+    document.getElementById('auth-gate').classList.remove('hidden');
+    document.getElementById('app-content').classList.add('locked');
+    // Reset gate form
+    gateLoginMode='signin';
+    document.getElementById('gate-username').value='';
+    document.getElementById('gate-password').value='';
+    document.getElementById('gate-newpassword').value='';
+    document.getElementById('gate-error').className='login-error';
+    document.getElementById('gate-info').className='login-info';
+    document.getElementById('gate-password-group').style.display='';
+    document.getElementById('gate-newpassword-group').style.display='none';
+    document.getElementById('gate-submit-btn').textContent=t('login_submit');
+  }
+
+  function hideAuthGate(){
+    document.getElementById('auth-gate').classList.add('hidden');
+    document.getElementById('app-content').classList.remove('locked');
   }
 
   function friendlyAuthError(code){
@@ -918,7 +1008,7 @@
   function renderStaffDropdown(){
     const sel=document.getElementById('f-stylist'),cur=sel.value;
     sel.innerHTML=`<option value="">${t('sel_stylist')}</option><option value="Any Available">${t('opt_any')}</option>`;
-    staffCache.forEach(s=>{
+    staffCache.filter(s=>s.isStylist!==false).forEach(s=>{
       const o=document.createElement('option');
       o.value=`${s.firstName} ${s.surname}`;
       o.textContent=`${s.firstName} ${s.surname}`;
@@ -1051,6 +1141,7 @@
     document.getElementById('sf-role').value='general';
     document.getElementById('sf-email').value='';
     document.getElementById('sf-password').value='';
+    document.getElementById('sf-is-stylist').checked=true;
 
     if(id){
       const s=staffCache.find(x=>x.id===id);
@@ -1064,6 +1155,7 @@
         document.getElementById('sf-role').value=s.role||'general';
         document.getElementById('sf-email').value=s.authEmail?s.authEmail.replace('@christyan.internal',''):nameToEmail(s.firstName||'',s.surname||'').replace('@christyan.internal','');
         document.getElementById('sf-password-group').style.display='none';
+        document.getElementById('sf-is-stylist').checked = s.isStylist !== false; // default true
       }
     } else {
       document.getElementById('staff-modal-title').textContent=t('add_staff_modal');
@@ -1085,6 +1177,7 @@
     const startDate =document.getElementById('sf-startdate').value;
     const role      =document.getElementById('sf-role').value;
     const password  =document.getElementById('sf-password').value;
+    const isStylist =document.getElementById('sf-is-stylist').checked;
 
     if(!firstName){showToast('⚠️ Please enter a first name.');return;}
     if(!surname)  {showToast('⚠️ Please enter a surname.');return;}
@@ -1092,7 +1185,7 @@
     const authEmail = nameToEmail(firstName, surname);
     showSync('syncing','Saving…');
     try{
-      const data={firstName,surname,specialty,startDate,role,authEmail};
+      const data={firstName,surname,specialty,startDate,role,authEmail,isStylist};
 
       if(password&&!id){
         try{
@@ -1739,8 +1832,8 @@
 
     // Populate stylist dropdown
     const sel=document.getElementById('ea-stylist');
-    sel.innerHTML='<option value="">— Select Staff Member —</option><option value="Any Available">Any Available</option>';
-    staffCache.forEach(s=>{
+    sel.innerHTML=`<option value="">${t('sel_stylist')}</option><option value="Any Available">${t('opt_any')}</option>`;
+    staffCache.filter(s=>s.isStylist!==false).forEach(s=>{
       const o=document.createElement('option');
       o.value=`${s.firstName} ${s.surname}`;
       o.textContent=`${s.firstName} ${s.surname}`;
@@ -1796,6 +1889,7 @@
   document.getElementById('staff-modal').addEventListener('click',function(e){if(e.target===this)closeStaffModal();});
   document.getElementById('login-modal').addEventListener('click',function(e){if(e.target===this)closeLoginModal();});
   document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('login-modal').classList.contains('open'))submitLogin();});
+  document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('auth-gate').classList.contains('hidden'))submitGateLogin();});
 
   let toastTimer;
   function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3500);}
@@ -1870,6 +1964,7 @@
       choose_options:'Choose Options',
       lang_name_en:'English', lang_name_hy:'Armenian', lang_name_ru:'Russian',
       no_services_available:'No services available yet. Please check back soon.',
+      sf_is_stylist:'Show in Stylist / Therapist list on booking form',
     },
     hy: {
       nav_book:'📅 Ամրագրել այց',
@@ -1963,6 +2058,7 @@
       choose_options:'Ընտրեք տարբերակ',
       lang_name_en:'Անգլերեն', lang_name_hy:'Հայերեն', lang_name_ru:'Ռուսերեն',
       no_services_available:'Առայժմ ծառայություններ հասանելի չեն: Խնդրում ենք փորձել ավելի ուշ:',
+      sf_is_stylist:'Ցուցադրել «Մասնագետ» ցանկում ամրագրման ձևում',
     },
 
     ru: {
@@ -2026,6 +2122,7 @@
       choose_options:'Выберите вариант',
       lang_name_en:'Английский', lang_name_hy:'Армянский', lang_name_ru:'Русский',
       no_services_available:'Услуги пока недоступны. Пожалуйста, попробуйте позже.',
+      sf_is_stylist:'Показывать в списке «Стилист» на форме записи',
     }
   };
 
@@ -2117,6 +2214,9 @@
   window.deleteSubSvc=deleteSubSvc;
   window.handleChipClick=handleChipClick;window.togglePickerItem=togglePickerItem;
   window.confirmSubSvcPicker=confirmSubSvcPicker;window.skipSubSvcPicker=skipSubSvcPicker;
+  window.submitGateLogin=submitGateLogin;
 </script>
+
+</div><!-- /#app-content -->
 </body>
 </html>
