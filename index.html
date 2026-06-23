@@ -243,6 +243,17 @@
     .subsvc-item .ss-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 5px;border-radius:5px;}
     .subsvc-item .ss-edit{color:var(--teal-dark);background:var(--teal-light);}
     .subsvc-item .ss-del{color:#c00;background:#fff0f0;}
+    .opt-section{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);}
+    .opt-list{display:flex;flex-direction:column;gap:5px;margin-bottom:8px;}
+    .opt-item{display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;}
+    .opt-item .opt-name{font-weight:600;color:var(--text);}
+    .opt-item .opt-meta{color:#888;font-size:11px;margin-left:auto;white-space:nowrap;}
+    .opt-item .opt-actions{display:flex;gap:3px;}
+    .opt-item .opt-actions button{background:none;border:none;cursor:pointer;font-size:12px;padding:1px 4px;border-radius:4px;}
+    .opt-item .opt-edit{color:var(--teal-dark);}
+    .opt-item .opt-del{color:#c00;}
+    .btn-add-opt{width:100%;padding:6px;background:transparent;color:var(--teal-dark);border:1.5px dashed var(--teal);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;}
+    .btn-add-opt:hover{background:var(--teal-light);}
     .no-svc-selected{color:#aaa;font-size:14px;text-align:center;padding:40px 0;font-style:italic;}
 
     /* SUB-SERVICE PICKER MODAL (booking flow) */
@@ -530,6 +541,41 @@
   </div>
 </div>
 
+<!-- OPTION (TIER 3) FORM MODAL -->
+<div class="modal-overlay" id="opt-modal">
+  <div class="modal" style="width:480px">
+    <h3 id="opt-modal-title" data-i18n="add_option_modal">➕ Add Option</h3>
+    <input type="hidden" id="opt-id"/>
+    <input type="hidden" id="opt-subsvc-id"/>
+    <div class="form-group">
+      <label data-i18n="opt_name_lbl">Option Name</label>
+      <input type="text" id="opt-name-en" placeholder="English" style="margin-bottom:8px"/>
+      <input type="text" id="opt-name-hy" placeholder="Հայերեն" style="margin-bottom:8px"/>
+      <input type="text" id="opt-name-ru" placeholder="Русский"/>
+    </div>
+    <div class="row-2">
+      <div class="form-group">
+        <label data-i18n="subsvc_price_lbl">Price (optional)</label>
+        <input type="text" id="opt-price" placeholder="e.g. 25"/>
+      </div>
+      <div class="form-group">
+        <label data-i18n="subsvc_duration_lbl">Duration (optional)</label>
+        <input type="text" id="opt-duration" placeholder="e.g. 45 mins"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label data-i18n="subsvc_desc_lbl">Description (optional)</label>
+      <textarea id="opt-desc-en" rows="2" placeholder="English" style="margin-bottom:8px"></textarea>
+      <textarea id="opt-desc-hy" rows="2" placeholder="Հայերեն" style="margin-bottom:8px"></textarea>
+      <textarea id="opt-desc-ru" rows="2" placeholder="Русский"></textarea>
+    </div>
+    <button class="btn-save-staff" onclick="saveOpt()" data-i18n="btn_save_option">💾 Save Option</button>
+    <div class="modal-btn-row" style="margin-top:10px">
+      <button class="close-btn" onclick="closeOptModal()" data-i18n="confirm_cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- SUB-SERVICE PICKER MODAL (booking flow) -->
 <div class="modal-overlay" id="subsvc-picker-modal">
   <div class="modal subsvc-picker-modal">
@@ -539,6 +585,20 @@
     <div class="modal-btn-row">
       <button class="close-btn" style="background:#888" onclick="skipSubSvcPicker()">Skip / No Sub-Service</button>
       <button class="close-btn" onclick="confirmSubSvcPicker()">Confirm Selection</button>
+    </div>
+  </div>
+</div>
+
+<!-- OPTION PICKER MODAL (tier-3 booking flow) -->
+<div class="modal-overlay" id="opt-picker-modal">
+  <div class="modal subsvc-picker-modal">
+    <h3 id="opt-picker-title">Choose an Option</h3>
+    <p id="opt-picker-sub" style="font-size:13px;color:var(--teal-dark);font-weight:600;margin-bottom:4px"></p>
+    <p style="font-size:13px;color:#888;margin-bottom:12px" data-i18n="opt_picker_hint">Choose an option, or skip to book without a specific option.</p>
+    <div class="subsvc-picker-grid" id="opt-picker-grid"></div>
+    <div class="modal-btn-row">
+      <button class="close-btn" style="background:#888" onclick="skipOptionPicker()" data-i18n="opt_picker_skip">Skip</button>
+      <button class="close-btn" onclick="confirmOptionPicker()" data-i18n="opt_picker_confirm">Confirm</button>
     </div>
   </div>
 </div>
@@ -743,12 +803,15 @@
 
   const svcCol    = collection(db,'services');
   const subSvcCol = collection(db,'subServices');
+  const optCol    = collection(db,'subSubServices');
 
   let appointmentsCache = [];
   let staffCache        = [];
   let servicesCache    = [];
   let subServicesCache = [];
+  let optionsCache     = [];
   let activeSvcId      = null;
+  let activeSubSvcId   = null; // currently expanded sub-service for tier-3 management
   let currentUser      = null;
   let currentRole      = null;
 
@@ -763,6 +826,11 @@
     subServicesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
     if(activeSvcId) renderSubSvcPanel(activeSvcId);
   }, err=>console.error('SubServices listener error:',err));
+
+  onSnapshot(optCol, snap=>{
+    optionsCache = snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(activeSvcId) renderSubSvcPanel(activeSvcId);
+  }, err=>console.error('Options listener error:',err));
   // ── POPULATE TIME SELECT (15-min slots 08:00–20:00) ─────────────
   (function(){
     const sel = document.getElementById('f-time');
@@ -1095,15 +1163,24 @@
     showSync('syncing','Deleting…');
     try{
       if(type==='service'){
-        // Delete service and all its sub-services
+        // Delete service, all its sub-services, and all their tier-3 options
         await deleteDoc(doc(db,'services',id));
         const subsToDelete = subServicesCache.filter(s=>s.serviceId===id);
+        const subIds = subsToDelete.map(s=>s.id);
         await Promise.all(subsToDelete.map(s=>deleteDoc(doc(db,'subServices',s.id))));
+        const optsToDelete = optionsCache.filter(o=>subIds.includes(o.subServiceId));
+        await Promise.all(optsToDelete.map(o=>deleteDoc(doc(db,'subSubServices',o.id))));
         if(activeSvcId===id){ activeSvcId=null; document.getElementById('subsvc-title').textContent=t('sel_svc'); document.getElementById('subsvc-container').innerHTML=`<p class="no-svc-selected">← ${t('no_subsvc_select')}</p>`; document.getElementById('btn-add-subsvc').style.display='none'; }
         showToast(t('toast_service_deleted'));
       } else if(type==='subService'){
+        // Delete sub-service and all its tier-3 options
         await deleteDoc(doc(db,'subServices',id));
+        const optsToDelete = optionsCache.filter(o=>o.subServiceId===id);
+        await Promise.all(optsToDelete.map(o=>deleteDoc(doc(db,'subSubServices',o.id))));
         showToast(t('toast_subsvc_deleted'));
+      } else if(type==='option'){
+        await deleteDoc(doc(db,'subSubServices',id));
+        showToast(t('toast_option_deleted'));
       } else {
         await deleteDoc(doc(db,type==='staff'?'staff':'appointments',id));
         showToast(type==='staff'?t('toast_staff_removed'):t('toast_appt_removed'));
@@ -1233,7 +1310,7 @@
     const btn = document.getElementById(idMap[val]);
     if(btn) btn.classList.add('pct-selected');
   }
-  // Selected sub-services per service: { serviceId: [subSvcId, ...] }
+  // Selected per service: { serviceId: [ {subSvcId, optionId|null}, ... ] }
   let selectedSubSvcs = {};
   // Which service chip is pending sub-service selection
   let pendingPickerSvcId = null;
@@ -1256,16 +1333,32 @@
         <span class="chip-label">${esc(getLocalizedName(s))}</span>
       </div>
     `).join('');
-    // Re-apply any existing selections, including sub-service labels in the current language
-    Object.entries(selectedSubSvcs).forEach(([sid, subIds])=>{
+    // Re-apply existing selections with labels in the current language
+    Object.keys(selectedSubSvcs).forEach(sid=>{
       const chip = document.getElementById('chip-'+sid);
       if(!chip) return;
       chip.classList.add('selected');
-      const svc = servicesCache.find(s=>s.id===sid);
-      const names = (subIds||[]).map(id=>getLocalizedName(subServicesCache.find(x=>x.id===id))).filter(Boolean);
-      const labelEl = chip.querySelector('.chip-label');
-      if(labelEl) labelEl.textContent = names.length ? `${getLocalizedName(svc)}: ${names.join(', ')}` : getLocalizedName(svc);
+      updateChipLabel(sid);
     });
+  }
+
+  // Build the label text for a selected service chip, including sub-service + option names
+  function updateChipLabel(svcId){
+    const chip = document.getElementById('chip-'+svcId);
+    if(!chip) return;
+    const svc = servicesCache.find(s=>s.id===svcId);
+    const sels = selectedSubSvcs[svcId] || [];
+    const names = sels.map(sel=>{
+      const ss = subServicesCache.find(x=>x.id===sel.subSvcId);
+      const ssName = getLocalizedName(ss);
+      if(sel.optionId){
+        const opt = optionsCache.find(o=>o.id===sel.optionId);
+        return `${ssName} – ${getLocalizedName(opt)}`;
+      }
+      return ssName;
+    }).filter(Boolean);
+    const labelEl = chip.querySelector('.chip-label');
+    if(labelEl) labelEl.textContent = names.length ? `${getLocalizedName(svc)}: ${names.join(', ')}` : getLocalizedName(svc);
   }
 
   function handleChipClick(svcId){
@@ -1301,14 +1394,14 @@
     }
   }
 
-  // Sub-service picker state
+  // Sub-service picker state (tier 2) — holds picked subSvcIds before tier-3 resolution
   let pickerTempSelections = [];
 
   function openSubSvcPicker(svcId){
     pendingPickerSvcId = svcId;
     const svc = servicesCache.find(s=>s.id===svcId);
     const subs = subServicesCache.filter(s=>s.serviceId===svcId);
-    pickerTempSelections = [...(selectedSubSvcs[svcId]||[])];
+    pickerTempSelections = (selectedSubSvcs[svcId]||[]).map(sel=>sel.subSvcId);
 
     document.getElementById('picker-title').textContent = `${svc?.emoji||''} ${getLocalizedName(svc)||'Service'} — ${t('choose_options')}`;
 
@@ -1316,16 +1409,18 @@
     if(!subs.length){
       grid.innerHTML='<p class="no-subsvc-msg">No sub-services added yet.</p>';
     } else {
-      grid.innerHTML = subs.map(ss=>`
+      grid.innerHTML = subs.map(ss=>{
+        const hasOpts = optionsCache.some(o=>o.subServiceId===ss.id);
+        return `
         <div class="subsvc-pick-item ${pickerTempSelections.includes(ss.id)?'picked':''}" id="pick-${ss.id}" onclick="togglePickerItem('${ss.id}')">
-          <div class="sp-name">${esc(getLocalizedName(ss))}</div>
+          <div class="sp-name">${esc(getLocalizedName(ss))}${hasOpts?' ▸':''}</div>
           <div class="sp-meta">
-            ${ss.price?`<span>💷 ${esc(ss.price)}</span>`:''}
-            ${ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
+            ${!hasOpts && ss.price?`<span>💷 ${esc(ss.price)}</span>`:''}
+            ${!hasOpts && ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
           </div>
           ${getLocalizedDesc(ss)?`<div class="sp-meta" style="margin-top:3px;font-style:italic">${esc(getLocalizedDesc(ss))}</div>`:''}
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
     }
     document.getElementById('subsvc-picker-modal').classList.add('open');
   }
@@ -1342,28 +1437,26 @@
   }
 
   function confirmSubSvcPicker(){
-    if(pendingPickerSvcId){
-      selectedSubSvcs[pendingPickerSvcId] = [...pickerTempSelections];
-      const chip = document.getElementById('chip-'+pendingPickerSvcId);
-      if(chip){
-        chip.classList.add('selected');
-        // Update chip label to show selected sub-services
-        const names = pickerTempSelections.map(id=>{
-          const ss = subServicesCache.find(x=>x.id===id);
-          return getLocalizedName(ss);
-        }).filter(Boolean);
-        const labelEl = chip.querySelector('.chip-label');
-        const svc = servicesCache.find(s=>s.id===pendingPickerSvcId);
-        if(labelEl) labelEl.textContent = names.length ? `${getLocalizedName(svc)}: ${names.join(', ')}` : getLocalizedName(svc);
-      }
-    }
+    if(!pendingPickerSvcId){ document.getElementById('subsvc-picker-modal').classList.remove('open'); return; }
+    // Determine which picked sub-services have tier-3 options
+    const svcId = pendingPickerSvcId;
+    const subsWithOpts = pickerTempSelections.filter(ssId=>optionsCache.some(o=>o.subServiceId===ssId));
+
+    // Build initial selections (option = null for now)
+    selectedSubSvcs[svcId] = pickerTempSelections.map(ssId=>({subSvcId:ssId, optionId:null}));
+
     document.getElementById('subsvc-picker-modal').classList.remove('open');
-    pendingPickerSvcId = null;
+
+    if(subsWithOpts.length){
+      // Open tier-3 picker for the first sub-service that has options
+      openOptionPicker(svcId, subsWithOpts, 0);
+    } else {
+      finalizeChipSelection(svcId);
+    }
   }
 
   function skipSubSvcPicker(){
     if(pendingPickerSvcId){
-      // Select the main service with no sub-service
       selectedSubSvcs[pendingPickerSvcId] = [];
       const chip = document.getElementById('chip-'+pendingPickerSvcId);
       if(chip){
@@ -1377,12 +1470,94 @@
     pendingPickerSvcId = null;
   }
 
-  // Get selected services for booking submission
+  // ── TIER-3 OPTION PICKER (booking flow) ───────────────────────────
+  let optPickerCtx = null; // { svcId, subsWithOpts, index, selectedOptId }
+
+  function openOptionPicker(svcId, subsWithOpts, index){
+    const ssId = subsWithOpts[index];
+    const ss = subServicesCache.find(x=>x.id===ssId);
+    const opts = optionsCache.filter(o=>o.subServiceId===ssId);
+    // Pre-select if already chosen
+    const existing = (selectedSubSvcs[svcId]||[]).find(s=>s.subSvcId===ssId);
+    optPickerCtx = { svcId, subsWithOpts, index, selectedOptId: existing?.optionId || null };
+
+    const svc = servicesCache.find(s=>s.id===svcId);
+    document.getElementById('opt-picker-title').textContent = `${getLocalizedName(ss)} — ${t('choose_options')}`;
+    document.getElementById('opt-picker-sub').textContent = `${getLocalizedName(svc)} ▸ ${getLocalizedName(ss)}`;
+
+    const grid = document.getElementById('opt-picker-grid');
+    grid.innerHTML = opts.map(o=>`
+      <div class="subsvc-pick-item ${optPickerCtx.selectedOptId===o.id?'picked':''}" id="optpick-${o.id}" onclick="toggleOptPickerItem('${o.id}')">
+        <div class="sp-name">${esc(getLocalizedName(o))}</div>
+        <div class="sp-meta">
+          ${o.price?`<span>💷 ${esc(o.price)}</span>`:''}
+          ${o.duration?`<span>⏱ ${esc(o.duration)}</span>`:''}
+        </div>
+        ${getLocalizedDesc(o)?`<div class="sp-meta" style="margin-top:3px;font-style:italic">${esc(getLocalizedDesc(o))}</div>`:''}
+      </div>
+    `).join('');
+    document.getElementById('opt-picker-modal').classList.add('open');
+  }
+
+  function toggleOptPickerItem(optId){
+    // Single-select per sub-service
+    optPickerCtx.selectedOptId = (optPickerCtx.selectedOptId===optId) ? null : optId;
+    document.querySelectorAll('#opt-picker-grid .subsvc-pick-item').forEach(el=>el.classList.remove('picked'));
+    if(optPickerCtx.selectedOptId) document.getElementById('optpick-'+optId)?.classList.add('picked');
+  }
+
+  function confirmOptionPicker(){
+    const { svcId, subsWithOpts, index, selectedOptId } = optPickerCtx;
+    const ssId = subsWithOpts[index];
+    // Save the chosen option against the right sub-service selection
+    const sel = (selectedSubSvcs[svcId]||[]).find(s=>s.subSvcId===ssId);
+    if(sel) sel.optionId = selectedOptId;
+
+    document.getElementById('opt-picker-modal').classList.remove('open');
+
+    if(index+1 < subsWithOpts.length){
+      openOptionPicker(svcId, subsWithOpts, index+1);
+    } else {
+      finalizeChipSelection(svcId);
+      optPickerCtx = null;
+    }
+  }
+
+  function skipOptionPicker(){
+    // Leave optionId as null for this sub-service, move on
+    const { svcId, subsWithOpts, index } = optPickerCtx;
+    document.getElementById('opt-picker-modal').classList.remove('open');
+    if(index+1 < subsWithOpts.length){
+      openOptionPicker(svcId, subsWithOpts, index+1);
+    } else {
+      finalizeChipSelection(svcId);
+      optPickerCtx = null;
+    }
+  }
+
+  function finalizeChipSelection(svcId){
+    const chip = document.getElementById('chip-'+svcId);
+    if(chip){
+      chip.classList.add('selected');
+      updateChipLabel(svcId);
+    }
+    pendingPickerSvcId = null;
+  }
+
+  // Get selected services for booking submission (text form)
   function getSelectedServicesForBooking(){
-    return Object.entries(selectedSubSvcs).map(([svcId, subIds])=>{
+    return Object.entries(selectedSubSvcs).map(([svcId, sels])=>{
       const svc = servicesCache.find(s=>s.id===svcId);
-      const subs = subIds.map(id=>getLocalizedName(subServicesCache.find(x=>x.id===id))).filter(Boolean);
-      return subs.length ? `${getLocalizedName(svc)} (${subs.join(', ')})` : getLocalizedName(svc);
+      const parts = (sels||[]).map(sel=>{
+        const ss = subServicesCache.find(x=>x.id===sel.subSvcId);
+        const ssName = getLocalizedName(ss);
+        if(sel.optionId){
+          const opt = optionsCache.find(o=>o.id===sel.optionId);
+          return `${ssName} – ${getLocalizedName(opt)}`;
+        }
+        return ssName;
+      }).filter(Boolean);
+      return parts.length ? `${getLocalizedName(svc)} (${parts.join(', ')})` : getLocalizedName(svc);
     }).filter(Boolean);
   }
 
@@ -1426,7 +1601,10 @@
       container.innerHTML=`<p class="no-svc-selected">${t('no_subsvc_yet')}</p>`;
       return;
     }
-    container.innerHTML=`<div class="subsvc-grid">${subs.map(ss=>`
+    container.innerHTML=`<div class="subsvc-grid">${subs.map(ss=>{
+      const opts = optionsCache.filter(o=>o.subServiceId===ss.id);
+      const hasOpts = opts.length>0;
+      return `
       <div class="subsvc-item">
         <div class="ss-actions">
           <button class="ss-edit" onclick="openSubSvcForm('${ss.id}')">✏️</button>
@@ -1434,12 +1612,27 @@
         </div>
         <div class="ssname">${esc(getLocalizedName(ss))}</div>
         <div class="ssmeta">
-          ${ss.price?`<span>💷 ${esc(ss.price)}</span>`:''}
-          ${ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
+          ${!hasOpts && ss.price?`<span>💷 ${esc(ss.price)}</span>`:''}
+          ${!hasOpts && ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
         </div>
         ${getLocalizedDesc(ss)?`<div style="font-size:12px;color:#999;margin-top:2px;font-style:italic">${esc(getLocalizedDesc(ss))}</div>`:''}
-      </div>
-    `).join('')}</div>`;
+        <div class="opt-section">
+          ${hasOpts ? `<div class="opt-list">${opts.map(o=>`
+            <div class="opt-item">
+              <span class="opt-name">${esc(getLocalizedName(o))}</span>
+              <span class="opt-meta">
+                ${o.price?`💷 ${esc(o.price)}`:''}${o.price&&o.duration?' · ':''}${o.duration?`⏱ ${esc(o.duration)}`:''}
+              </span>
+              <span class="opt-actions">
+                <button class="opt-edit" onclick="openOptForm('${ss.id}','${o.id}')">✏️</button>
+                <button class="opt-del" onclick="deleteOpt('${o.id}')">🗑</button>
+              </span>
+            </div>
+          `).join('')}</div>` : ''}
+          <button class="btn-add-opt" onclick="openOptForm('${ss.id}')">+ ${t('add_option')}</button>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
   }
 
   // ── LOCALIZATION HELPERS ──────────────────────────────────────────
@@ -1566,6 +1759,71 @@
     document.getElementById('confirm-modal').classList.add('open');
   }
 
+  // ── OPTION (TIER 3) CRUD ──────────────────────────────────────────
+  function openOptForm(subServiceId, id=null){
+    document.getElementById('opt-id').value=id||'';
+    document.getElementById('opt-subsvc-id').value=subServiceId||'';
+    document.getElementById('opt-name-en').value='';
+    document.getElementById('opt-name-hy').value='';
+    document.getElementById('opt-name-ru').value='';
+    document.getElementById('opt-price').value='';
+    document.getElementById('opt-duration').value='';
+    document.getElementById('opt-desc-en').value='';
+    document.getElementById('opt-desc-hy').value='';
+    document.getElementById('opt-desc-ru').value='';
+    if(id){
+      const o=optionsCache.find(x=>x.id===id);
+      if(o){
+        document.getElementById('opt-modal-title').textContent=t('edit_option_modal');
+        document.getElementById('opt-name-en').value=o.name_en||o.name||'';
+        document.getElementById('opt-name-hy').value=o.name_hy||'';
+        document.getElementById('opt-name-ru').value=o.name_ru||'';
+        document.getElementById('opt-price').value=o.price||'';
+        document.getElementById('opt-duration').value=o.duration||'';
+        document.getElementById('opt-desc-en').value=o.desc_en||o.description||'';
+        document.getElementById('opt-desc-hy').value=o.desc_hy||'';
+        document.getElementById('opt-desc-ru').value=o.desc_ru||'';
+      }
+    } else { document.getElementById('opt-modal-title').textContent=t('add_option_modal'); }
+    document.getElementById('opt-modal').classList.add('open');
+  }
+  function closeOptModal(){ document.getElementById('opt-modal').classList.remove('open'); }
+
+  async function saveOpt(){
+    const id           = document.getElementById('opt-id').value;
+    const subServiceId = document.getElementById('opt-subsvc-id').value;
+    const name_en = document.getElementById('opt-name-en').value.trim();
+    const name_hy = document.getElementById('opt-name-hy').value.trim();
+    const name_ru = document.getElementById('opt-name-ru').value.trim();
+    const price    = document.getElementById('opt-price').value.trim();
+    const duration = document.getElementById('opt-duration').value.trim();
+    const desc_en  = document.getElementById('opt-desc-en').value.trim();
+    const desc_hy  = document.getElementById('opt-desc-hy').value.trim();
+    const desc_ru  = document.getElementById('opt-desc-ru').value.trim();
+    if(!name_en && !name_hy && !name_ru){ showToast('⚠️ Please enter a sub-sub-service name in at least one language.'); return; }
+    if(!subServiceId){ showToast('⚠️ No sub-service selected.'); return; }
+    showSync('syncing','Saving…');
+    try{
+      const data = {
+        name_en, name_hy, name_ru, price, duration,
+        desc_en, desc_hy, desc_ru, subServiceId,
+        name: name_en || name_hy || name_ru,
+        description: desc_en || desc_hy || desc_ru,
+      };
+      if(id){ await updateDoc(doc(db,'subSubServices',id),data); showToast('✅ Sub-sub-service updated.'); }
+      else   { await addDoc(optCol,{...data,createdAt:serverTimestamp()}); showToast('✅ Sub-sub-service added.'); }
+      closeOptModal(); showSync('synced','Saved');
+    }catch(e){ console.error(e); showToast('❌ Error saving option.'); showSync('error','Save failed'); }
+  }
+
+  function deleteOpt(id){
+    const o=optionsCache.find(x=>x.id===id);
+    pendingDeleteId=id; pendingDeleteType='option';
+    document.getElementById('confirm-title').textContent=t('delete_option_title');
+    document.getElementById('confirm-msg').textContent=`${t('delete_option_msg')} "${getLocalizedName(o)}"`;
+    document.getElementById('confirm-modal').classList.add('open');
+  }
+
   // ── CALENDAR ──────────────────────────────────────────────────────
   let calView='month';
   const today=new Date();
@@ -1678,13 +1936,49 @@
     );
   }
 
+  // Find an option (tier 3) whose name in ANY language matches
+  function findOptionByAnyName(nameStr){
+    if(!nameStr) return null;
+    const target = nameStr.trim();
+    return optionsCache.find(o=>
+      o.name_en===target || o.name_hy===target || o.name_ru===target || o.name===target
+    );
+  }
+
+  // Given the inner text of a service string (the part inside parentheses, which
+  // may contain multiple comma-separated "SubService – Option" entries), return
+  // the price-bearing item for each. We return a combined price total for the inner part.
+  function priceForInner(innerStr){
+    // innerStr may be e.g. "Hair Coloring – Full Head, Blow Dry"
+    const parts = innerStr.split(',').map(p=>p.trim()).filter(Boolean);
+    let total = 0; let found = false; const labels = [];
+    parts.forEach(part=>{
+      // Split on en-dash / hyphen to separate sub-service from option
+      const m = part.match(/^(.+?)\s*[–-]\s*(.+)$/);
+      let priceStr = null;
+      if(m){
+        const opt = findOptionByAnyName(m[2].trim());
+        if(opt?.price){ priceStr = opt.price; }
+        else {
+          const sub = findSubServiceByAnyName(m[1].trim());
+          if(sub?.price) priceStr = sub.price;
+        }
+      } else {
+        const sub = findSubServiceByAnyName(part);
+        if(sub?.price) priceStr = sub.price;
+      }
+      const p = parsePrice(priceStr);
+      if(p!==null){ total+=p; found=true; labels.push(`${part}: 💷 ${priceStr}`); }
+    });
+    return found ? {total, labels} : null;
+  }
+
   function getApptPriceInfo(services){
     const lines = services.map(svcStr=>{
       const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
       if(match){
-        const subName = match[2].trim();
-        const sub = findSubServiceByAnyName(subName);
-        if(sub?.price) return `${esc(svcStr)} — 💷 ${esc(sub.price)}`;
+        const info = priceForInner(match[2]);
+        if(info) return `${esc(match[1].trim())} — ${info.labels.map(esc).join(', ')}`;
       }
       const sub = findSubServiceByAnyName(svcStr.trim());
       if(sub?.price) return `${esc(svcStr)} — 💷 ${esc(sub.price)}`;
@@ -1705,9 +1999,11 @@
     let total = 0; let found = false;
     services.forEach(svcStr=>{
       const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
-      let sub = null;
-      if(match){ sub = findSubServiceByAnyName(match[2].trim()); }
-      if(!sub)  { sub = findSubServiceByAnyName(svcStr.trim()); }
+      if(match){
+        const info = priceForInner(match[2]);
+        if(info){ total+=info.total; found=true; return; }
+      }
+      const sub = findSubServiceByAnyName(svcStr.trim());
       const p = parsePrice(sub?.price);
       if(p!==null){ total+=p; found=true; }
     });
@@ -1884,6 +2180,8 @@
   document.getElementById('svc-modal').addEventListener('click',function(e){if(e.target===this)closeSvcModal();});
   document.getElementById('subsvc-modal').addEventListener('click',function(e){if(e.target===this)closeSubSvcModal();});
   document.getElementById('subsvc-picker-modal').addEventListener('click',function(e){if(e.target===this)skipSubSvcPicker();});
+  document.getElementById('opt-modal').addEventListener('click',function(e){if(e.target===this)closeOptModal();});
+  document.getElementById('opt-picker-modal').addEventListener('click',function(e){if(e.target===this)skipOptionPicker();});
   document.getElementById('edit-appt-modal').addEventListener('click',function(e){if(e.target===this)closeEditApptModal();});
   document.getElementById('confirm-modal').addEventListener('click',function(e){if(e.target===this)closeConfirm();});
   document.getElementById('staff-modal').addEventListener('click',function(e){if(e.target===this)closeStaffModal();});
@@ -1965,6 +2263,12 @@
       lang_name_en:'English', lang_name_hy:'Armenian', lang_name_ru:'Russian',
       no_services_available:'No services available yet. Please check back soon.',
       sf_is_stylist:'Show in Stylist / Therapist list on booking form',
+      add_option:'Add Sub-Sub-Service', add_option_modal:'➕ Add Sub-Sub-Service', edit_option_modal:'✏️ Edit Sub-Sub-Service',
+      opt_name_lbl:'Sub-Sub-Service Name', btn_save_option:'💾 Save Sub-Sub-Service',
+      delete_option_title:'Delete Sub-Sub-Service?', delete_option_msg:'Are you sure you want to delete this sub-sub-service?',
+      toast_option_deleted:'Sub-sub-service deleted.',
+      opt_picker_hint:'Choose an option, or skip to book without a specific one.',
+      opt_picker_skip:'Skip', opt_picker_confirm:'Confirm',
     },
     hy: {
       nav_book:'📅 Ամրագրել այց',
@@ -2059,6 +2363,12 @@
       lang_name_en:'Անգլերեն', lang_name_hy:'Հայերեն', lang_name_ru:'Ռուսերեն',
       no_services_available:'Առայժմ ծառայություններ հասանելի չեն: Խնդրում ենք փորձել ավելի ուշ:',
       sf_is_stylist:'Ցուցադրել «Մասնագետ» ցանկում ամրագրման ձևում',
+      add_option:'Ավելացնել ենթաենթածառայություն', add_option_modal:'➕ Ավելացնել ենթաենթածառայություն', edit_option_modal:'✏️ Փոփոխել ենթաենթածառայությունը',
+      opt_name_lbl:'Ենթաենթածառայության անվանումը', btn_save_option:'💾 Պահպանել ենթաենթածառայությունը',
+      delete_option_title:'Ջնջե՞լ ենթաենթածառայությունը', delete_option_msg:'Վստա՞հ եք, որ ցանկանում եք ջնջել այս ենթաենթածառայությունը',
+      toast_option_deleted:'Ենթաենթածառայությունը ջնջվեց։',
+      opt_picker_hint:'Ընտրեք տարբերակ կամ բաց թողեք՝ առանց կոնկրետ տարբերակի ամրագրելու համար:',
+      opt_picker_skip:'Բաց թողնել', opt_picker_confirm:'Հաստատել',
     },
 
     ru: {
@@ -2123,6 +2433,12 @@
       lang_name_en:'Английский', lang_name_hy:'Армянский', lang_name_ru:'Русский',
       no_services_available:'Услуги пока недоступны. Пожалуйста, попробуйте позже.',
       sf_is_stylist:'Показывать в списке «Стилист» на форме записи',
+      add_option:'Добавить под-подуслугу', add_option_modal:'➕ Добавить под-подуслугу', edit_option_modal:'✏️ Изменить под-подуслугу',
+      opt_name_lbl:'Название под-подуслуги', btn_save_option:'💾 Сохранить под-подуслугу',
+      delete_option_title:'Удалить под-подуслугу?', delete_option_msg:'Вы уверены, что хотите удалить эту под-подуслугу?',
+      toast_option_deleted:'Под-подуслуга удалена.',
+      opt_picker_hint:'Выберите вариант или пропустите, чтобы записаться без конкретного варианта.',
+      opt_picker_skip:'Пропустить', opt_picker_confirm:'Подтвердить',
     }
   };
 
@@ -2212,6 +2528,9 @@
   window.openSvcForm=openSvcForm;window.closeSvcModal=closeSvcModal;window.saveSvc=saveSvc;
   window.openSubSvcForm=openSubSvcForm;window.closeSubSvcModal=closeSubSvcModal;window.saveSubSvc=saveSubSvc;
   window.deleteSubSvc=deleteSubSvc;
+  window.openOptForm=openOptForm;window.closeOptModal=closeOptModal;window.saveOpt=saveOpt;window.deleteOpt=deleteOpt;
+  window.openOptionPicker=openOptionPicker;window.toggleOptPickerItem=toggleOptPickerItem;
+  window.confirmOptionPicker=confirmOptionPicker;window.skipOptionPicker=skipOptionPicker;
   window.handleChipClick=handleChipClick;window.togglePickerItem=togglePickerItem;
   window.confirmSubSvcPicker=confirmSubSvcPicker;window.skipSubSvcPicker=skipSubSvcPicker;
   window.submitGateLogin=submitGateLogin;
