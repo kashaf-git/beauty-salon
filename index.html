@@ -131,6 +131,26 @@
     .cell-date{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
     .month-cell.today .cell-date{background:var(--orange);color:white;}
     .cell-appt{font-size:11px;background:var(--teal);color:white;border-radius:4px;padding:2px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .cell-appt-stylist{display:block;font-size:9px;opacity:.85;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .week-appt-stylist{opacity:.85;font-style:italic;}
+
+    /* AVAILABILITY PANEL */
+    .availability-panel{background:var(--white);border-radius:18px;box-shadow:var(--shadow);padding:20px 24px;margin-top:20px;}
+    .avail-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px;}
+    .avail-header h3{font-family:Georgia,serif;font-size:18px;color:var(--teal-dark);}
+    .avail-date-label{font-size:13px;color:#888;font-weight:600;}
+    .avail-hint{font-size:12px;color:#aaa;margin-bottom:16px;}
+    .avail-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+    .avail-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--grey);}
+    .avail-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px rgba(0,0,0,.04);}
+    .avail-dot.free{background:#2ecc71;box-shadow:0 0 0 3px rgba(46,204,113,.18);}
+    .avail-dot.busy{background:#e74c3c;box-shadow:0 0 0 3px rgba(231,76,60,.18);}
+    .avail-info{display:flex;flex-direction:column;gap:1px;min-width:0;}
+    .avail-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .avail-status{font-size:11px;font-weight:600;}
+    .avail-status.free{color:#27ae60;}
+    .avail-status.busy{color:#c0392b;}
+    .avail-empty{color:#aaa;font-size:13px;font-style:italic;padding:10px 0;}
     .week-view{background:var(--white);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;}
     .week-header-row{display:grid;background:var(--teal-dark);}
     .week-header-row .time-col{width:70px;min-width:70px;background:var(--teal-dark);}
@@ -223,12 +243,22 @@
     .svc-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:background .15s;font-size:14px;font-weight:500;}
     .svc-list-item:hover{background:var(--teal-light);}
     .svc-list-item.active{background:var(--teal-light);border-left:3px solid var(--teal-dark);font-weight:700;}
-    .svc-list-item .svc-emoji{font-size:18px;}
-    .svc-list-item .svc-actions-sm{margin-left:auto;display:flex;gap:4px;opacity:0;transition:opacity .15s;}
+    .svc-list-item .svc-emoji{font-size:18px;flex-shrink:0;}
+    .svc-list-item .svc-list-name{flex:1;min-width:0;word-break:break-word;}
+    .svc-list-item .svc-actions-sm{flex-shrink:0;display:flex;gap:4px;opacity:.6;transition:opacity .15s;}
     .svc-list-item:hover .svc-actions-sm{opacity:1;}
     .svc-list-item .svc-actions-sm button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 5px;border-radius:5px;}
     .svc-list-item .svc-actions-sm .edit-svc{color:var(--teal-dark);}
     .svc-list-item .svc-actions-sm .del-svc{color:#c00;}
+    /* REORDER BUTTONS */
+    .reorder-btns{display:flex;flex-direction:column;gap:1px;flex-shrink:0;}
+    .reorder-btns button,.opt-reorder button,.ss-actions .reorder-up,.ss-actions .reorder-down{
+      background:none;border:none;cursor:pointer;font-size:9px;line-height:1;padding:1px 3px;color:var(--teal-dark);border-radius:3px;
+    }
+    .reorder-btns button:hover,.opt-reorder button:hover,.ss-actions .reorder-up:hover,.ss-actions .reorder-down:hover{background:var(--teal-light);}
+    .reorder-btns button:disabled,.opt-reorder button:disabled,.ss-actions .reorder-up:disabled,.ss-actions .reorder-down:disabled{color:#ccc;cursor:default;background:none;}
+    .opt-reorder{display:flex;flex-direction:column;gap:0;flex-shrink:0;margin-right:2px;}
+    .ss-actions .reorder-up,.ss-actions .reorder-down{padding:2px 4px;font-size:10px;}
     .btn-add-svc{width:100%;margin-top:14px;padding:10px;background:var(--orange);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s;}
     .btn-add-svc:hover{background:#b5511f;}
     .subsvc-card{background:var(--white);border-radius:18px;padding:24px;box-shadow:var(--shadow);}
@@ -237,18 +267,19 @@
     .btn-add-subsvc:hover{background:#b5511f;}
     .subsvc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px;}
     .subsvc-item{background:var(--grey);border-radius:12px;padding:14px 16px;border:1.5px solid var(--border);display:flex;flex-direction:column;gap:4px;position:relative;}
-    .subsvc-item .ssname{font-size:14px;font-weight:600;color:var(--text);}
+    .subsvc-item .ssname{font-size:14px;font-weight:600;color:var(--text);word-break:break-word;}
     .subsvc-item .ssmeta{font-size:12px;color:#888;display:flex;gap:10px;}
-    .subsvc-item .ss-actions{position:absolute;top:10px;right:10px;display:flex;gap:4px;}
+    .subsvc-item .ss-actions{display:flex;gap:4px;justify-content:flex-end;margin-bottom:2px;}
     .subsvc-item .ss-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 5px;border-radius:5px;}
     .subsvc-item .ss-edit{color:var(--teal-dark);background:var(--teal-light);}
     .subsvc-item .ss-del{color:#c00;background:#fff0f0;}
     .opt-section{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);}
     .opt-list{display:flex;flex-direction:column;gap:5px;margin-bottom:8px;}
-    .opt-item{display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;}
-    .opt-item .opt-name{font-weight:600;color:var(--text);}
+    .opt-item{display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;flex-wrap:wrap;}
+    .opt-item .opt-name{font-weight:600;color:var(--text);flex:1;min-width:80px;word-break:break-word;}
     .opt-item .opt-meta{color:#888;font-size:11px;margin-left:auto;white-space:nowrap;}
-    .opt-item .opt-actions{display:flex;gap:3px;}
+    .opt-item .opt-reorder{flex-shrink:0;}
+    .opt-item .opt-actions{display:flex;gap:3px;flex-shrink:0;}
     .opt-item .opt-actions button{background:none;border:none;cursor:pointer;font-size:12px;padding:1px 4px;border-radius:4px;}
     .opt-item .opt-edit{color:var(--teal-dark);}
     .opt-item .opt-del{color:#c00;}
@@ -461,6 +492,16 @@
     <button class="cal-nav-btn" title="Jump to today" onclick="goToday()">●</button>
   </div>
   <div id="cal-container"></div>
+
+  <!-- STYLIST AVAILABILITY PANEL -->
+  <div class="availability-panel" id="availability-panel">
+    <div class="avail-header">
+      <h3 data-i18n="avail_title">💁 Stylist Availability</h3>
+      <span class="avail-date-label" id="avail-date-label"></span>
+    </div>
+    <p class="avail-hint" data-i18n="avail_hint">Green = free for the next 1.5 hours · Red = busy</p>
+    <div class="avail-list" id="avail-list"></div>
+  </div>
 </div>
 
 <!-- SERVICES PAGE -->
@@ -817,7 +858,7 @@
 
   onSnapshot(svcCol, snap=>{
     servicesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
-    servicesCache.sort((a,b)=>(a.name_en||a.name||'').localeCompare(b.name_en||b.name||''));
+    servicesCache.sort(bySortOrder);
     renderBookingServiceChips();
     if(document.getElementById('page-services').classList.contains('active')) renderSvcList();
   }, err=>console.error('Services listener error:',err));
@@ -1086,6 +1127,26 @@
   }
 
   // ── BOOK APPOINTMENT ──────────────────────────────────────────────
+  // Check if a stylist has a conflicting appointment overlapping the 90-min window
+  // around the proposed date/time. Returns the conflicting appointment, or null.
+  // `ignoreId` lets us skip the appointment being edited.
+  function getStylistConflict(stylist, date, time, ignoreId=null){
+    if(!stylist || stylist==='Any Available' || !date || !time) return null;
+    const [hh,mm] = time.split(':').map(n=>parseInt(n,10));
+    const newStart = hh*60 + (mm||0);
+    const newEnd   = newStart + APPT_DURATION_MIN;
+    const target = stylist.trim().toLowerCase();
+    return appointmentsCache.find(a=>{
+      if(ignoreId && a.id===ignoreId) return false;
+      if(a.date!==date) return false;
+      if(!a.stylist || a.stylist.trim().toLowerCase()!==target) return false;
+      const [ah,am] = (a.time||'0:0').split(':').map(n=>parseInt(n,10));
+      const aStart = ah*60 + (am||0);
+      const aEnd   = aStart + APPT_DURATION_MIN;
+      return aStart < newEnd && aEnd > newStart; // overlap
+    }) || null;
+  }
+
   async function bookAppointment(){
     const name    =document.getElementById('f-name').value.trim();
     const date    =document.getElementById('f-date').value;
@@ -1101,6 +1162,24 @@
     if(!time)           {showToast('⚠️ Please select a time.');return;}
     if(!services.length){showToast('⚠️ Please select at least one service.');return;}
     if(services.includes('Other')&&!notes){showToast('⚠️ Please describe the "Other" service in the Notes field.');return;}
+
+    // Stylist double-booking check (90-min overlap)
+    const conflict = getStylistConflict(stylist, date, time);
+    if(conflict){
+      document.getElementById('confirm-title').textContent = t('conflict_title');
+      document.getElementById('confirm-msg').innerHTML =
+        `${t('conflict_msg')}<br><br><strong>${esc(stylist)}</strong><br>${t('conflict_existing')}: ${esc(conflict.name)} · ${fmtDate(conflict.date)} ${conflict.time}`;
+      // Repurpose confirm modal: show only an OK button to dismiss
+      const cancelBtn = document.querySelector('.confirm-cancel-btn');
+      const okBtn = document.querySelector('.confirm-delete-btn');
+      cancelBtn.style.display='none';
+      okBtn.textContent = t('conflict_ok');
+      okBtn.classList.add('conflict-ok-mode');
+      pendingDeleteType='conflict'; pendingDeleteId=null;
+      document.getElementById('confirm-modal').classList.add('open');
+      return;
+    }
+
     const btn=document.getElementById('btn-book');
     btn.disabled=true;btn.textContent='Saving…';
     showSync('syncing','Saving…');setLoading(40);
@@ -1155,8 +1234,18 @@
     document.getElementById('confirm-msg').textContent=`${t('delete_staff_msg')} ${s?s.firstName+' '+s.surname:''}`;
     document.getElementById('confirm-modal').classList.add('open');
   }
-  function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');pendingDeleteId=null;}
+  function closeConfirm(){
+    document.getElementById('confirm-modal').classList.remove('open');
+    pendingDeleteId=null;
+    // Restore confirm modal buttons in case they were repurposed for a conflict warning
+    const cancelBtn = document.querySelector('.confirm-cancel-btn');
+    const okBtn = document.querySelector('.confirm-delete-btn');
+    if(cancelBtn) cancelBtn.style.display='';
+    if(okBtn){ okBtn.classList.remove('conflict-ok-mode'); okBtn.textContent=t('confirm_yes'); }
+  }
   async function confirmDelete(){
+    // Conflict warning: this modal was repurposed as an info dialog — just dismiss
+    if(pendingDeleteType==='conflict'){ pendingDeleteType='appt'; closeConfirm(); return; }
     if(!pendingDeleteId)return;
     const id=pendingDeleteId, type=pendingDeleteType;
     closeConfirm(); closeModal();
@@ -1326,7 +1415,7 @@
     }
 
     grid.dataset.dynamic = 'true';
-    grid.innerHTML = servicesCache.map(s=>`
+    grid.innerHTML = [...servicesCache].sort(bySortOrder).map(s=>`
       <div class="service-chip" id="chip-${s.id}" onclick="handleChipClick('${s.id}')">
         <span class="dot"></span>
         <span class="emoji">${esc(s.emoji||'✦')}</span>
@@ -1400,7 +1489,7 @@
   function openSubSvcPicker(svcId){
     pendingPickerSvcId = svcId;
     const svc = servicesCache.find(s=>s.id===svcId);
-    const subs = subServicesCache.filter(s=>s.serviceId===svcId);
+    const subs = subServicesCache.filter(s=>s.serviceId===svcId).sort(bySortOrder);
     pickerTempSelections = (selectedSubSvcs[svcId]||[]).map(sel=>sel.subSvcId);
 
     document.getElementById('picker-title').textContent = `${svc?.emoji||''} ${getLocalizedName(svc)||'Service'} — ${t('choose_options')}`;
@@ -1476,7 +1565,7 @@
   function openOptionPicker(svcId, subsWithOpts, index){
     const ssId = subsWithOpts[index];
     const ss = subServicesCache.find(x=>x.id===ssId);
-    const opts = optionsCache.filter(o=>o.subServiceId===ssId);
+    const opts = optionsCache.filter(o=>o.subServiceId===ssId).sort(bySortOrder);
     // Pre-select if already chosen
     const existing = (selectedSubSvcs[svcId]||[]).find(s=>s.subSvcId===ssId);
     optPickerCtx = { svcId, subsWithOpts, index, selectedOptId: existing?.optionId || null };
@@ -1573,10 +1662,15 @@
       list.innerHTML='<li class="empty-msg">No services yet</li>';
       return;
     }
-    list.innerHTML = servicesCache.map(s=>`
+    const ordered = [...servicesCache].sort(bySortOrder);
+    list.innerHTML = ordered.map((s,i)=>`
       <li class="svc-list-item ${activeSvcId===s.id?'active':''}" onclick="selectSvc('${s.id}')">
+        <span class="reorder-btns">
+          <button class="reorder-up" ${i===0?'disabled':''} onclick="event.stopPropagation();moveSvc('${s.id}',-1)" title="Move up">▲</button>
+          <button class="reorder-down" ${i===ordered.length-1?'disabled':''} onclick="event.stopPropagation();moveSvc('${s.id}',1)" title="Move down">▼</button>
+        </span>
         <span class="svc-emoji">${esc(s.emoji||'✦')}</span>
-        <span>${esc(getLocalizedName(s))}</span>
+        <span class="svc-list-name">${esc(getLocalizedName(s))}</span>
         <span class="svc-actions-sm">
           <button class="edit-svc" onclick="event.stopPropagation();openSvcForm('${s.id}')">✏️</button>
           <button class="del-svc" onclick="event.stopPropagation();deleteSvc('${s.id}')">🗑</button>
@@ -1594,19 +1688,21 @@
 
   function renderSubSvcPanel(svcId){
     const svc = servicesCache.find(s=>s.id===svcId);
-    const subs = subServicesCache.filter(s=>s.serviceId===svcId);
+    const subs = subServicesCache.filter(s=>s.serviceId===svcId).sort(bySortOrder);
     document.getElementById('subsvc-title').textContent = svc ? `${svc.emoji||''} ${getLocalizedName(svc)}` : t('sel_svc');
     const container = document.getElementById('subsvc-container');
     if(!subs.length){
       container.innerHTML=`<p class="no-svc-selected">${t('no_subsvc_yet')}</p>`;
       return;
     }
-    container.innerHTML=`<div class="subsvc-grid">${subs.map(ss=>{
-      const opts = optionsCache.filter(o=>o.subServiceId===ss.id);
+    container.innerHTML=`<div class="subsvc-grid">${subs.map((ss,si)=>{
+      const opts = optionsCache.filter(o=>o.subServiceId===ss.id).sort(bySortOrder);
       const hasOpts = opts.length>0;
       return `
       <div class="subsvc-item">
         <div class="ss-actions">
+          <button class="reorder-up" ${si===0?'disabled':''} onclick="moveSubSvc('${ss.id}',-1)" title="Move up">▲</button>
+          <button class="reorder-down" ${si===subs.length-1?'disabled':''} onclick="moveSubSvc('${ss.id}',1)" title="Move down">▼</button>
           <button class="ss-edit" onclick="openSubSvcForm('${ss.id}')">✏️</button>
           <button class="ss-del" onclick="deleteSubSvc('${ss.id}')">🗑</button>
         </div>
@@ -1617,8 +1713,12 @@
         </div>
         ${getLocalizedDesc(ss)?`<div style="font-size:12px;color:#999;margin-top:2px;font-style:italic">${esc(getLocalizedDesc(ss))}</div>`:''}
         <div class="opt-section">
-          ${hasOpts ? `<div class="opt-list">${opts.map(o=>`
+          ${hasOpts ? `<div class="opt-list">${opts.map((o,oi)=>`
             <div class="opt-item">
+              <span class="opt-reorder">
+                <button class="reorder-up" ${oi===0?'disabled':''} onclick="moveOpt('${o.id}',-1)" title="Move up">▲</button>
+                <button class="reorder-down" ${oi===opts.length-1?'disabled':''} onclick="moveOpt('${o.id}',1)" title="Move down">▼</button>
+              </span>
               <span class="opt-name">${esc(getLocalizedName(o))}</span>
               <span class="opt-meta">
                 ${o.price?`💷 ${esc(o.price)}`:''}${o.price&&o.duration?' · ':''}${o.duration?`⏱ ${esc(o.duration)}`:''}
@@ -1633,6 +1733,47 @@
         </div>
       </div>`;
     }).join('')}</div>`;
+  }
+
+  // ── SORT HELPER ───────────────────────────────────────────────────
+  // Sort by explicit sortOrder; items without one fall to the end (by name).
+  function bySortOrder(a,b){
+    const ao = (typeof a.sortOrder==='number') ? a.sortOrder : Infinity;
+    const bo = (typeof b.sortOrder==='number') ? b.sortOrder : Infinity;
+    if(ao!==bo) return ao-bo;
+    return (a.name_en||a.name||'').localeCompare(b.name_en||b.name||'');
+  }
+
+  // Move an item up or down within its sibling group, persisting new sortOrder.
+  // collName: Firestore collection; items: the ordered sibling array; id: item to move; dir: -1 up / +1 down
+  async function reorderItem(collName, items, id, dir){
+    const ordered = [...items].sort(bySortOrder);
+    const idx = ordered.findIndex(x=>x.id===id);
+    if(idx<0) return;
+    const swapIdx = idx+dir;
+    if(swapIdx<0 || swapIdx>=ordered.length) return; // already at edge
+    // Swap positions
+    [ordered[idx], ordered[swapIdx]] = [ordered[swapIdx], ordered[idx]];
+    // Re-assign sortOrder sequentially and persist all
+    showSync('syncing','Saving…');
+    try{
+      await Promise.all(ordered.map((item,i)=>
+        updateDoc(doc(db,collName,item.id),{sortOrder:i})
+      ));
+      showSync('synced','Saved');
+    }catch(e){ console.error(e); showToast('❌ Error reordering.'); showSync('error','Reorder failed'); }
+  }
+
+  function moveSvc(id,dir){ reorderItem('services', servicesCache, id, dir); }
+  function moveSubSvc(id,dir){
+    const ss = subServicesCache.find(x=>x.id===id);
+    const siblings = subServicesCache.filter(s=>s.serviceId===ss?.serviceId);
+    reorderItem('subServices', siblings, id, dir);
+  }
+  function moveOpt(id,dir){
+    const o = optionsCache.find(x=>x.id===id);
+    const siblings = optionsCache.filter(x=>x.subServiceId===o?.subServiceId);
+    reorderItem('subSubServices', siblings, id, dir);
   }
 
   // ── LOCALIZATION HELPERS ──────────────────────────────────────────
@@ -1681,7 +1822,7 @@
     try{
       const data = { name_en, name_hy, name_ru, emoji, name: name_en || name_hy || name_ru };
       if(id){ await updateDoc(doc(db,'services',id),data); showToast('✅ Service updated.'); }
-      else   { await addDoc(svcCol,{...data,createdAt:serverTimestamp()}); showToast('✅ Service added.'); }
+      else   { const so=servicesCache.length; await addDoc(svcCol,{...data,sortOrder:so,createdAt:serverTimestamp()}); showToast('✅ Service added.'); }
       closeSvcModal(); showSync('synced','Saved');
     }catch(e){ console.error(e); showToast('❌ Error saving service.'); showSync('error','Save failed'); }
   }
@@ -1746,7 +1887,7 @@
         description: desc_en || desc_hy || desc_ru,
       };
       if(id){ await updateDoc(doc(db,'subServices',id),data); showToast('✅ Sub-service updated.'); }
-      else   { await addDoc(subSvcCol,{...data,serviceId,createdAt:serverTimestamp()}); showToast('✅ Sub-service added.'); }
+      else   { const so=subServicesCache.filter(s=>s.serviceId===serviceId).length; await addDoc(subSvcCol,{...data,serviceId,sortOrder:so,createdAt:serverTimestamp()}); showToast('✅ Sub-service added.'); }
       closeSubSvcModal(); showSync('synced','Saved');
     }catch(e){ console.error(e); showToast('❌ Error saving sub-service.'); showSync('error','Save failed'); }
   }
@@ -1811,7 +1952,7 @@
         description: desc_en || desc_hy || desc_ru,
       };
       if(id){ await updateDoc(doc(db,'subSubServices',id),data); showToast('✅ Sub-sub-service updated.'); }
-      else   { await addDoc(optCol,{...data,createdAt:serverTimestamp()}); showToast('✅ Sub-sub-service added.'); }
+      else   { const so=optionsCache.filter(o=>o.subServiceId===subServiceId).length; await addDoc(optCol,{...data,sortOrder:so,createdAt:serverTimestamp()}); showToast('✅ Sub-sub-service added.'); }
       closeOptModal(); showSync('synced','Saved');
     }catch(e){ console.error(e); showToast('❌ Error saving option.'); showSync('error','Save failed'); }
   }
@@ -1831,7 +1972,61 @@
   function setView(v,btn){calView=v;document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderCal();}
   function calNav(dir){if(calView==='month')calDate.setMonth(calDate.getMonth()+dir);else if(calView==='week')calDate.setDate(calDate.getDate()+dir*7);else calDate.setDate(calDate.getDate()+dir);renderCal();}
   function goToday(){calDate=new Date(today);renderCal();}
-  function renderCal(){calView==='month'?renderMonth():renderWeekDay();}
+  function renderCal(){calView==='month'?renderMonth():renderWeekDay();renderAvailability();}
+
+  // ── STYLIST AVAILABILITY ──────────────────────────────────────────
+  const APPT_DURATION_MIN = 90; // average appointment length (1.5 hours)
+
+  function renderAvailability(){
+    const list = document.getElementById('avail-list');
+    const dateLabel = document.getElementById('avail-date-label');
+    if(!list) return;
+
+    // Always check availability for RIGHT NOW (+ 90-minute buffer),
+    // regardless of which date is being viewed on the calendar.
+    const now = new Date();
+    const todayStr = toDateStr(now);
+    const refMinutes = now.getHours()*60 + now.getMinutes();
+
+    dateLabel.textContent = `${t('avail_today')} · ${now.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    // Stylists only (exclude non-stylist staff)
+    const stylists = staffCache.filter(s=>s.isStylist!==false);
+    if(!stylists.length){
+      list.innerHTML = `<p class="avail-empty">${t('avail_none')}</p>`;
+      return;
+    }
+
+    const windowStart = refMinutes;
+    const windowEnd   = refMinutes + APPT_DURATION_MIN;
+
+    list.innerHTML = stylists.map(s=>{
+      const fullName = `${s.firstName} ${s.surname}`;
+      // Find this stylist's appointments TODAY
+      const appts = appointmentsCache.filter(a=>
+        a.date===todayStr &&
+        a.stylist && a.stylist.trim().toLowerCase()===fullName.trim().toLowerCase()
+      );
+      // Busy if any appointment overlaps [windowStart, windowEnd]
+      let busy = false;
+      for(const a of appts){
+        const [hh,mm] = (a.time||'0:0').split(':').map(n=>parseInt(n,10));
+        const apptStart = hh*60 + (mm||0);
+        const apptEnd   = apptStart + APPT_DURATION_MIN;
+        if(apptStart < windowEnd && apptEnd > windowStart){ busy = true; break; }
+      }
+      const state = busy ? 'busy' : 'free';
+      const statusText = busy ? t('avail_busy') : t('avail_free');
+      return `
+        <div class="avail-item">
+          <span class="avail-dot ${state}"></span>
+          <div class="avail-info">
+            <span class="avail-name">${esc(fullName)}</span>
+            <span class="avail-status ${state}">${statusText}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
 
   function renderMonth(){
     const year=calDate.getFullYear(),month=calDate.getMonth();
@@ -1848,7 +2043,7 @@
       else if(dn>dim){cls+=' other-month';const d=new Date(year,month,dn);num=d.getDate();ds=toDateStr(d);}
       else{num=dn;ds=toDateStr(new Date(year,month,dn));if(ds===ts)cls+=' today';}
       const da=am[ds]||[],sh=da.slice(0,3),ex=da.length-sh.length;
-      html+=`<div class="${cls}" onclick="calDayClick('${ds}')"><div class="cell-date">${num}</div>${sh.map(a=>`<div class="cell-appt">${esc(a.name)}</div>`).join('')}${ex>0?`<div class="cell-appt">+${ex} more</div>`:''}</div>`;
+      html+=`<div class="${cls}" onclick="calDayClick('${ds}')"><div class="cell-date">${num}</div>${sh.map(a=>`<div class="cell-appt">${esc(a.name)}${a.stylist?`<span class="cell-appt-stylist">${esc(a.stylist)}</span>`:''}</div>`).join('')}${ex>0?`<div class="cell-appt">+${ex} more</div>`:''}</div>`;
     }
     html+='</div></div>';
     document.getElementById('cal-container').innerHTML=html;
@@ -1920,7 +2115,7 @@
     let html=`<div class="week-view"><div class="week-header-row" style="display:grid;grid-template-columns:${gc}"><div class="time-col"></div>${days.map(d=>{const it=toDateStr(d)===ts;return`<div class="week-day-head${it?' today':''}"><div class="day-num">${d.getDate()}</div><div>${d.toLocaleDateString('en-GB',{weekday:'short'})}</div></div>`;}).join('')}</div><div class="week-body">`;
     for(let h=8;h<=20;h++){
       const lbl=h<12?h+':00 am':h===12?'12:00 pm':(h-12)+':00 pm';
-      html+=`<div class="week-time-row" style="display:grid;grid-template-columns:${gc}"><div class="time-label">${lbl}</div>${days.map((d,ci)=>{const k=toDateStr(d)+'_'+h;const inner=(am[k]||[]).map((a,ai)=>`<div class="week-appt ${COLOURS[(ci+ai)%COLOURS.length]}" onclick="openApptModal('${a.id}')">${esc(a.name)}<br><small>${esc(a.services[0])}</small></div>`).join('');return`<div class="week-cell">${inner}</div>`;}).join('')}</div>`;
+      html+=`<div class="week-time-row" style="display:grid;grid-template-columns:${gc}"><div class="time-label">${lbl}</div>${days.map((d,ci)=>{const k=toDateStr(d)+'_'+h;const inner=(am[k]||[]).map((a,ai)=>`<div class="week-appt ${COLOURS[(ci+ai)%COLOURS.length]}" onclick="openApptModal('${a.id}')">${esc(a.name)}<br><small>${esc(a.services[0])}</small>${a.stylist?`<br><small class="week-appt-stylist">💁 ${esc(a.stylist)}</small>`:''}</div>`).join('');return`<div class="week-cell">${inner}</div>`;}).join('')}</div>`;
     }
     html+='</div></div>';
     document.getElementById('cal-container').innerHTML=html;
@@ -2166,6 +2361,22 @@
     if(!services.length){showToast('⚠️ Please select at least one service.');return;}
     if(services.includes('Other')&&!notes){showToast('⚠️ Please describe the "Other" service in the Notes field.');return;}
 
+    // Stylist double-booking check (ignore this same appointment)
+    const conflict = getStylistConflict(stylist, date, time, id);
+    if(conflict){
+      document.getElementById('confirm-title').textContent = t('conflict_title');
+      document.getElementById('confirm-msg').innerHTML =
+        `${t('conflict_msg')}<br><br><strong>${esc(stylist)}</strong><br>${t('conflict_existing')}: ${esc(conflict.name)} · ${fmtDate(conflict.date)} ${conflict.time}`;
+      const cancelBtn = document.querySelector('.confirm-cancel-btn');
+      const okBtn = document.querySelector('.confirm-delete-btn');
+      cancelBtn.style.display='none';
+      okBtn.textContent = t('conflict_ok');
+      okBtn.classList.add('conflict-ok-mode');
+      pendingDeleteType='conflict'; pendingDeleteId=null;
+      document.getElementById('confirm-modal').classList.add('open');
+      return;
+    }
+
     showSync('syncing','Saving…');
     try{
       await updateDoc(doc(db,'appointments',id),{name,date,time,stylist,services,notes});
@@ -2269,6 +2480,13 @@
       toast_option_deleted:'Sub-sub-service deleted.',
       opt_picker_hint:'Choose an option, or skip to book without a specific one.',
       opt_picker_skip:'Skip', opt_picker_confirm:'Confirm',
+      avail_title:'💁 Stylist Availability',
+      avail_hint:'Green = free for the next 1.5 hours · Red = busy',
+      avail_today:'Today', avail_none:'No stylists added yet.',
+      avail_free:'Available', avail_busy:'Busy',
+      conflict_title:'⚠️ Stylist Busy',
+      conflict_msg:'This stylist already has an appointment that overlaps this time slot. Please check the calendar and choose a different time or stylist.',
+      conflict_existing:'Existing booking', conflict_ok:'OK, Got It',
     },
     hy: {
       nav_book:'📅 Ամրագրել այց',
@@ -2369,6 +2587,13 @@
       toast_option_deleted:'Ենթաենթածառայությունը ջնջվեց։',
       opt_picker_hint:'Ընտրեք տարբերակ կամ բաց թողեք՝ առանց կոնկրետ տարբերակի ամրագրելու համար:',
       opt_picker_skip:'Բաց թողնել', opt_picker_confirm:'Հաստատել',
+      avail_title:'💁 Մասնագետների հասանելիություն',
+      avail_hint:'Կանաչ = ազատ է հաջորդ 1.5 ժամվա ընթացքում · Կարմիր = զբաղված է',
+      avail_today:'Այսօր', avail_none:'Առայժմ մասնագետներ չկան:',
+      avail_free:'Ազատ է', avail_busy:'Զբաղված է',
+      conflict_title:'⚠️ Մասնագետը զբաղված է',
+      conflict_msg:'Այս մասնագետն արդեն ունի ամրագրում, որը համընկնում է այս ժամի հետ: Խնդրում ենք ստուգել օրացույցը և ընտրել այլ ժամ կամ մասնագետ:',
+      conflict_existing:'Առկա ամրագրում', conflict_ok:'Հասկանալի է',
     },
 
     ru: {
@@ -2439,6 +2664,13 @@
       toast_option_deleted:'Под-подуслуга удалена.',
       opt_picker_hint:'Выберите вариант или пропустите, чтобы записаться без конкретного варианта.',
       opt_picker_skip:'Пропустить', opt_picker_confirm:'Подтвердить',
+      avail_title:'💁 Доступность стилистов',
+      avail_hint:'Зелёный = свободен на ближайшие 1.5 часа · Красный = занят',
+      avail_today:'Сегодня', avail_none:'Стилисты пока не добавлены.',
+      avail_free:'Свободен', avail_busy:'Занят',
+      conflict_title:'⚠️ Стилист занят',
+      conflict_msg:'У этого стилиста уже есть запись, которая пересекается с этим временем. Пожалуйста, проверьте календарь и выберите другое время или стилиста.',
+      conflict_existing:'Существующая запись', conflict_ok:'Понятно',
     }
   };
 
@@ -2513,6 +2745,13 @@
   // Apply saved language on load
   applyTranslations();
   if(currentLang!=='en') setLang(currentLang);
+
+  // Live-refresh stylist availability every minute (always 'now' based)
+  setInterval(()=>{
+    if(document.getElementById('page-calendar')?.classList.contains('active')){
+      renderAvailability();
+    }
+  }, 60000);
   window.showPage=showPage;window.bookAppointment=bookAppointment;
   window.removeAppt=removeAppt;window.removeStaff=removeStaff;
   window.closeConfirm=closeConfirm;window.confirmDelete=confirmDelete;
@@ -2526,6 +2765,7 @@
   window.setLang=setLang;window.toggleLangDropdown=toggleLangDropdown;
   window.deleteSvc=deleteSvc;window.selectSvc=selectSvc;
   window.openSvcForm=openSvcForm;window.closeSvcModal=closeSvcModal;window.saveSvc=saveSvc;
+  window.moveSvc=moveSvc;window.moveSubSvc=moveSubSvc;window.moveOpt=moveOpt;
   window.openSubSvcForm=openSubSvcForm;window.closeSubSvcModal=closeSubSvcModal;window.saveSubSvc=saveSubSvc;
   window.deleteSubSvc=deleteSubSvc;
   window.openOptForm=openOptForm;window.closeOptModal=closeOptModal;window.saveOpt=saveOpt;window.deleteOpt=deleteOpt;
