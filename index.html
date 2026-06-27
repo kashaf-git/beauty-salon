@@ -130,9 +130,9 @@
     .month-cell.today{background:#fff8f0;}
     .cell-date{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;}
     .month-cell.today .cell-date{background:var(--orange);color:white;}
-    .cell-appt{font-size:11px;background:var(--teal);color:white;border-radius:4px;padding:2px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .cell-appt-stylist{display:block;font-size:9px;opacity:.85;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .week-appt-stylist{opacity:.85;font-style:italic;}
+    .cell-appt{font-size:11px;font-weight:700;background:var(--teal);color:white;border-radius:4px;padding:2px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .cell-appt-customer{display:block;font-size:9px;opacity:.85;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .week-appt-customer{opacity:.85;font-weight:400;font-size:10px;}
 
     /* AVAILABILITY PANEL */
     .availability-panel{background:var(--white);border-radius:18px;box-shadow:var(--shadow);padding:20px 24px;margin-top:20px;}
@@ -186,6 +186,7 @@
     .sc-edit-btn:hover{background:var(--teal);color:white;}
     .sc-del-btn{background:#fff0f0;border:1px solid #f5c0c0;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;color:#c00;cursor:pointer;transition:background .2s;}
     .sc-del-btn:hover{background:#ffe0e0;}
+    .sc-protected{display:inline-flex;align-items:center;justify-content:center;padding:5px 8px;font-size:13px;opacity:.6;cursor:default;}
 
     /* MODALS */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
@@ -488,9 +489,9 @@
     <h2 id="cal-title">Month</h2>
     <button class="cal-nav-btn" onclick="calNav(1)">›</button>
     <div class="cal-header-spacer"></div>
-    <button class="view-btn active" id="vbtn-month" onclick="setView('month',this)" data-i18n="cal_month">Month</button>
+    <button class="view-btn active" id="vbtn-day" onclick="setView('day',this)" data-i18n="cal_day">Day</button>
     <button class="view-btn" id="vbtn-week" onclick="setView('week',this)" data-i18n="cal_week">Week</button>
-    <button class="view-btn" id="vbtn-day" onclick="setView('day',this)" data-i18n="cal_day">Day</button>
+    <button class="view-btn" id="vbtn-month" onclick="setView('month',this)" data-i18n="cal_month">Month</button>
     <button class="cal-nav-btn" title="Jump to today" onclick="goToday()">●</button>
   </div>
   <div id="cal-container"></div>
@@ -1129,14 +1130,68 @@
   }
 
   // ── BOOK APPOINTMENT ──────────────────────────────────────────────
-  // Check if a stylist has a conflicting appointment overlapping the 90-min window
-  // around the proposed date/time. Returns the conflicting appointment, or null.
-  // `ignoreId` lets us skip the appointment being edited.
-  function getStylistConflict(stylist, date, time, ignoreId=null){
+  // Parse a free-text duration ("45 mins", "1 hour", "1h 30m", "1.5 hours", "90")
+  // into minutes. Returns null if nothing usable.
+  function parseDuration(durStr){
+    if(durStr===undefined || durStr===null || durStr==='') return null;
+    const str = String(durStr).toLowerCase().trim();
+    let total = 0, found = false;
+    const hMatch = str.match(/(\d+(?:\.\d+)?)\s*(?:h|hr|hrs|hour|hours|ժամ|час)/);
+    const mMatch = str.match(/(\d+)\s*(?:m|min|mins|minute|minutes|րոպե|мин)/);
+    if(hMatch){ total += parseFloat(hMatch[1])*60; found = true; }
+    if(mMatch){ total += parseInt(mMatch[1],10); found = true; }
+    if(!found){
+      const n = parseFloat(str.replace(/[^0-9.]/g,''));
+      if(!isNaN(n)){ total = n; found = true; }
+    }
+    return found ? Math.round(total) : null;
+  }
+
+  // Duration (minutes) for a single booked service string, e.g.
+  // "Hair (Hair Coloring – Full Head)" → uses Full Head's duration (deepest tier).
+  // Falls back to DEFAULT_DURATION_MIN when no duration is set.
+  function durationForServiceString(svcStr){
+    const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
+    if(match){
+      const parts = match[2].split(',').map(p=>p.trim()).filter(Boolean);
+      let sum = 0;
+      parts.forEach(part=>{
+        const m = part.match(/^(.+?)\s*[–-]\s*(.+)$/);
+        let durStr = null;
+        if(m){
+          // sub – sub-sub : use the sub-sub (last tier) if found
+          const opt = findOptionByAnyName(m[2].trim());
+          if(opt){ durStr = opt.duration; }
+          else { const sub = findSubServiceByAnyName(m[1].trim()); durStr = sub?sub.duration:null; }
+        } else {
+          const sub = findSubServiceByAnyName(part);
+          durStr = sub ? sub.duration : null;
+        }
+        const d = parseDuration(durStr);
+        sum += (d!==null ? d : DEFAULT_DURATION_MIN);
+      });
+      return sum || DEFAULT_DURATION_MIN;
+    }
+    // Tier-1 service with no sub-services → default
+    return DEFAULT_DURATION_MIN;
+  }
+
+  // Total duration (minutes) for a whole appointment (sum across its services)
+  function getApptDuration(services){
+    if(!services || !services.length) return DEFAULT_DURATION_MIN;
+    let total = 0;
+    services.forEach(s=>{ total += durationForServiceString(s); });
+    return total || DEFAULT_DURATION_MIN;
+  }
+
+  // Check if a stylist has a conflicting appointment overlapping the proposed
+  // booking's time window. Durations are derived from each appointment's services
+  // (falling back to the default). Returns the conflicting appointment, or null.
+  function getStylistConflict(stylist, date, time, services, ignoreId=null){
     if(!stylist || stylist==='Any Available' || !date || !time) return null;
     const [hh,mm] = time.split(':').map(n=>parseInt(n,10));
     const newStart = hh*60 + (mm||0);
-    const newEnd   = newStart + APPT_DURATION_MIN;
+    const newEnd   = newStart + getApptDuration(services);
     const target = stylist.trim().toLowerCase();
     return appointmentsCache.find(a=>{
       if(ignoreId && a.id===ignoreId) return false;
@@ -1144,7 +1199,7 @@
       if(!a.stylist || a.stylist.trim().toLowerCase()!==target) return false;
       const [ah,am] = (a.time||'0:0').split(':').map(n=>parseInt(n,10));
       const aStart = ah*60 + (am||0);
-      const aEnd   = aStart + APPT_DURATION_MIN;
+      const aEnd   = aStart + getApptDuration(a.services);
       return aStart < newEnd && aEnd > newStart; // overlap
     }) || null;
   }
@@ -1165,8 +1220,8 @@
     if(!services.length){showToast('⚠️ Please select at least one service.');return;}
     if(services.includes('Other')&&!notes){showToast('⚠️ Please describe the "Other" service in the Notes field.');return;}
 
-    // Stylist double-booking check (90-min overlap)
-    const conflict = getStylistConflict(stylist, date, time);
+    // Stylist double-booking check (uses each appointment's real duration)
+    const conflict = getStylistConflict(stylist, date, time, services);
     if(conflict){
       document.getElementById('confirm-title').textContent = t('conflict_title');
       document.getElementById('confirm-msg').innerHTML =
@@ -1231,6 +1286,7 @@
   }
   function removeStaff(id){
     const s=staffCache.find(x=>x.id===id);
+    if(isProtectedStaff(s)){ showToast('🔒 '+t('protected_account')); return; }
     pendingDeleteId=id;pendingDeleteType='staff';
     document.getElementById('confirm-title').textContent=t('delete_staff_title');
     document.getElementById('confirm-msg').textContent=`${t('delete_staff_msg')} ${s?s.firstName+' '+s.surname:''}`;
@@ -1282,22 +1338,39 @@
   function modalDeleteClick(){const id=document.getElementById('modal-delete-btn').dataset.id;if(id)removeAppt(id);}
 
   // ── STAFF PAGE ────────────────────────────────────────────────────
+  // Accounts that must never be deleted (matched by username or full name)
+  const PROTECTED_USERNAMES = ['anna.manasaryan', 'user.gen'];
+  const PROTECTED_NAMES = ['anna manasaryan', 'user gen'];
+  function isProtectedStaff(s){
+    if(!s) return false;
+    // Tolerate the legacy 'autEmail' typo as well as the correct 'authEmail'
+    const email = (s.authEmail || s.autEmail || '').toLowerCase();
+    const uname = email.replace('@christyan.internal','');
+    if(PROTECTED_USERNAMES.includes(uname)) return true;
+    const fullName = `${(s.firstName||'').trim()} ${(s.surname||'').trim()}`.toLowerCase().trim();
+    return PROTECTED_NAMES.includes(fullName);
+  }
+
   function renderStaffPage(){
     const grid=document.getElementById('staff-grid');
     if(!staffCache.length){grid.innerHTML=`<p class="empty-msg" style="grid-column:1/-1">${t('no_staff_yet')}</p>`;return;}
-    grid.innerHTML=staffCache.map(s=>`
+    grid.innerHTML=staffCache.map(s=>{
+      const protectedAcct = isProtectedStaff(s);
+      return `
       <div class="staff-card">
         <div class="sc-actions">
           <button class="sc-edit-btn" onclick="openStaffForm('${s.id}')">${t('modal_edit')}</button>
-          <button class="sc-del-btn" onclick="removeStaff('${s.id}')">🗑</button>
+          ${protectedAcct
+            ? `<span class="sc-protected" title="${t('protected_account')}">🔒</span>`
+            : `<button class="sc-del-btn" onclick="removeStaff('${s.id}')">🗑</button>`}
         </div>
         <div class="sc-name">${esc(s.firstName)} ${esc(s.surname)}</div>
         <span class="sc-role ${s.role==='admin'?'admin':'user'}">${s.role==='admin'?t('sf_role_admin'):t('sf_role_general')}</span>
         <div class="sc-specialty">${esc(s.specialty||t('no_specialty'))}</div>
         ${s.authEmail?`<div class="sc-date" style="color:#888;margin-bottom:4px">🔑 ${esc(s.authEmail.replace('@christyan.internal',''))}</div>`:''}
         <div class="sc-date">${t('staff_since')}: ${s.startDate?fmtDate(s.startDate):'—'}</div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   }
 
   function openStaffForm(id=null){
@@ -1968,7 +2041,7 @@
   }
 
   // ── CALENDAR ──────────────────────────────────────────────────────
-  let calView='month';
+  let calView='day';
   const today=new Date();
   let calDate=new Date(today);
   function setView(v,btn){calView=v;document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderCal();}
@@ -1977,14 +2050,14 @@
   function renderCal(){calView==='month'?renderMonth():renderWeekDay();renderAvailability();}
 
   // ── STYLIST AVAILABILITY ──────────────────────────────────────────
-  const APPT_DURATION_MIN = 90; // average appointment length (1.5 hours)
+  const DEFAULT_DURATION_MIN = 90; // fallback appointment length when none is set
 
   function renderAvailability(){
     const list = document.getElementById('avail-list');
     const dateLabel = document.getElementById('avail-date-label');
     if(!list) return;
 
-    // Always check availability for RIGHT NOW (+ 90-minute buffer),
+    // Always check availability for RIGHT NOW (+ default look-ahead buffer),
     // regardless of which date is being viewed on the calendar.
     const now = new Date();
     const todayStr = toDateStr(now);
@@ -2000,7 +2073,7 @@
     }
 
     const windowStart = refMinutes;
-    const windowEnd   = refMinutes + APPT_DURATION_MIN;
+    const windowEnd   = refMinutes + DEFAULT_DURATION_MIN;
 
     list.innerHTML = stylists.map(s=>{
       const fullName = `${s.firstName} ${s.surname}`;
@@ -2009,12 +2082,12 @@
         a.date===todayStr &&
         a.stylist && a.stylist.trim().toLowerCase()===fullName.trim().toLowerCase()
       );
-      // Busy if any appointment overlaps [windowStart, windowEnd]
+      // Busy if any appointment overlaps the look-ahead window (uses real durations)
       let busy = false;
       for(const a of appts){
         const [hh,mm] = (a.time||'0:0').split(':').map(n=>parseInt(n,10));
         const apptStart = hh*60 + (mm||0);
-        const apptEnd   = apptStart + APPT_DURATION_MIN;
+        const apptEnd   = apptStart + getApptDuration(a.services);
         if(apptStart < windowEnd && apptEnd > windowStart){ busy = true; break; }
       }
       const state = busy ? 'busy' : 'free';
@@ -2045,7 +2118,7 @@
       else if(dn>dim){cls+=' other-month';const d=new Date(year,month,dn);num=d.getDate();ds=toDateStr(d);}
       else{num=dn;ds=toDateStr(new Date(year,month,dn));if(ds===ts)cls+=' today';}
       const da=am[ds]||[],sh=da.slice(0,3),ex=da.length-sh.length;
-      html+=`<div class="${cls}" onclick="calDayClick('${ds}')"><div class="cell-date">${num}</div>${sh.map(a=>`<div class="cell-appt">${esc(a.name)}${a.stylist?`<span class="cell-appt-stylist">${esc(a.stylist)}</span>`:''}</div>`).join('')}${ex>0?`<div class="cell-appt">+${ex} more</div>`:''}</div>`;
+      html+=`<div class="${cls}" onclick="calDayClick('${ds}')"><div class="cell-date">${num}</div>${sh.map(a=>`<div class="cell-appt">${a.stylist?esc(a.stylist):esc(a.name)}${a.stylist?`<span class="cell-appt-customer">${esc(a.name)}</span>`:''}</div>`).join('')}${ex>0?`<div class="cell-appt">+${ex} more</div>`:''}</div>`;
     }
     html+='</div></div>';
     document.getElementById('cal-container').innerHTML=html;
@@ -2117,7 +2190,7 @@
     let html=`<div class="week-view"><div class="week-header-row" style="display:grid;grid-template-columns:${gc}"><div class="time-col"></div>${days.map(d=>{const it=toDateStr(d)===ts;return`<div class="week-day-head${it?' today':''}"><div class="day-num">${d.getDate()}</div><div>${d.toLocaleDateString('en-GB',{weekday:'short'})}</div></div>`;}).join('')}</div><div class="week-body">`;
     for(let h=8;h<=20;h++){
       const lbl=h<12?h+':00 am':h===12?'12:00 pm':(h-12)+':00 pm';
-      html+=`<div class="week-time-row" style="display:grid;grid-template-columns:${gc}"><div class="time-label">${lbl}</div>${days.map((d,ci)=>{const k=toDateStr(d)+'_'+h;const inner=(am[k]||[]).map((a,ai)=>`<div class="week-appt ${COLOURS[(ci+ai)%COLOURS.length]}" onclick="openApptModal('${a.id}')">${esc(a.name)}<br><small>${esc(a.services[0])}</small>${a.stylist?`<br><small class="week-appt-stylist">💁 ${esc(a.stylist)}</small>`:''}</div>`).join('');return`<div class="week-cell">${inner}</div>`;}).join('')}</div>`;
+      html+=`<div class="week-time-row" style="display:grid;grid-template-columns:${gc}"><div class="time-label">${lbl}</div>${days.map((d,ci)=>{const k=toDateStr(d)+'_'+h;const inner=(am[k]||[]).map((a,ai)=>`<div class="week-appt ${COLOURS[(ci+ai)%COLOURS.length]}" onclick="openApptModal('${a.id}')">${a.stylist?esc(a.stylist):esc(a.name)}${a.stylist?`<br><small class="week-appt-customer">${esc(a.name)}</small>`:''}</div>`).join('');return`<div class="week-cell">${inner}</div>`;}).join('')}</div>`;
     }
     html+='</div></div>';
     document.getElementById('cal-container').innerHTML=html;
@@ -2364,7 +2437,7 @@
     if(services.includes('Other')&&!notes){showToast('⚠️ Please describe the "Other" service in the Notes field.');return;}
 
     // Stylist double-booking check (ignore this same appointment)
-    const conflict = getStylistConflict(stylist, date, time, id);
+    const conflict = getStylistConflict(stylist, date, time, services, id);
     if(conflict){
       document.getElementById('confirm-title').textContent = t('conflict_title');
       document.getElementById('confirm-msg').innerHTML =
@@ -2489,6 +2562,7 @@
       conflict_title:'⚠️ Stylist Busy',
       conflict_msg:'This stylist already has an appointment that overlaps this time slot. Please check the calendar and choose a different time or stylist.',
       conflict_existing:'Existing booking', conflict_ok:'OK, Got It',
+      protected_account:'This account is protected and cannot be deleted.',
     },
     hy: {
       nav_book:'📅 Ամրագրել այց',
@@ -2596,6 +2670,7 @@
       conflict_title:'⚠️ Մասնագետը զբաղված է',
       conflict_msg:'Այս մասնագետն արդեն ունի ամրագրում, որը համընկնում է այս ժամի հետ: Խնդրում ենք ստուգել օրացույցը և ընտրել այլ ժամ կամ մասնագետ:',
       conflict_existing:'Առկա ամրագրում', conflict_ok:'Հասկանալի է',
+      protected_account:'Այս հաշիվը պաշտպանված է և չի կարող ջնջվել:',
     },
 
     ru: {
@@ -2673,6 +2748,7 @@
       conflict_title:'⚠️ Стилист занят',
       conflict_msg:'У этого стилиста уже есть запись, которая пересекается с этим временем. Пожалуйста, проверьте календарь и выберите другое время или стилиста.',
       conflict_existing:'Существующая запись', conflict_ok:'Понятно',
+      protected_account:'Эта учётная запись защищена и не может быть удалена.',
     }
   };
 
