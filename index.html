@@ -289,8 +289,8 @@
     .no-svc-selected{color:#aaa;font-size:14px;text-align:center;padding:40px 0;font-style:italic;}
 
     /* SUB-SERVICE PICKER MODAL (booking flow) */
-    .subsvc-picker-modal{width:500px;}
-    .subsvc-picker-grid{columns:2;column-gap:10px;margin-top:8px;max-height:340px;overflow-y:auto;}
+    .subsvc-picker-modal{width:760px;max-width:94vw;}
+    .subsvc-picker-grid{columns:3;column-gap:10px;margin-top:8px;max-height:420px;overflow-y:auto;}
     .subsvc-pick-item{padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;background:var(--grey);break-inside:avoid;margin-bottom:10px;}
     .subsvc-pick-item:hover{border-color:var(--teal-dark);background:var(--teal-light);}
     .subsvc-pick-item.picked{border-color:var(--teal-dark);background:var(--teal-light);}
@@ -312,6 +312,9 @@
     .pct-btn:hover { border-color: var(--teal-dark); background: var(--teal-light); }
     .pct-btn.pct-selected { border-color: var(--teal-dark); background: var(--teal-light); color: var(--teal-dark); }
 
+    @media(max-width:820px){
+      .subsvc-picker-grid{columns:2;}
+    }
     @media(max-width:760px){
       .svc-page-layout{grid-template-columns:1fr;}
       .subsvc-picker-grid{columns:1;}
