@@ -729,30 +729,27 @@
   <div class="modal staff-form-modal">
     <h3 id="staff-modal-title" data-i18n="add_staff_modal">➕ Add Staff Member</h3>
     <input type="hidden" id="sf-id"/>
-    <div class="row-2">
-      <div class="form-group">
-        <label data-i18n="sf_firstname">First Name</label>
-        <input type="text" id="sf-firstname" data-i18n-placeholder="sf_firstname" placeholder="First name"/>
-      </div>
-      <div class="form-group">
-        <label data-i18n="sf_surname">Surname</label>
-        <input type="text" id="sf-surname" data-i18n-placeholder="sf_surname" placeholder="Surname"/>
-      </div>
+    <div class="form-group">
+      <label data-i18n="sf_firstname">First Name</label>
+      <input type="text" id="sf-firstname-en" placeholder="English" style="margin-bottom:8px" oninput="updateStaffUsername()"/>
+      <input type="text" id="sf-firstname-hy" placeholder="Հայերեն" style="margin-bottom:8px"/>
+      <input type="text" id="sf-firstname-ru" placeholder="Русский"/>
     </div>
-    <div class="row-2">
-      <div class="form-group">
-        <label data-i18n="sf_specialty">Specialty Service</label>
-        <select id="sf-specialty">
-          <option value="" data-i18n="sf_sel_specialty">— Select Specialty —</option>
-          <option data-i18n="svc_facial">Facial Treatment</option><option data-i18n="svc_pedicure">Pedicure</option><option data-i18n="svc_manicure">Manicure</option>
-          <option data-i18n="svc_manipedi">Mani &amp; Pedi</option><option data-i18n="svc_hair">Hair Styling</option><option data-i18n="svc_makeup">Makeup</option>
-          <option data-i18n="svc_eyelash">Eyelash Thickening</option><option data-i18n="svc_nailart">Nail Art</option><option data-i18n="svc_cosmetology">Cosmetology</option><option data-i18n="svc_other">Other</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label data-i18n="sf_startdate">Start Date</label>
-        <input type="date" id="sf-startdate"/>
-      </div>
+    <div class="form-group">
+      <label data-i18n="sf_surname">Surname</label>
+      <input type="text" id="sf-surname-en" placeholder="English" style="margin-bottom:8px" oninput="updateStaffUsername()"/>
+      <input type="text" id="sf-surname-hy" placeholder="Հայերեն" style="margin-bottom:8px"/>
+      <input type="text" id="sf-surname-ru" placeholder="Русский"/>
+    </div>
+    <div class="form-group">
+      <label data-i18n="sf_specialty">Specialty Service</label>
+      <input type="text" id="sf-specialty-en" placeholder="English — e.g. Hairstylist" style="margin-bottom:8px"/>
+      <input type="text" id="sf-specialty-hy" placeholder="Հայերեն" style="margin-bottom:8px"/>
+      <input type="text" id="sf-specialty-ru" placeholder="Русский"/>
+    </div>
+    <div class="form-group">
+      <label data-i18n="sf_startdate">Start Date</label>
+      <input type="date" id="sf-startdate"/>
     </div>
     <div class="form-group">
       <label data-i18n="sf_role">Role</label>
@@ -915,7 +912,7 @@
         staffDoc = snap.docs[0]?.data();
       }
       currentRole = staffDoc?.role || null;
-      const displayName = staffDoc ? `${staffDoc.firstName} ${staffDoc.surname}` : user.email;
+      const displayName = staffDoc ? getLocalizedStaffName(staffDoc) : user.email;
       document.getElementById('logged-in-label').textContent = '👤 '+displayName;
       document.getElementById('logged-in-label').style.display='inline';
       document.getElementById('btn-login-nav').style.display='none';
@@ -1125,8 +1122,9 @@
     sel.innerHTML=`<option value="">${t('sel_stylist')}</option><option value="Any Available">${t('opt_any')}</option>`;
     staffCache.filter(s=>s.isStylist!==false).forEach(s=>{
       const o=document.createElement('option');
-      o.value=`${s.firstName} ${s.surname}`;
-      o.textContent=`${s.firstName} ${s.surname}`;
+      o.value=getCanonicalStaffName(s); // stable English name for storage/matching
+      const spec=getLocalizedSpecialty(s);
+      o.textContent=getLocalizedStaffName(s)+(spec?` - ${spec}`:'');
       sel.appendChild(o);
     });
     if(cur) sel.value=cur;
@@ -1367,9 +1365,9 @@
             ? `<span class="sc-protected" title="${t('protected_account')}">🔒</span>`
             : `<button class="sc-del-btn" onclick="removeStaff('${s.id}')">🗑</button>`}
         </div>
-        <div class="sc-name">${esc(s.firstName)} ${esc(s.surname)}</div>
+        <div class="sc-name">${esc(getLocalizedStaffName(s))}</div>
         <span class="sc-role ${s.role==='admin'?'admin':'user'}">${s.role==='admin'?t('sf_role_admin'):t('sf_role_general')}</span>
-        <div class="sc-specialty">${esc(s.specialty||t('no_specialty'))}</div>
+        <div class="sc-specialty">${esc(getLocalizedSpecialty(s)||t('no_specialty'))}</div>
         ${s.authEmail?`<div class="sc-date" style="color:#888;margin-bottom:4px">🔑 ${esc(s.authEmail.replace('@christyan.internal',''))}</div>`:''}
         <div class="sc-date">${t('staff_since')}: ${s.startDate?fmtDate(s.startDate):'—'}</div>
       </div>`;
@@ -1378,9 +1376,15 @@
 
   function openStaffForm(id=null){
     document.getElementById('sf-id').value='';
-    document.getElementById('sf-firstname').value='';
-    document.getElementById('sf-surname').value='';
-    document.getElementById('sf-specialty').value='';
+    document.getElementById('sf-firstname-en').value='';
+    document.getElementById('sf-firstname-hy').value='';
+    document.getElementById('sf-firstname-ru').value='';
+    document.getElementById('sf-surname-en').value='';
+    document.getElementById('sf-surname-hy').value='';
+    document.getElementById('sf-surname-ru').value='';
+    document.getElementById('sf-specialty-en').value='';
+    document.getElementById('sf-specialty-hy').value='';
+    document.getElementById('sf-specialty-ru').value='';
     document.getElementById('sf-startdate').value='';
     document.getElementById('sf-role').value='general';
     document.getElementById('sf-email').value='';
@@ -1392,9 +1396,15 @@
       if(s){
         document.getElementById('staff-modal-title').textContent=t('edit_staff_modal');
         document.getElementById('sf-id').value=id;
-        document.getElementById('sf-firstname').value=s.firstName||'';
-        document.getElementById('sf-surname').value=s.surname||'';
-        document.getElementById('sf-specialty').value=s.specialty||'';
+        document.getElementById('sf-firstname-en').value=s.firstName_en||s.firstName||'';
+        document.getElementById('sf-firstname-hy').value=s.firstName_hy||'';
+        document.getElementById('sf-firstname-ru').value=s.firstName_ru||'';
+        document.getElementById('sf-surname-en').value=s.surname_en||s.surname||'';
+        document.getElementById('sf-surname-hy').value=s.surname_hy||'';
+        document.getElementById('sf-surname-ru').value=s.surname_ru||'';
+        document.getElementById('sf-specialty-en').value=s.specialty_en||s.specialty||'';
+        document.getElementById('sf-specialty-hy').value=s.specialty_hy||'';
+        document.getElementById('sf-specialty-ru').value=s.specialty_ru||'';
         document.getElementById('sf-startdate').value=s.startDate||'';
         document.getElementById('sf-role').value=s.role||'general';
         document.getElementById('sf-email').value=s.authEmail?s.authEmail.replace('@christyan.internal',''):nameToEmail(s.firstName||'',s.surname||'').replace('@christyan.internal','');
@@ -1414,22 +1424,39 @@
   function closeStaffModal(){document.getElementById('staff-modal').classList.remove('open');}
 
   async function saveStaff(){
-    const id        =document.getElementById('sf-id').value;
-    const firstName =document.getElementById('sf-firstname').value.trim();
-    const surname   =document.getElementById('sf-surname').value.trim();
-    const specialty =document.getElementById('sf-specialty').value;
+    const id          =document.getElementById('sf-id').value;
+    const firstName_en=document.getElementById('sf-firstname-en').value.trim();
+    const firstName_hy=document.getElementById('sf-firstname-hy').value.trim();
+    const firstName_ru=document.getElementById('sf-firstname-ru').value.trim();
+    const surname_en  =document.getElementById('sf-surname-en').value.trim();
+    const surname_hy  =document.getElementById('sf-surname-hy').value.trim();
+    const surname_ru  =document.getElementById('sf-surname-ru').value.trim();
+    const specialty_en=document.getElementById('sf-specialty-en').value.trim();
+    const specialty_hy=document.getElementById('sf-specialty-hy').value.trim();
+    const specialty_ru=document.getElementById('sf-specialty-ru').value.trim();
     const startDate =document.getElementById('sf-startdate').value;
     const role      =document.getElementById('sf-role').value;
     const password  =document.getElementById('sf-password').value;
     const isStylist =document.getElementById('sf-is-stylist').checked;
 
-    if(!firstName){showToast('⚠️ Please enter a first name.');return;}
-    if(!surname)  {showToast('⚠️ Please enter a surname.');return;}
+    if(!firstName_en){showToast('⚠️ Please enter the English first name (used for login).');return;}
+    if(!surname_en)  {showToast('⚠️ Please enter the English surname (used for login).');return;}
+
+    // Canonical/base fields use the English values (drive login + matching)
+    const firstName = firstName_en;
+    const surname   = surname_en;
+    const specialty = specialty_en;
 
     const authEmail = nameToEmail(firstName, surname);
     showSync('syncing','Saving…');
     try{
-      const data={firstName,surname,specialty,startDate,role,authEmail,isStylist};
+      const data={
+        firstName, surname, specialty,
+        firstName_en, firstName_hy, firstName_ru,
+        surname_en, surname_hy, surname_ru,
+        specialty_en, specialty_hy, specialty_ru,
+        startDate, role, authEmail, isStylist
+      };
 
       if(password&&!id){
         try{
@@ -1458,14 +1485,12 @@
     }catch(err){console.error(err);showToast('❌ Error saving staff.');showSync('error','Save failed');}
   }
 
-  // Auto-update username preview as name is typed
-  ['sf-firstname','sf-surname'].forEach(id=>{
-    document.getElementById(id).addEventListener('input',()=>{
-      const fn=document.getElementById('sf-firstname').value.trim();
-      const sn=document.getElementById('sf-surname').value.trim();
-      document.getElementById('sf-email').value=(fn&&sn)?nameToEmail(fn,sn).replace('@christyan.internal',''):'';
-    });
-  });
+  // Auto-update username preview as the English name is typed
+  function updateStaffUsername(){
+    const fn=document.getElementById('sf-firstname-en').value.trim();
+    const sn=document.getElementById('sf-surname-en').value.trim();
+    document.getElementById('sf-email').value=(fn&&sn)?nameToEmail(fn,sn).replace('@christyan.internal',''):'';
+  }
 
   // ── BOOKING PERCENTAGE ────────────────────────────────────────────
   let selectedPct = null;
@@ -1866,6 +1891,25 @@
     if(!item) return '';
     const key = 'desc_'+currentLang;
     return item[key] || item.desc_en || item.description || '';
+  }
+  // Localized staff full name (falls back to English, then base fields)
+  function getLocalizedStaffName(s){
+    if(!s) return '';
+    const fn = s['firstName_'+currentLang] || s.firstName_en || s.firstName || '';
+    const sn = s['surname_'+currentLang]   || s.surname_en   || s.surname   || '';
+    return `${fn} ${sn}`.trim();
+  }
+  // Localized staff specialty (falls back to English, then base field)
+  function getLocalizedSpecialty(s){
+    if(!s) return '';
+    return s['specialty_'+currentLang] || s.specialty_en || s.specialty || '';
+  }
+  // Canonical (English) full name used as the stable key for appointments/matching
+  function getCanonicalStaffName(s){
+    if(!s) return '';
+    const fn = s.firstName_en || s.firstName || '';
+    const sn = s.surname_en   || s.surname   || '';
+    return `${fn} ${sn}`.trim();
   }
 
   // Service CRUD
@@ -2404,8 +2448,9 @@
     sel.innerHTML=`<option value="">${t('sel_stylist')}</option><option value="Any Available">${t('opt_any')}</option>`;
     staffCache.filter(s=>s.isStylist!==false).forEach(s=>{
       const o=document.createElement('option');
-      o.value=`${s.firstName} ${s.surname}`;
-      o.textContent=`${s.firstName} ${s.surname}`;
+      o.value=getCanonicalStaffName(s);
+      const spec=getLocalizedSpecialty(s);
+      o.textContent=getLocalizedStaffName(s)+(spec?` - ${spec}`:'');
       sel.appendChild(o);
     });
     sel.value=a.stylist||'';
@@ -2840,7 +2885,7 @@
   window.closeEditApptModal=closeEditApptModal;window.saveEditedAppt=saveEditedAppt;
   window.setView=setView;window.calNav=calNav;window.goToday=goToday;
   window.calDayClick=calDayClick;window.openApptModal=openApptModal;window.closeModal=closeModal;
-  window.openStaffForm=openStaffForm;window.closeStaffModal=closeStaffModal;window.saveStaff=saveStaff;
+  window.openStaffForm=openStaffForm;window.closeStaffModal=closeStaffModal;window.saveStaff=saveStaff;window.updateStaffUsername=updateStaffUsername;
   window.openLoginModal=openLoginModal;window.closeLoginModal=closeLoginModal;window.submitLogin=submitLogin;window.doLogout=doLogout;
   window.selectPct=selectPct;
   window.setLang=setLang;window.toggleLangDropdown=toggleLangDropdown;
