@@ -492,9 +492,9 @@
     <h2 id="cal-title">Month</h2>
     <button class="cal-nav-btn" onclick="calNav(1)">›</button>
     <div class="cal-header-spacer"></div>
-    <button class="view-btn active" id="vbtn-day" onclick="setView('day',this)" data-i18n="cal_day">Day</button>
+    <button class="view-btn active" id="vbtn-month" onclick="setView('month',this)" data-i18n="cal_month">Month</button>
     <button class="view-btn" id="vbtn-week" onclick="setView('week',this)" data-i18n="cal_week">Week</button>
-    <button class="view-btn" id="vbtn-month" onclick="setView('month',this)" data-i18n="cal_month">Month</button>
+    <button class="view-btn" id="vbtn-day" onclick="setView('day',this)" data-i18n="cal_day">Day</button>
     <button class="cal-nav-btn" title="Jump to today" onclick="goToday()">●</button>
   </div>
   <div id="cal-container"></div>
@@ -859,22 +859,49 @@
   let currentUser      = null;
   let currentRole      = null;
 
-  onSnapshot(svcCol, snap=>{
-    servicesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
-    servicesCache.sort(bySortOrder);
-    renderBookingServiceChips();
-    if(document.getElementById('page-services').classList.contains('active')) renderSvcList();
-  }, err=>console.error('Services listener error:',err));
+  // Data listeners that require authentication are started AFTER login
+  // (see startDataListeners), so Firestore security rules requiring auth
+  // don't permanently kill them with a pre-login "permission denied".
+  let dataListenersStarted = false;
+  let unsubData = [];
 
-  onSnapshot(subSvcCol, snap=>{
-    subServicesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(activeSvcId) renderSubSvcPanel(activeSvcId);
-  }, err=>console.error('SubServices listener error:',err));
+  function startDataListeners(){
+    if(dataListenersStarted) return;
+    dataListenersStarted = true;
 
-  onSnapshot(optCol, snap=>{
-    optionsCache = snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(activeSvcId) renderSubSvcPanel(activeSvcId);
-  }, err=>console.error('Options listener error:',err));
+    unsubData.push(onSnapshot(svcCol, snap=>{
+      servicesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
+      servicesCache.sort(bySortOrder);
+      renderBookingServiceChips();
+      if(document.getElementById('page-services').classList.contains('active')) renderSvcList();
+    }, err=>console.error('Services listener error:',err)));
+
+    unsubData.push(onSnapshot(subSvcCol, snap=>{
+      subServicesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
+      if(activeSvcId) renderSubSvcPanel(activeSvcId);
+    }, err=>console.error('SubServices listener error:',err)));
+
+    unsubData.push(onSnapshot(optCol, snap=>{
+      optionsCache = snap.docs.map(d=>({id:d.id,...d.data()}));
+      if(activeSvcId) renderSubSvcPanel(activeSvcId);
+    }, err=>console.error('Options listener error:',err)));
+
+    unsubData.push(onSnapshot(apptCol, snap=>{
+      appointmentsCache=snap.docs.map(d=>({id:d.id,...d.data()}));
+      appointmentsCache.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+      renderSidebar();
+      if(document.getElementById('page-calendar').classList.contains('active')) renderCal();
+      showSync('synced','Up to date');
+    },err=>{console.error(err);showSync('error','Connection error');}));
+  }
+
+  function stopDataListeners(){
+    unsubData.forEach(fn=>{ try{ fn(); }catch(e){} });
+    unsubData = [];
+    dataListenersStarted = false;
+    // Clear caches so nothing stale lingers after logout
+    servicesCache=[]; subServicesCache=[]; optionsCache=[]; appointmentsCache=[];
+  }
   // ── POPULATE TIME SELECT (15-min slots 08:00–20:00) ─────────────
   (function(){
     const sel = document.getElementById('f-time');
@@ -905,6 +932,8 @@
   onAuthStateChanged(auth, async user => {
     currentUser = user;
     if(user){
+      // Now authenticated → safe to start the auth-required data listeners
+      startDataListeners();
       let staffDoc = staffCache.find(s=>nameToEmail(s.firstName,s.surname)===user.email);
       if(!staffDoc){
         const {getDocs,query,where} = await import("https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js");
@@ -924,6 +953,7 @@
       hideAuthGate();
     } else {
       currentRole = null;
+      stopDataListeners();
       document.getElementById('logged-in-label').style.display='none';
       document.getElementById('btn-login-nav').style.display='inline';
       document.getElementById('btn-logout-nav').style.display='none';
@@ -933,15 +963,7 @@
     }
   });
 
-  // ── FIRESTORE LISTENERS ───────────────────────────────────────────
-  onSnapshot(apptCol, snap=>{
-    appointmentsCache=snap.docs.map(d=>({id:d.id,...d.data()}));
-    appointmentsCache.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-    renderSidebar();
-    if(document.getElementById('page-calendar').classList.contains('active')) renderCal();
-    showSync('synced','Up to date');
-  },err=>{console.error(err);showSync('error','Connection error');});
-
+  // ── FIRESTORE LISTENERS (staff is always-on; it's readable pre-login) ──
   onSnapshot(staffCol, snap=>{
     staffCache=snap.docs.map(d=>({id:d.id,...d.data()}));
     staffCache.sort((a,b)=>(a.firstName+a.surname).localeCompare(b.firstName+b.surname));
@@ -1267,9 +1289,13 @@
   // ── SIDEBAR ───────────────────────────────────────────────────────
   function renderSidebar(){
     const list=document.getElementById('appt-list');
-    if(!appointmentsCache.length){list.innerHTML='<li class="empty-msg">No appointments yet</li>';return;}
+    // Only show today's and future appointments; past days drop off at midnight.
+    // Dates are stored as YYYY-MM-DD strings, so string comparison works.
+    const todayStr = toDateStr(new Date());
+    const upcoming = appointmentsCache.filter(a=>a.date >= todayStr);
+    if(!upcoming.length){list.innerHTML=`<li class="empty-msg">${t('empty_appts')}</li>`;return;}
     list.innerHTML='';
-    appointmentsCache.forEach(a=>{
+    upcoming.forEach(a=>{
       const li=document.createElement('li');li.className='appt-item';
       li.innerHTML=`<button class="delete-btn" onclick="removeAppt('${a.id}')">✕</button><div class="name">${esc(a.name)}</div><div class="time">📅 ${fmtDate(a.date)} · ⏰ ${a.time}</div><div class="services">${esc(a.services.join(', '))}</div>${a.stylist?`<div class="services">👤 ${esc(a.stylist)}</div>`:''}`;
       list.appendChild(li);
@@ -2088,7 +2114,7 @@
   }
 
   // ── CALENDAR ──────────────────────────────────────────────────────
-  let calView='day';
+  let calView='month';
   const today=new Date();
   let calDate=new Date(today);
   function setView(v,btn){calView=v;document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderCal();}
@@ -2872,10 +2898,18 @@
   applyTranslations();
   if(currentLang!=='en') setLang(currentLang);
 
-  // Live-refresh stylist availability every minute (always 'now' based)
+  // Live-refresh availability every minute; also drop past appointments from the
+  // Upcoming list when the day rolls over to a new date (midnight).
+  let lastSeenDate = toDateStr(new Date());
   setInterval(()=>{
     if(document.getElementById('page-calendar')?.classList.contains('active')){
       renderAvailability();
+    }
+    const nowStr = toDateStr(new Date());
+    if(nowStr !== lastSeenDate){
+      lastSeenDate = nowStr;
+      renderSidebar();       // refresh upcoming list for the new day
+      renderCal();           // keep calendar's "today" highlight accurate
     }
   }, 60000);
   window.showPage=showPage;window.bookAppointment=bookAppointment;
