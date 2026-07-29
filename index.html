@@ -190,6 +190,9 @@
 
     /* MODALS */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
+    /* Picker modals must sit ABOVE the booking/edit modal that opened them */
+    #subsvc-picker-modal{z-index:400;}
+    #opt-picker-modal{z-index:420;}
     .modal-overlay.open{display:flex;}
     .modal{background:white;border-radius:18px;padding:32px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:pop .25s ease;}
     @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
@@ -699,19 +702,8 @@
       </select>
     </div>
     <div class="form-group">
-      <label>Services (select all that apply)</label>
-      <div class="services-grid" id="ea-services-grid">
-        <label class="service-chip"><input type="checkbox" value="Facial Treatment"/><span class="dot"></span><span class="emoji">✨</span> Facial Treatment</label>
-        <label class="service-chip"><input type="checkbox" value="Pedicure"/><span class="dot"></span><span class="emoji">🦶</span> Pedicure</label>
-        <label class="service-chip"><input type="checkbox" value="Manicure"/><span class="dot"></span><span class="emoji">💅</span> Manicure</label>
-        <label class="service-chip"><input type="checkbox" value="Mani &amp; Pedi"/><span class="dot"></span><span class="emoji">🌸</span> Mani &amp; Pedi</label>
-        <label class="service-chip"><input type="checkbox" value="Hair Styling"/><span class="dot"></span><span class="emoji">💇</span> Hair Styling</label>
-        <label class="service-chip"><input type="checkbox" value="Makeup"/><span class="dot"></span><span class="emoji">💄</span> Makeup</label>
-        <label class="service-chip"><input type="checkbox" value="Eyelash Thickening"/><span class="dot"></span><span class="emoji">👁️</span> Eyelash Thickening</label>
-        <label class="service-chip"><input type="checkbox" value="Nail Art"/><span class="dot"></span><span class="emoji">🎨</span> Nail Art</label>
-        <label class="service-chip"><input type="checkbox" value="Cosmetology"/><span class="dot"></span><span class="emoji">🧴</span> Cosmetology</label>
-        <label class="service-chip"><input type="checkbox" value="Other"/><span class="dot"></span><span class="emoji">➕</span> Other</label>
-      </div>
+      <label data-i18n="lbl_services">Services (select all that apply)</label>
+      <div class="services-grid" id="ea-services-grid"></div>
     </div>
     <div class="form-group">
       <label>Notes</label>
@@ -1124,7 +1116,7 @@
     document.getElementById('page-'+name).classList.add('active');
     btn.classList.add('active');
     if(name==='calendar') renderCal();
-    if(name==='booking')  renderSidebar();
+    if(name==='booking'){ activeChipCtx='booking'; renderSidebar(); }
     if(name==='staff')    renderStaffPage();
     if(name==='services'){ renderSvcList(); if(activeSvcId) renderSubSvcPanel(activeSvcId); }
   }
@@ -1528,44 +1520,55 @@
     const btn = document.getElementById(idMap[val]);
     if(btn) btn.classList.add('pct-selected');
   }
-  // Selected per service: { serviceId: [ {subSvcId, optionId|null}, ... ] }
-  let selectedSubSvcs = {};
-  // Which service chip is pending sub-service selection
+  // ── SERVICE CHIP / PICKER SYSTEM (shared by booking + edit) ────────
+  // Two independent contexts so the edit modal doesn't clash with booking.
+  const chipContexts = {
+    booking: { gridId:'services-grid', chipPrefix:'chip-', selected:{} },
+    edit:    { gridId:'ea-services-grid', chipPrefix:'eachip-', selected:{} },
+  };
+  let activeChipCtx = 'booking'; // which context the pickers currently act on
+
+  // Backwards-compatible alias used by booking-specific code paths
+  function ctx(){ return chipContexts[activeChipCtx]; }
+
   let pendingPickerSvcId = null;
+  let pickerTempSelections = [];
+  let optPickerCtx = null;
 
-  function renderBookingServiceChips(){
-    const grid = document.getElementById('services-grid');
-
-    // If DB has no services, show an empty-state message instead of any chips
+  function renderServiceChips(ctxName){
+    const c = chipContexts[ctxName];
+    const grid = document.getElementById(c.gridId);
+    if(!grid) return;
     if(!servicesCache.length){
       grid.dataset.dynamic = 'true';
       grid.innerHTML = `<p class="empty-msg" style="grid-column:1/-1">${t('no_services_available')}</p>`;
       return;
     }
-
     grid.dataset.dynamic = 'true';
     grid.innerHTML = [...servicesCache].sort(bySortOrder).map(s=>`
-      <div class="service-chip" id="chip-${s.id}" onclick="handleChipClick('${s.id}')">
+      <div class="service-chip" id="${c.chipPrefix}${s.id}" onclick="handleChipClick('${ctxName}','${s.id}')">
         <span class="dot"></span>
         <span class="emoji">${esc(s.emoji||'✦')}</span>
         <span class="chip-label">${esc(getLocalizedName(s))}</span>
       </div>
     `).join('');
-    // Re-apply existing selections with labels in the current language
-    Object.keys(selectedSubSvcs).forEach(sid=>{
-      const chip = document.getElementById('chip-'+sid);
+    Object.keys(c.selected).forEach(sid=>{
+      const chip = document.getElementById(c.chipPrefix+sid);
       if(!chip) return;
       chip.classList.add('selected');
-      updateChipLabel(sid);
+      updateChipLabel(ctxName, sid);
     });
   }
 
-  // Build the label text for a selected service chip, including sub-service + option names
-  function updateChipLabel(svcId){
-    const chip = document.getElementById('chip-'+svcId);
+  // Booking-page entry point (kept for existing callers)
+  function renderBookingServiceChips(){ renderServiceChips('booking'); }
+
+  function updateChipLabel(ctxName, svcId){
+    const c = chipContexts[ctxName];
+    const chip = document.getElementById(c.chipPrefix+svcId);
     if(!chip) return;
     const svc = servicesCache.find(s=>s.id===svcId);
-    const sels = selectedSubSvcs[svcId] || [];
+    const sels = c.selected[svcId] || [];
     const names = sels.map(sel=>{
       const ss = subServicesCache.find(x=>x.id===sel.subSvcId);
       const ssName = getLocalizedName(ss);
@@ -1579,47 +1582,44 @@
     if(labelEl) labelEl.textContent = names.length ? `${getLocalizedName(svc)}: ${names.join(', ')}` : getLocalizedName(svc);
   }
 
-  function handleChipClick(svcId){
-    // If already selected, clicking again deselects it
-    if(selectedSubSvcs.hasOwnProperty(svcId)){
-      const chip = document.getElementById('chip-'+svcId);
+  function handleChipClick(ctxName, svcId){
+    activeChipCtx = ctxName;
+    const c = chipContexts[ctxName];
+    if(c.selected.hasOwnProperty(svcId)){
+      const chip = document.getElementById(c.chipPrefix+svcId);
       if(chip){
         chip.classList.remove('selected');
         const labelEl = chip.querySelector('.chip-label');
         const svc = servicesCache.find(s=>s.id===svcId);
         if(labelEl) labelEl.textContent = getLocalizedName(svc);
       }
-      delete selectedSubSvcs[svcId];
+      delete c.selected[svcId];
       return;
     }
     const subs = subServicesCache.filter(s=>s.serviceId===svcId);
-    if(subs.length===0){
-      toggleChipNoSubs(svcId);
-    } else {
-      openSubSvcPicker(svcId);
-    }
+    if(subs.length===0){ toggleChipNoSubs(ctxName, svcId); }
+    else { openSubSvcPicker(svcId); }
   }
 
-  function toggleChipNoSubs(svcId){
-    const chip = document.getElementById('chip-'+svcId);
+  function toggleChipNoSubs(ctxName, svcId){
+    const c = chipContexts[ctxName];
+    const chip = document.getElementById(c.chipPrefix+svcId);
     if(!chip) return;
     if(chip.classList.contains('selected')){
       chip.classList.remove('selected');
-      delete selectedSubSvcs[svcId];
+      delete c.selected[svcId];
     } else {
       chip.classList.add('selected');
-      selectedSubSvcs[svcId] = []; // selected with no sub-service
+      c.selected[svcId] = [];
     }
   }
 
-  // Sub-service picker state (tier 2) — holds picked subSvcIds before tier-3 resolution
-  let pickerTempSelections = [];
-
   function openSubSvcPicker(svcId){
     pendingPickerSvcId = svcId;
+    const c = ctx();
     const svc = servicesCache.find(s=>s.id===svcId);
     const subs = subServicesCache.filter(s=>s.serviceId===svcId).sort(bySortOrder);
-    pickerTempSelections = (selectedSubSvcs[svcId]||[]).map(sel=>sel.subSvcId);
+    pickerTempSelections = (c.selected[svcId]||[]).map(sel=>sel.subSvcId);
 
     document.getElementById('picker-title').textContent = `${svc?.emoji||''} ${getLocalizedName(svc)||'Service'} — ${t('choose_options')}`;
 
@@ -1656,27 +1656,20 @@
 
   function confirmSubSvcPicker(){
     if(!pendingPickerSvcId){ document.getElementById('subsvc-picker-modal').classList.remove('open'); return; }
-    // Determine which picked sub-services have tier-3 options
+    const c = ctx();
     const svcId = pendingPickerSvcId;
     const subsWithOpts = pickerTempSelections.filter(ssId=>optionsCache.some(o=>o.subServiceId===ssId));
-
-    // Build initial selections (option = null for now)
-    selectedSubSvcs[svcId] = pickerTempSelections.map(ssId=>({subSvcId:ssId, optionId:null}));
-
+    c.selected[svcId] = pickerTempSelections.map(ssId=>({subSvcId:ssId, optionId:null}));
     document.getElementById('subsvc-picker-modal').classList.remove('open');
-
-    if(subsWithOpts.length){
-      // Open tier-3 picker for the first sub-service that has options
-      openOptionPicker(svcId, subsWithOpts, 0);
-    } else {
-      finalizeChipSelection(svcId);
-    }
+    if(subsWithOpts.length){ openOptionPicker(svcId, subsWithOpts, 0); }
+    else { finalizeChipSelection(svcId); }
   }
 
   function skipSubSvcPicker(){
     if(pendingPickerSvcId){
-      selectedSubSvcs[pendingPickerSvcId] = [];
-      const chip = document.getElementById('chip-'+pendingPickerSvcId);
+      const c = ctx();
+      c.selected[pendingPickerSvcId] = [];
+      const chip = document.getElementById(c.chipPrefix+pendingPickerSvcId);
       if(chip){
         chip.classList.add('selected');
         const labelEl = chip.querySelector('.chip-label');
@@ -1688,15 +1681,13 @@
     pendingPickerSvcId = null;
   }
 
-  // ── TIER-3 OPTION PICKER (booking flow) ───────────────────────────
-  let optPickerCtx = null; // { svcId, subsWithOpts, index, selectedOptId }
-
+  // ── TIER-3 OPTION PICKER ──────────────────────────────────────────
   function openOptionPicker(svcId, subsWithOpts, index){
+    const c = ctx();
     const ssId = subsWithOpts[index];
     const ss = subServicesCache.find(x=>x.id===ssId);
     const opts = optionsCache.filter(o=>o.subServiceId===ssId).sort(bySortOrder);
-    // Pre-select if already chosen
-    const existing = (selectedSubSvcs[svcId]||[]).find(s=>s.subSvcId===ssId);
+    const existing = (c.selected[svcId]||[]).find(s=>s.subSvcId===ssId);
     optPickerCtx = { svcId, subsWithOpts, index, selectedOptId: existing?.optionId || null };
 
     const svc = servicesCache.find(s=>s.id===svcId);
@@ -1718,59 +1709,45 @@
   }
 
   function toggleOptPickerItem(optId){
-    // Single-select per sub-service
     optPickerCtx.selectedOptId = (optPickerCtx.selectedOptId===optId) ? null : optId;
     document.querySelectorAll('#opt-picker-grid .subsvc-pick-item').forEach(el=>el.classList.remove('picked'));
     if(optPickerCtx.selectedOptId) document.getElementById('optpick-'+optId)?.classList.add('picked');
   }
 
   function confirmOptionPicker(){
+    const c = ctx();
     const { svcId, subsWithOpts, index, selectedOptId } = optPickerCtx;
     const ssId = subsWithOpts[index];
-    // Save the chosen option against the right sub-service selection
-    const sel = (selectedSubSvcs[svcId]||[]).find(s=>s.subSvcId===ssId);
+    const sel = (c.selected[svcId]||[]).find(s=>s.subSvcId===ssId);
     if(sel) sel.optionId = selectedOptId;
-
     document.getElementById('opt-picker-modal').classList.remove('open');
-
-    if(index+1 < subsWithOpts.length){
-      openOptionPicker(svcId, subsWithOpts, index+1);
-    } else {
-      finalizeChipSelection(svcId);
-      optPickerCtx = null;
-    }
+    if(index+1 < subsWithOpts.length){ openOptionPicker(svcId, subsWithOpts, index+1); }
+    else { finalizeChipSelection(svcId); optPickerCtx = null; }
   }
 
   function skipOptionPicker(){
-    // Leave optionId as null for this sub-service, move on
     const { svcId, subsWithOpts, index } = optPickerCtx;
     document.getElementById('opt-picker-modal').classList.remove('open');
-    if(index+1 < subsWithOpts.length){
-      openOptionPicker(svcId, subsWithOpts, index+1);
-    } else {
-      finalizeChipSelection(svcId);
-      optPickerCtx = null;
-    }
+    if(index+1 < subsWithOpts.length){ openOptionPicker(svcId, subsWithOpts, index+1); }
+    else { finalizeChipSelection(svcId); optPickerCtx = null; }
   }
 
   function finalizeChipSelection(svcId){
-    const chip = document.getElementById('chip-'+svcId);
-    if(chip){
-      chip.classList.add('selected');
-      updateChipLabel(svcId);
-    }
+    const c = ctx();
+    const chip = document.getElementById(c.chipPrefix+svcId);
+    if(chip){ chip.classList.add('selected'); updateChipLabel(activeChipCtx, svcId); }
     pendingPickerSvcId = null;
   }
 
-  // Get selected services for booking submission (text form)
-  function getSelectedServicesForBooking(){
-    return Object.entries(selectedSubSvcs).map(([svcId, sels])=>{
+  // Convert a context's selections into stored service strings
+  function selectionsToStrings(sel){
+    return Object.entries(sel).map(([svcId, sels])=>{
       const svc = servicesCache.find(s=>s.id===svcId);
-      const parts = (sels||[]).map(sel=>{
-        const ss = subServicesCache.find(x=>x.id===sel.subSvcId);
+      const parts = (sels||[]).map(x=>{
+        const ss = subServicesCache.find(y=>y.id===x.subSvcId);
         const ssName = getLocalizedName(ss);
-        if(sel.optionId){
-          const opt = optionsCache.find(o=>o.id===sel.optionId);
+        if(x.optionId){
+          const opt = optionsCache.find(o=>o.id===x.optionId);
           return `${ssName} – ${getLocalizedName(opt)}`;
         }
         return ssName;
@@ -1779,9 +1756,49 @@
     }).filter(Boolean);
   }
 
+  function getSelectedServicesForBooking(){ return selectionsToStrings(chipContexts.booking.selected); }
+  function getSelectedServicesForEdit(){ return selectionsToStrings(chipContexts.edit.selected); }
+
   function resetServiceChips(){
-    selectedSubSvcs = {};
-    renderBookingServiceChips();
+    chipContexts.booking.selected = {};
+    renderServiceChips('booking');
+  }
+
+  // Rebuild the edit context's selection state from stored appointment service strings
+  function loadEditServiceSelections(services){
+    const c = chipContexts.edit;
+    c.selected = {};
+    (services||[]).forEach(str=>{
+      const match = str.match(/^(.+?)\s*\((.+)\)$/);
+      const svcName = match ? match[1].trim() : str.trim();
+      const svc = servicesCache.find(s=>
+        getLocalizedName(s)===svcName || s.name_en===svcName || s.name===svcName
+      );
+      if(!svc){ return; } // service no longer exists; skip
+      if(!match){ c.selected[svc.id] = []; return; }
+      // Has sub-services (and maybe sub-sub-services)
+      const parts = match[2].split(',').map(p=>p.trim()).filter(Boolean);
+      const sels = [];
+      parts.forEach(part=>{
+        const m = part.match(/^(.+?)\s*[–-]\s*(.+)$/);
+        const subName = (m ? m[1] : part).trim();
+        const sub = subServicesCache.find(s=>s.serviceId===svc.id && (
+          getLocalizedName(s)===subName || s.name_en===subName || s.name===subName
+        ));
+        if(!sub) return;
+        let optionId = null;
+        if(m){
+          const optName = m[2].trim();
+          const opt = optionsCache.find(o=>o.subServiceId===sub.id && (
+            getLocalizedName(o)===optName || o.name_en===optName || o.name===optName
+          ));
+          optionId = opt ? opt.id : null;
+        }
+        sels.push({subSvcId:sub.id, optionId});
+      });
+      c.selected[svc.id] = sels;
+    });
+    renderServiceChips('edit');
   }
 
   // ── SERVICES PAGE ─────────────────────────────────────────────────
@@ -2452,14 +2469,7 @@
     }
   })();
 
-  // Service chips in edit modal
-  document.querySelectorAll('#ea-services-grid .service-chip').forEach(chip=>{
-    chip.addEventListener('click',function(){
-      const cb=this.querySelector('input[type="checkbox"]');
-      cb.checked=!cb.checked;
-      this.classList.toggle('selected',cb.checked);
-    });
-  });
+  // (Edit-modal service chips are now rendered dynamically — see loadEditServiceSelections)
 
   function openEditApptModal(id){
     const a=appointmentsCache.find(x=>x.id===id); if(!a)return;
@@ -2481,14 +2491,9 @@
     });
     sel.value=a.stylist||'';
 
-    // Reset then tick the right service chips
-    document.querySelectorAll('#ea-services-grid input').forEach(cb=>{
-      cb.checked=false; cb.closest('.service-chip').classList.remove('selected');
-    });
-    (a.services||[]).forEach(svc=>{
-      const cb=document.querySelector(`#ea-services-grid input[value="${svc}"]`);
-      if(cb){cb.checked=true; cb.closest('.service-chip').classList.add('selected');}
-    });
+    // Load services into the dynamic edit chip system (supports sub / sub-sub)
+    activeChipCtx = 'edit';
+    loadEditServiceSelections(a.services||[]);
 
     document.getElementById('edit-appt-modal').classList.add('open');
   }
@@ -2502,7 +2507,7 @@
     const time    =document.getElementById('ea-time').value;
     const stylist =document.getElementById('ea-stylist').value;
     const notes   =document.getElementById('ea-notes').value.trim();
-    const services=Array.from(document.querySelectorAll('#ea-services-grid input:checked')).map(c=>c.value);
+    const services=getSelectedServicesForEdit();
 
     if(!name)           {showToast('⚠️ Please enter a customer name.');return;}
     if(!date)           {showToast('⚠️ Please select a date.');return;}
@@ -2919,6 +2924,7 @@
   window.closeEditApptModal=closeEditApptModal;window.saveEditedAppt=saveEditedAppt;
   window.setView=setView;window.calNav=calNav;window.goToday=goToday;
   window.calDayClick=calDayClick;window.openApptModal=openApptModal;window.closeModal=closeModal;
+  window.openEditApptModal=openEditApptModal;
   window.openStaffForm=openStaffForm;window.closeStaffModal=closeStaffModal;window.saveStaff=saveStaff;window.updateStaffUsername=updateStaffUsername;
   window.openLoginModal=openLoginModal;window.closeLoginModal=closeLoginModal;window.submitLogin=submitLogin;window.doLogout=doLogout;
   window.selectPct=selectPct;
