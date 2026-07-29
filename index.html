@@ -109,6 +109,8 @@
     .appt-item .name{font-weight:700;font-size:14px;color:var(--text);}
     .appt-item .time{color:var(--teal-dark);font-weight:600;margin:2px 0;}
     .appt-item .services{color:#666;}
+    .appt-item .services .appt-service-list{list-style:disc;margin:2px 0 0;padding-left:16px;}
+    .appt-item .services .appt-service-list li{margin-top:2px;line-height:1.35;}
     .appt-item .delete-btn{float:right;background:none;border:none;color:#c00;cursor:pointer;font-size:15px;line-height:1;padding:0;}
     .empty-msg{color:#aaa;font-size:13px;text-align:center;padding:20px 0;}
 
@@ -669,10 +671,10 @@
   <div class="modal subsvc-picker-modal">
     <h3 id="opt-picker-title">Choose an Option</h3>
     <p id="opt-picker-sub" style="font-size:13px;color:var(--teal-dark);font-weight:600;margin-bottom:4px"></p>
-    <p style="font-size:13px;color:#888;margin-bottom:12px" data-i18n="opt_picker_hint">Choose an option, or skip to book without a specific option.</p>
+    <p style="font-size:13px;color:#888;margin-bottom:12px" data-i18n="opt_picker_hint2">Select one or more, then Confirm. Or Close to unselect this sub-service.</p>
     <div class="subsvc-picker-grid" id="opt-picker-grid"></div>
     <div class="modal-btn-row">
-      <button class="close-btn" style="background:#888" onclick="skipOptionPicker()" data-i18n="opt_picker_skip">Skip</button>
+      <button class="close-btn" style="background:#888" onclick="skipOptionPicker()" data-i18n="opt_picker_close">✕ Close &amp; Unselect</button>
       <button class="close-btn" onclick="confirmOptionPicker()" data-i18n="opt_picker_confirm">Confirm</button>
     </div>
   </div>
@@ -1359,7 +1361,7 @@
     list.innerHTML='';
     upcoming.forEach(a=>{
       const li=document.createElement('li');li.className='appt-item';
-      li.innerHTML=`<button class="delete-btn" onclick="removeAppt('${a.id}')">✕</button><div class="name">${esc(a.name)}</div><div class="time">📅 ${fmtDate(a.date)} · ⏰ ${a.time}</div><div class="services">${esc(a.services.join(', '))}</div>${a.stylist?`<div class="services">👤 ${esc(a.stylist)}</div>`:''}`;
+      li.innerHTML=`<button class="delete-btn" onclick="removeAppt('${a.id}')">✕</button><div class="name">${esc(a.name)}</div><div class="time">📅 ${fmtDate(a.date)} · ⏰ ${a.time}</div><div class="services">${localizedServicesBulletHtml(a.services)}</div>${a.stylist?`<div class="services">👤 ${esc(a.stylist)}</div>`:''}`;
       list.appendChild(li);
     });
   }
@@ -1602,7 +1604,6 @@
   function ctx(){ return chipContexts[activeChipCtx]; }
 
   let pendingPickerSvcId = null;
-  let pickerTempSelections = [];
 
   function renderServiceChips(ctxName){
     const c = chipContexts[ctxName];
@@ -1686,62 +1687,95 @@
     }
   }
 
+  // Working state during the sub-service picker:
+  // { subSvcId: null (selected, no sub-subs) | [optId,...] (selected with these sub-subs) }
+  let pickerWorking = {};
+  let inlineOptSubId = null;   // sub-service currently being resolved in the sub-sub modal
+  let optPickedIds = [];       // multi-selected sub-sub ids in the open sub-sub modal
+
   function openSubSvcPicker(svcId){
     pendingPickerSvcId = svcId;
     const c = ctx();
-    const svc = servicesCache.find(s=>s.id===svcId);
-    const subs = subServicesCache.filter(s=>s.serviceId===svcId).sort(bySortOrder);
-    pickerTempSelections = (c.selected[svcId]||[]).map(sel=>sel.subSvcId);
-
-    document.getElementById('picker-title').textContent = `${svc?.emoji||''} ${getLocalizedName(svc)||'Service'} — ${t('choose_options')}`;
-
-    const grid = document.getElementById('picker-grid');
-    if(!subs.length){
-      grid.innerHTML='<p class="no-subsvc-msg">No sub-services added yet.</p>';
-    } else {
-      grid.innerHTML = subs.map(ss=>{
-        const hasOpts = optionsCache.some(o=>o.subServiceId===ss.id);
-        const prices = getItemPrices(ss);
-        const priceLabel = prices.length>1 ? `💷 ${prices.join(' / ')}` : (prices.length===1 ? `💷 ${prices[0]}` : '');
-        return `
-        <div class="subsvc-pick-item ${pickerTempSelections.includes(ss.id)?'picked':''}" id="pick-${ss.id}" onclick="togglePickerItem('${ss.id}')">
-          <div class="sp-name">${esc(getLocalizedName(ss))}${hasOpts?' ▸':''}</div>
-          <div class="sp-meta">
-            ${!hasOpts && priceLabel?`<span>${esc(priceLabel)}</span>`:''}
-            ${!hasOpts && ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
-          </div>
-          ${getLocalizedDesc(ss)?`<div class="sp-meta" style="margin-top:3px;font-style:italic">${esc(getLocalizedDesc(ss))}</div>`:''}
-        </div>`;
-      }).join('');
-    }
+    // Seed working state from any existing selection (e.g. re-opening)
+    pickerWorking = {};
+    (c.selected[svcId]||[]).forEach(leaf=>{
+      if(leaf.optionId){
+        if(!Array.isArray(pickerWorking[leaf.subSvcId])) pickerWorking[leaf.subSvcId] = [];
+        pickerWorking[leaf.subSvcId].push(leaf.optionId);
+      } else if(!(leaf.subSvcId in pickerWorking)){
+        pickerWorking[leaf.subSvcId] = null;
+      }
+    });
+    renderSubSvcPickerGrid();
     document.getElementById('subsvc-picker-modal').classList.add('open');
   }
 
-  function togglePickerItem(subSvcId){
-    const el = document.getElementById('pick-'+subSvcId);
-    if(pickerTempSelections.includes(subSvcId)){
-      pickerTempSelections = pickerTempSelections.filter(x=>x!==subSvcId);
-      el?.classList.remove('picked');
-    } else {
-      pickerTempSelections.push(subSvcId);
-      el?.classList.add('picked');
+  function renderSubSvcPickerGrid(){
+    const svcId = pendingPickerSvcId;
+    const svc = servicesCache.find(s=>s.id===svcId);
+    const subs = subServicesCache.filter(s=>s.serviceId===svcId).sort(bySortOrder);
+    document.getElementById('picker-title').textContent = `${svc?.emoji||''} ${getLocalizedName(svc)||'Service'} — ${t('choose_options')}`;
+    const grid = document.getElementById('picker-grid');
+    if(!subs.length){ grid.innerHTML='<p class="no-subsvc-msg">No sub-services added yet.</p>'; return; }
+    grid.innerHTML = subs.map(ss=>{
+      const hasOpts = optionsCache.some(o=>o.subServiceId===ss.id);
+      const selected = (ss.id in pickerWorking);
+      const chosenOpts = Array.isArray(pickerWorking[ss.id]) ? pickerWorking[ss.id] : [];
+      const prices = getItemPrices(ss);
+      const priceLabel = prices.length>1 ? `💷 ${prices.join(' / ')}` : (prices.length===1 ? `💷 ${prices[0]}` : '');
+      // Names of chosen sub-subs to show as a subtitle
+      let optNames = '';
+      if(hasOpts && chosenOpts.length){
+        optNames = chosenOpts.map(oid=>getLocalizedName(optionsCache.find(o=>o.id===oid))).filter(Boolean).join(', ');
+      }
+      return `
+      <div class="subsvc-pick-item ${selected?'picked':''}" id="pick-${ss.id}" onclick="pickSubSvc('${ss.id}')">
+        <div class="sp-name">${esc(getLocalizedName(ss))}${hasOpts?' ▸':''}</div>
+        <div class="sp-meta">
+          ${!hasOpts && priceLabel?`<span>${esc(priceLabel)}</span>`:''}
+          ${!hasOpts && ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
+        </div>
+        ${optNames?`<div class="sp-meta" style="margin-top:3px;color:var(--teal-dark);font-weight:600">✓ ${esc(optNames)}</div>`:''}
+        ${getLocalizedDesc(ss)?`<div class="sp-meta" style="margin-top:3px;font-style:italic">${esc(getLocalizedDesc(ss))}</div>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  function pickSubSvc(subSvcId){
+    const hasOpts = optionsCache.some(o=>o.subServiceId===subSvcId);
+    if(hasOpts){
+      // Open the sub-sub modal immediately (inline)
+      openInlineOptPicker(subSvcId);
+      return;
     }
+    // No sub-subs → toggle selection directly
+    if(subSvcId in pickerWorking){ delete pickerWorking[subSvcId]; }
+    else { pickerWorking[subSvcId] = null; }
+    renderSubSvcPickerGrid();
   }
 
   function confirmSubSvcPicker(){
     if(!pendingPickerSvcId){ document.getElementById('subsvc-picker-modal').classList.remove('open'); return; }
     const c = ctx();
     const svcId = pendingPickerSvcId;
-    // Split picked sub-services into those with sub-subs (need option picking) and plain leaves
-    const subsWithOpts = pickerTempSelections.filter(ssId=>optionsCache.some(o=>o.subServiceId===ssId));
-    const plainSubs    = pickerTempSelections.filter(ssId=>!optionsCache.some(o=>o.subServiceId===ssId));
-    // Plain sub-services become leaves immediately
-    c.selected[svcId] = plainSubs.map(ssId=>({subSvcId:ssId, optionId:null, chosenPrice:null, pct:null}));
+    // Build leaves from working state
+    const leaves = [];
+    Object.entries(pickerWorking).forEach(([ssId, opts])=>{
+      if(Array.isArray(opts) && opts.length){
+        opts.forEach(optId=>leaves.push({subSvcId:ssId, optionId:optId, chosenPrice:null, pct:null}));
+      } else {
+        leaves.push({subSvcId:ssId, optionId:null, chosenPrice:null, pct:null});
+      }
+    });
+    c.selected[svcId] = leaves;
     document.getElementById('subsvc-picker-modal').classList.remove('open');
-    // Resolve sub-subs (multi-select) for each sub-service that has them
-    optResolveCtx = { svcId, subsWithOpts, index:0 };
-    if(subsWithOpts.length){ openOptionPicker(); }
-    else { resolveLeaves(svcId, 0); }
+    if(!leaves.length){
+      // Nothing picked → treat as selecting the main service with no sub-service
+      c.selected[svcId] = [];
+      finalizeChipSelection(svcId);
+      return;
+    }
+    resolveLeaves(svcId, 0);
   }
 
   function skipSubSvcPicker(){
@@ -1760,20 +1794,15 @@
     pendingPickerSvcId = null;
   }
 
-  // ── TIER-3 OPTION PICKER (multi-select) ───────────────────────────
-  let optResolveCtx = null; // { svcId, subsWithOpts, index }
-  let optPickedIds = [];    // multi-selected sub-sub ids for the current sub-service
+  // ── TIER-3 SUB-SUB PICKER (inline, multi-select) ──────────────────
+  function openInlineOptPicker(subSvcId){
+    inlineOptSubId = subSvcId;
+    const ss = subServicesCache.find(x=>x.id===subSvcId);
+    const svc = servicesCache.find(s=>s.id===pendingPickerSvcId);
+    const opts = optionsCache.filter(o=>o.subServiceId===subSvcId).sort(bySortOrder);
+    // Pre-select whatever's already chosen for this sub-service
+    optPickedIds = Array.isArray(pickerWorking[subSvcId]) ? [...pickerWorking[subSvcId]] : [];
 
-  function openOptionPicker(){
-    const c = ctx();
-    const { svcId, subsWithOpts, index } = optResolveCtx;
-    const ssId = subsWithOpts[index];
-    const ss = subServicesCache.find(x=>x.id===ssId);
-    const opts = optionsCache.filter(o=>o.subServiceId===ssId).sort(bySortOrder);
-    // Pre-select any already chosen for this sub-service (when editing)
-    optPickedIds = (c.selected[svcId]||[]).filter(s=>s.subSvcId===ssId && s.optionId).map(s=>s.optionId);
-
-    const svc = servicesCache.find(s=>s.id===svcId);
     document.getElementById('opt-picker-title').textContent = `${getLocalizedName(ss)} — ${t('choose_options')}`;
     document.getElementById('opt-picker-sub').textContent = `${getLocalizedName(svc)} ▸ ${getLocalizedName(ss)}`;
 
@@ -1795,7 +1824,6 @@
   }
 
   function toggleOptPickerItem(optId){
-    // Multi-select
     if(optPickedIds.includes(optId)){
       optPickedIds = optPickedIds.filter(x=>x!==optId);
       document.getElementById('optpick-'+optId)?.classList.remove('picked');
@@ -1805,44 +1833,25 @@
     }
   }
 
+  // Confirm sub-sub selections → mark the sub-service selected, return to sub-service picker
   function confirmOptionPicker(){
-    const c = ctx();
-    const { svcId, subsWithOpts, index } = optResolveCtx;
-    const ssId = subsWithOpts[index];
-    // Remove any prior leaves for this sub-service, then add one leaf per chosen sub-sub
-    c.selected[svcId] = (c.selected[svcId]||[]).filter(s=>s.subSvcId!==ssId);
     if(optPickedIds.length){
-      optPickedIds.forEach(optId=>{
-        c.selected[svcId].push({subSvcId:ssId, optionId:optId, chosenPrice:null, pct:null});
-      });
+      pickerWorking[inlineOptSubId] = [...optPickedIds];
     } else {
-      // None chosen → treat the sub-service itself as the leaf
-      c.selected[svcId].push({subSvcId:ssId, optionId:null, chosenPrice:null, pct:null});
+      // Confirmed with nothing selected → unselect the sub-service
+      delete pickerWorking[inlineOptSubId];
     }
     document.getElementById('opt-picker-modal').classList.remove('open');
-    advanceOptionPicker();
+    inlineOptSubId = null;
+    renderSubSvcPickerGrid();
   }
 
+  // Close/back → unselect the sub-service (mistaken tap) and return
   function skipOptionPicker(){
-    const c = ctx();
-    const { svcId, subsWithOpts, index } = optResolveCtx;
-    const ssId = subsWithOpts[index];
-    // Skip → the sub-service itself becomes the leaf (no sub-sub)
-    c.selected[svcId] = (c.selected[svcId]||[]).filter(s=>s.subSvcId!==ssId);
-    c.selected[svcId].push({subSvcId:ssId, optionId:null, chosenPrice:null, pct:null});
+    delete pickerWorking[inlineOptSubId];
     document.getElementById('opt-picker-modal').classList.remove('open');
-    advanceOptionPicker();
-  }
-
-  function advanceOptionPicker(){
-    const { svcId, subsWithOpts, index } = optResolveCtx;
-    if(index+1 < subsWithOpts.length){
-      optResolveCtx.index = index+1;
-      openOptionPicker();
-    } else {
-      optResolveCtx = null;
-      resolveLeaves(svcId, 0);
-    }
+    inlineOptSubId = null;
+    renderSubSvcPickerGrid();
   }
 
   // ── PER-LEAF PRICE + PERCENTAGE RESOLUTION ────────────────────────
@@ -2587,7 +2596,6 @@
       const total      = getTotalPrice(a.services||[]);
       let priceHtml = '';
       if(priceLines.length){
-        priceHtml += `<div class="detail" style="margin-top:8px;padding-top:8px;border-top:1px solid #eee"><strong>💷 ${t('det_price')}:</strong><br>${priceLines.map(l=>`<span style="display:block;font-size:13px;color:#555;margin-top:2px">${l}</span>`).join('')}</div>`;
         const split = getApptIncomeSplit(a.services||[], a.bookingPct);
         if(split){
           if(split.isFree){
@@ -2612,7 +2620,7 @@
         <div class="detail"><strong>👤 ${t('det_customer')}:</strong> ${esc(a.name)}</div>
         <div class="detail"><strong>📅 ${t('det_date')}:</strong> ${fmtDate(a.date)}</div>
         <div class="detail"><strong>⏰ ${t('det_time')}:</strong> ${a.time}</div>
-        <div class="detail"><strong>💅 ${t('det_services')}:</strong> ${esc(cleanServicesDisplay(a.services))}</div>
+        <div class="detail"><strong>💅 ${t('det_services')}:</strong>${servicesDisplayHtml(a.services)}</div>
         ${a.notes?`<div class="detail"><strong>📝 ${t('det_notes')}:</strong> ${esc(a.notes)}</div>`:''}
         ${priceHtml}
         <div style="display:flex;gap:8px;margin-top:10px">
@@ -2641,6 +2649,15 @@
     }
     html+='</div></div>';
     document.getElementById('cal-container').innerHTML=html;
+  }
+
+  // Find a top-level service whose name in ANY language matches
+  function findServiceByAnyName(nameStr){
+    if(!nameStr) return null;
+    const target = nameStr.trim();
+    return servicesCache.find(s=>
+      s.name_en===target || s.name_hy===target || s.name_ru===target || s.name===target
+    );
   }
 
   // Find a sub-service whose name in ANY language matches the given string
@@ -2740,6 +2757,103 @@
     }).join(', ');
   }
 
+  // Re-localize a top-level service name (stored in whatever language was
+  // active at booking time) to the CURRENT app language. Falls back to the
+  // stored text if the service can no longer be found (e.g. renamed/deleted).
+  function localizeServiceName(rawSvcName){
+    const svcObj = findServiceByAnyName(rawSvcName);
+    return svcObj ? getLocalizedName(svcObj) : rawSvcName;
+  }
+
+  // Re-localize a sub-service/option part's plain text, which may be either
+  // "SubService" or "SubService – Option". Falls back to the stored text.
+  function localizePartText(text){
+    const dashMatch = text.match(/^(.+?)\s*[–-]\s*(.+)$/);
+    if(dashMatch){
+      const sub = findSubServiceByAnyName(dashMatch[1].trim());
+      const opt = findOptionByAnyName(dashMatch[2].trim());
+      if(sub) return `${getLocalizedName(sub)} – ${opt?getLocalizedName(opt):dashMatch[2].trim()}`;
+      return text;
+    }
+    const sub = findSubServiceByAnyName(text);
+    return sub ? getLocalizedName(sub) : text;
+  }
+
+  // Locale-aware, one-string-per-service breakdown of an appointment's services.
+  // Preserves any embedded price (@), percentage (~), and promo (!) tags exactly
+  // as stored. Used to build both the compact summary and the bulleted list.
+  function localizedServiceLines(services){
+    return (services||[]).map(svcStr=>{
+      const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
+      const svcName = localizeServiceName(match ? match[1].trim() : svcStr.trim());
+      if(!match) return svcName;
+      const parts = match[2].split(',').map(part=>{
+        const { text, price, pct, promo } = parseTags(part.trim());
+        let out = localizePartText(text);
+        if(price) out += ` @${price}`;
+        if(pct)   out += ` ~${pct}`;
+        if(promo && Number(promo)>0) out += ` !${promo}`;
+        return out;
+      }).join(', ');
+      return `${svcName} (${parts})`;
+    });
+  }
+
+  // Compact, single-line, locale-aware summary of an appointment's services.
+  function localizedServicesSummary(services){
+    return localizedServiceLines(services).join(', ');
+  }
+
+  // Bulleted, one-line-per-service HTML list (e.g. for the sidebar "Appointments" list).
+  function localizedServicesBulletHtml(services){
+    const lines = localizedServiceLines(services);
+    if(!lines.length) return '';
+    return `<ul class="appt-service-list">${lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>`;
+  }
+
+  // HTML version: each service on its own line, with its sub-selections indented.
+  // Includes each item's resolved price (with promo struck-through where relevant)
+  // inline, so this is the single place price is shown — no separate breakdown needed.
+  // Names are re-localized to the CURRENT app language by matching the stored
+  // (booking-time-language) text back to its service/sub-service/option record,
+  // rather than just echoing whatever language was active when it was booked.
+  function servicesDisplayHtml(services){
+    // Build a price/promo label like "💷25" or a struck-through "💷25 💷20 (-20%)"
+    const priceLabel = (price, promoNum)=>{
+      if(price===null) return '';
+      if(promoNum>0){
+        const disc = price*(1-promoNum/100);
+        return ` <span style="color:#999">(<del style="color:#bbb">💷${esc(String(price))}</del> 💷${fmt(disc)} <span style="color:var(--orange);font-weight:600">-${promoNum}%</span>)</span>`;
+      }
+      return ` <span style="color:#999">(💷${esc(String(price))})</span>`;
+    };
+
+    return (services||[]).map(svcStr=>{
+      const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
+      const rawSvcName = match ? match[1].trim() : svcStr.trim();
+      const svcName = localizeServiceName(rawSvcName);
+      let sub = '';
+      let nameLabel = '';
+      if(match){
+        const parts = match[2].split(',').map(part=>{
+          const { text, price:tagged, pct, promo } = parseTags(part.trim());
+          const price = priceOfPart(text, tagged);
+          const promoNum = promo?Number(promo):0;
+          let extra = [];
+          if(pct) extra.push(pct);
+          const displayText = localizePartText(text);
+          return `<div style="padding-left:16px;font-size:13px;color:#666">• ${esc(displayText)}${priceLabel(price, promoNum)}${extra.length?` <span style="color:#999">· ${extra.join(' · ')}</span>`:''}</div>`;
+        }).join('');
+        sub = parts;
+      } else {
+        const subSvc = findSubServiceByAnyName(rawSvcName);
+        const price = parsePrice(subSvc?.price);
+        nameLabel = priceLabel(price, getItemPromo(subSvc));
+      }
+      return `<div style="margin-top:4px"><span style="font-weight:600">${esc(svcName)}</span>${nameLabel}${sub}</div>`;
+    }).join('');
+  }
+
   // Total price the customer pays (after discounts)
   function getTotalPrice(services){
     let total = 0; let found = false;
@@ -2798,11 +2912,6 @@
 
     let priceHtml = '';
     if(priceLines.length){
-      priceHtml += `<div class="detail" style="margin-top:10px;padding-top:10px;border-top:1px solid #eee">
-        <strong>💷 ${t('det_price')}:</strong><br>
-        ${priceLines.map(l=>`<span style="display:block;font-size:13px;color:#555;margin-top:3px">${l}</span>`).join('')}
-      </div>`;
-
       // Income split (per-line percentages; falls back to appointment bookingPct)
       const split = getApptIncomeSplit(a.services||[], a.bookingPct);
       if(split){
@@ -2830,7 +2939,7 @@
       <div class="detail"><strong>👤 ${t('det_customer')}:</strong> ${esc(a.name)}</div>
       <div class="detail"><strong>📅 ${t('det_date')}:</strong> ${fmtDate(a.date)}</div>
       <div class="detail"><strong>⏰ ${t('det_time')}:</strong> ${a.time}</div>
-      <div class="detail"><strong>💅 ${t('det_services')}:</strong> ${esc(cleanServicesDisplay(a.services))}</div>
+      <div class="detail"><strong>💅 ${t('det_services')}:</strong>${servicesDisplayHtml(a.services)}</div>
       ${a.notes?`<div class="detail"><strong>📝 ${t('det_notes')}:</strong> ${esc(a.notes)}</div>`:''}
       ${priceHtml}
     `, id);
@@ -3036,6 +3145,7 @@
       toast_option_deleted:'Sub-sub-service deleted.',
       opt_picker_hint:'Choose an option, or skip to book without a specific one.',
       opt_picker_skip:'Skip', opt_picker_confirm:'Confirm',
+      opt_picker_hint2:'Select one or more, then Confirm. Or Close to unselect this sub-service.', opt_picker_close:'✕ Close & Unselect',
       add_price:'+ Add another price', choose_price:'Select a Price', price_picker_hint:'Choose which price applies to this booking.',
       choose_pct:'Select Booking Percentage', pct_picker_hint:'Choose the shop / stylist split for this service.',
       nav_promos:'🏷️ Promotions', promo_page_title:'🏷️ Promotions',
@@ -3153,6 +3263,7 @@
       toast_option_deleted:'Ենթաենթածառայությունը ջնջվեց։',
       opt_picker_hint:'Ընտրեք մեկ կամ մի քանի տարբերակ, կամ բաց թողեք:',
       opt_picker_skip:'Բաց թողնել', opt_picker_confirm:'Հաստատել',
+      opt_picker_hint2:'Ընտրեք մեկ կամ մի քանիսը, ապա հաստատեք: Կամ փակեք՝ չեղարկելու համար:', opt_picker_close:'✕ Փակել և չեղարկել',
       add_price:'+ Ավելացնել ևս մեկ գին', choose_price:'Ընտրեք գինը', price_picker_hint:'Ընտրեք, թե որ գինն է կիրառվում այս ամրագրման համար:',
       choose_pct:'Ընտրեք ամրագրման տոկոսը', pct_picker_hint:'Ընտրեք սրահի / մասնագետի բաժանումն այս ծառայության համար:',
       nav_promos:'🏷️ Ակցիաներ', promo_page_title:'🏷️ Ակցիաներ',
@@ -3240,6 +3351,7 @@
       toast_option_deleted:'Под-подуслуга удалена.',
       opt_picker_hint:'Выберите один или несколько вариантов или пропустите.',
       opt_picker_skip:'Пропустить', opt_picker_confirm:'Подтвердить',
+      opt_picker_hint2:'Выберите один или несколько, затем подтвердите. Или закройте, чтобы отменить.', opt_picker_close:'✕ Закрыть и отменить',
       add_price:'+ Добавить ещё цену', choose_price:'Выберите цену', price_picker_hint:'Выберите, какая цена применяется к этой записи.',
       choose_pct:'Выберите процент', pct_picker_hint:'Выберите разделение салон / стилист для этой услуги.',
       nav_promos:'🏷️ Акции', promo_page_title:'🏷️ Акции',
@@ -3291,6 +3403,7 @@
     // Re-render dynamic pages so they pick up new language for generated content
     renderStaffDropdown();
     renderBookingServiceChips();
+    renderSidebar();
     if(document.getElementById('page-calendar')?.classList.contains('active')) renderCal();
     if(document.getElementById('page-promos')?.classList.contains('active')) renderPromosPage();
     if(document.getElementById('page-staff')?.classList.contains('active')) renderStaffPage();
@@ -3365,12 +3478,12 @@
   window.openSubSvcForm=openSubSvcForm;window.closeSubSvcModal=closeSubSvcModal;window.saveSubSvc=saveSubSvc;
   window.deleteSubSvc=deleteSubSvc;
   window.openOptForm=openOptForm;window.closeOptModal=closeOptModal;window.saveOpt=saveOpt;window.deleteOpt=deleteOpt;
-  window.openOptionPicker=openOptionPicker;window.toggleOptPickerItem=toggleOptPickerItem;
+  window.toggleOptPickerItem=toggleOptPickerItem;
   window.confirmOptionPicker=confirmOptionPicker;window.skipOptionPicker=skipOptionPicker;
   window.choosePricePick=choosePricePick;window.choosePctPick=choosePctPick;
   window.openPromoModal=openPromoModal;window.openPromoAllModal=openPromoAllModal;window.closePromoModal=closePromoModal;window.savePromo=savePromo;
   window.addPriceRow=addPriceRow;window.removePriceRow=removePriceRow;
-  window.handleChipClick=handleChipClick;window.togglePickerItem=togglePickerItem;
+  window.handleChipClick=handleChipClick;window.pickSubSvc=pickSubSvc;
   window.confirmSubSvcPicker=confirmSubSvcPicker;window.skipSubSvcPicker=skipSubSvcPicker;
   window.submitGateLogin=submitGateLogin;
 </script>
