@@ -193,6 +193,27 @@
     /* Picker modals must sit ABOVE the booking/edit modal that opened them */
     #subsvc-picker-modal{z-index:400;}
     #opt-picker-modal{z-index:420;}
+    #price-picker-modal{z-index:440;}
+    #pct-picker-modal{z-index:460;}
+    /* Price picker */
+    .price-picker-grid{display:flex;flex-direction:column;gap:10px;}
+    .price-pick-btn{padding:16px;font-size:18px;font-weight:700;color:var(--teal-dark);background:var(--teal-light);border:2px solid var(--teal);border-radius:12px;cursor:pointer;transition:all .15s;}
+    .price-pick-btn:hover{background:var(--teal);color:white;}
+    /* Multi-price rows in the service/sub-service forms */
+    .price-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+    .price-row input{flex:1;}
+    .price-row-del{background:#fff0f0;border:1px solid #f5c0c0;color:#c00;border-radius:6px;width:30px;height:30px;flex-shrink:0;cursor:pointer;font-size:12px;}
+    .btn-add-price{background:transparent;color:var(--teal-dark);border:1.5px dashed var(--teal);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;width:100%;margin-top:2px;}
+    .btn-add-price:hover{background:var(--teal-light);}
+    /* Promotions page */
+    .promo-list{display:flex;flex-direction:column;gap:8px;}
+    .promo-item{display:flex;align-items:center;gap:12px;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow);}
+    .promo-item:hover{border-color:var(--teal);background:var(--teal-light);}
+    .promo-item-main{flex:1;min-width:0;}
+    .promo-path{font-size:14px;font-weight:600;color:var(--text);word-break:break-word;}
+    .promo-price{font-size:12px;color:#888;margin-top:2px;}
+    .promo-badge{flex-shrink:0;font-size:13px;font-weight:700;padding:5px 12px;border-radius:20px;background:var(--orange);color:white;}
+    .promo-badge.none{background:#eee;color:#999;font-weight:600;}
     .modal-overlay.open{display:flex;}
     .modal{background:white;border-radius:18px;padding:32px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:pop .25s ease;}
     @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
@@ -401,6 +422,7 @@
       <button onclick="showPage('calendar',this)" data-i18n="nav_calendar">🗓 Calendar</button>
       <button id="nav-staff-btn" onclick="showPage('staff',this)" style="display:none" data-i18n="nav_staff">👥 Staff</button>
       <button id="nav-services-btn" onclick="showPage('services',this)" style="display:none" data-i18n="nav_services">🛎 Services</button>
+      <button id="nav-promos-btn" onclick="showPage('promos',this)" style="display:none" data-i18n="nav_promos">🏷️ Promotions</button>
     </nav>
     <span id="logged-in-label"></span>
     <button id="btn-login-nav" onclick="openLoginModal()" data-i18n="btn_login">🔐 Login</button>
@@ -468,15 +490,6 @@
         <label data-i18n="lbl_notes">Notes (optional — required if "Other" selected)</label>
         <textarea id="f-notes" rows="3" data-i18n-placeholder="ph_notes" placeholder="Any special requests or notes…"></textarea>
       </div>
-      <div class="form-group">
-        <label data-i18n="lbl_booking_pct">Booking Percentage</label>
-        <div class="pct-group">
-          <button type="button" class="pct-btn" id="pct-70-30" onclick="selectPct('70/30')">70/30</button>
-          <button type="button" class="pct-btn" id="pct-60-40" onclick="selectPct('60/40')">60/40</button>
-          <button type="button" class="pct-btn" id="pct-50-50" onclick="selectPct('50/50')">50/50</button>
-          <button type="button" class="pct-btn" id="pct-0" onclick="selectPct('0%')">0%</button>
-        </div>
-      </div>
       <button class="btn-book" id="btn-book" onclick="bookAppointment()" data-i18n="btn_confirm">✦ Confirm Appointment</button>
     </div>
     <div class="summary-card">
@@ -534,6 +547,16 @@
   </div>
 </div>
 
+<!-- PROMOTIONS PAGE -->
+<div class="page" id="page-promos">
+  <div class="svc-page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <h2 data-i18n="promo_page_title">🏷️ Promotions</h2>
+    <button class="btn-add-svc" style="width:auto" onclick="openPromoAllModal()" data-i18n="promo_set_all">Set promotion on all services</button>
+  </div>
+  <p style="color:#666;font-size:14px;margin-bottom:14px" data-i18n="promo_hint">Tap a priced service to set a discount. Discounts apply automatically to new bookings.</p>
+  <div id="promo-container"><p class="no-svc-selected" data-i18n="promo_loading">Loading…</p></div>
+</div>
+
 <!-- SERVICE FORM MODAL -->
 <div class="modal-overlay" id="svc-modal">
   <div class="modal" style="width:460px">
@@ -571,7 +594,8 @@
     <div class="row-2">
       <div class="form-group">
         <label data-i18n="subsvc_price_lbl">Price (optional)</label>
-        <input type="text" id="subsvc-price" data-i18n-placeholder="subsvc_price_ph" placeholder="e.g. 25"/>
+        <div id="subsvc-price-list"></div>
+        <button type="button" class="btn-add-price" onclick="addPriceRow('subsvc')" data-i18n="add_price">+ Add another price</button>
       </div>
       <div class="form-group">
         <label data-i18n="subsvc_duration_lbl">Duration (optional)</label>
@@ -606,7 +630,8 @@
     <div class="row-2">
       <div class="form-group">
         <label data-i18n="subsvc_price_lbl">Price (optional)</label>
-        <input type="text" id="opt-price" placeholder="e.g. 25"/>
+        <div id="opt-price-list"></div>
+        <button type="button" class="btn-add-price" onclick="addPriceRow('opt')" data-i18n="add_price">+ Add another price</button>
       </div>
       <div class="form-group">
         <label data-i18n="subsvc_duration_lbl">Duration (optional)</label>
@@ -650,6 +675,44 @@
       <button class="close-btn" style="background:#888" onclick="skipOptionPicker()" data-i18n="opt_picker_skip">Skip</button>
       <button class="close-btn" onclick="confirmOptionPicker()" data-i18n="opt_picker_confirm">Confirm</button>
     </div>
+  </div>
+</div>
+
+<!-- PROMOTION SET MODAL -->
+<div class="modal-overlay" id="promo-modal">
+  <div class="modal" style="width:420px;max-width:92vw">
+    <h3 id="promo-modal-title" data-i18n="promo_set_title">Set Promotion</h3>
+    <p id="promo-modal-sub" style="font-size:13px;color:var(--teal-dark);font-weight:600;margin-bottom:12px"></p>
+    <input type="hidden" id="promo-target-type"/>
+    <input type="hidden" id="promo-target-id"/>
+    <div class="form-group">
+      <label data-i18n="promo_discount_lbl">Discount (% off)</label>
+      <select id="promo-discount"></select>
+    </div>
+    <button class="btn-save-staff" onclick="savePromo()" data-i18n="promo_save">💾 Save Promotion</button>
+    <div class="modal-btn-row" style="margin-top:10px">
+      <button class="close-btn" onclick="closePromoModal()" data-i18n="confirm_cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRICE PICKER MODAL (for items with multiple prices) -->
+<div class="modal-overlay" id="price-picker-modal">
+  <div class="modal" style="width:420px;max-width:92vw">
+    <h3 id="price-picker-title">Select a Price</h3>
+    <p id="price-picker-sub" style="font-size:13px;color:var(--teal-dark);font-weight:600;margin-bottom:4px"></p>
+    <p style="font-size:13px;color:#888;margin-bottom:14px" data-i18n="price_picker_hint">Choose which price applies to this booking.</p>
+    <div class="price-picker-grid" id="price-picker-grid"></div>
+  </div>
+</div>
+
+<!-- PERCENTAGE PICKER MODAL (per priced line) -->
+<div class="modal-overlay" id="pct-picker-modal">
+  <div class="modal" style="width:420px;max-width:92vw">
+    <h3 id="pct-picker-title">Select Booking Percentage</h3>
+    <p id="pct-picker-sub" style="font-size:13px;color:var(--teal-dark);font-weight:600;margin-bottom:4px"></p>
+    <p style="font-size:13px;color:#888;margin-bottom:14px" data-i18n="pct_picker_hint">Choose the shop / stylist split for this service.</p>
+    <div class="price-picker-grid" id="pct-picker-grid"></div>
   </div>
 </div>
 
@@ -866,16 +929,19 @@
       servicesCache.sort(bySortOrder);
       renderBookingServiceChips();
       if(document.getElementById('page-services').classList.contains('active')) renderSvcList();
+      if(document.getElementById('page-promos').classList.contains('active')) renderPromosPage();
     }, err=>console.error('Services listener error:',err)));
 
     unsubData.push(onSnapshot(subSvcCol, snap=>{
       subServicesCache = snap.docs.map(d=>({id:d.id,...d.data()}));
       if(activeSvcId) renderSubSvcPanel(activeSvcId);
+      if(document.getElementById('page-promos').classList.contains('active')) renderPromosPage();
     }, err=>console.error('SubServices listener error:',err)));
 
     unsubData.push(onSnapshot(optCol, snap=>{
       optionsCache = snap.docs.map(d=>({id:d.id,...d.data()}));
       if(activeSvcId) renderSubSvcPanel(activeSvcId);
+      if(document.getElementById('page-promos').classList.contains('active')) renderPromosPage();
     }, err=>console.error('Options listener error:',err)));
 
     unsubData.push(onSnapshot(apptCol, snap=>{
@@ -941,6 +1007,7 @@
       if(currentRole==='admin'){
         document.getElementById('nav-staff-btn').style.display='inline';
         document.getElementById('nav-services-btn').style.display='inline';
+        document.getElementById('nav-promos-btn').style.display='inline';
       }
       hideAuthGate();
     } else {
@@ -951,6 +1018,7 @@
       document.getElementById('btn-logout-nav').style.display='none';
       document.getElementById('nav-staff-btn').style.display='none';
       document.getElementById('nav-services-btn').style.display='none';
+      document.getElementById('nav-promos-btn').style.display='none';
       showAuthGate();
     }
   });
@@ -967,9 +1035,12 @@
       if(currentRole==='admin'){
         document.getElementById('nav-staff-btn').style.display='inline';
         document.getElementById('nav-services-btn').style.display='inline';
+        document.getElementById('nav-promos-btn').style.display='inline';
       } else {
         document.getElementById('nav-staff-btn').style.display='none';
         document.getElementById('nav-services-btn').style.display='none';
+        document.getElementById('nav-promos-btn').style.display='none';
+      document.getElementById('nav-promos-btn').style.display='none';
       }
     }
   },err=>console.error(err));
@@ -1119,6 +1190,7 @@
     if(name==='booking'){ activeChipCtx='booking'; renderSidebar(); }
     if(name==='staff')    renderStaffPage();
     if(name==='services'){ renderSvcList(); if(activeSvcId) renderSubSvcPanel(activeSvcId); }
+    if(name==='promos') renderPromosPage();
   }
 
   // ── SERVICE CHIPS ─────────────────────────────────────────────────
@@ -1171,7 +1243,8 @@
       const parts = match[2].split(',').map(p=>p.trim()).filter(Boolean);
       let sum = 0;
       parts.forEach(part=>{
-        const m = part.match(/^(.+?)\s*[–-]\s*(.+)$/);
+        const { text } = splitPriceTag(part);
+        const m = text.match(/^(.+?)\s*[–-]\s*(.+)$/);
         let durStr = null;
         if(m){
           // sub – sub-sub : use the sub-sub (last tier) if found
@@ -1179,7 +1252,7 @@
           if(opt){ durStr = opt.duration; }
           else { const sub = findSubServiceByAnyName(m[1].trim()); durStr = sub?sub.duration:null; }
         } else {
-          const sub = findSubServiceByAnyName(part);
+          const sub = findSubServiceByAnyName(text);
           durStr = sub ? sub.duration : null;
         }
         const d = parseDuration(durStr);
@@ -1269,9 +1342,6 @@
       } else {
         document.querySelectorAll('#services-grid input').forEach(cb=>{cb.checked=false;cb.closest('.service-chip')?.classList.remove('selected');});
       }
-      // Reset percentage
-      selectedPct = null;
-      document.querySelectorAll('.pct-btn').forEach(b=>b.classList.remove('pct-selected'));
       showToast('✅ Appointment booked for '+name+'!');
       showSync('synced','Saved');
     }catch(err){console.error(err);showToast('❌ Error saving.');showSync('error','Save failed');setLoading(0);}
@@ -1533,7 +1603,6 @@
 
   let pendingPickerSvcId = null;
   let pickerTempSelections = [];
-  let optPickerCtx = null;
 
   function renderServiceChips(ctxName){
     const c = chipContexts[ctxName];
@@ -1572,11 +1641,14 @@
     const names = sels.map(sel=>{
       const ss = subServicesCache.find(x=>x.id===sel.subSvcId);
       const ssName = getLocalizedName(ss);
+      let label = ssName;
       if(sel.optionId){
         const opt = optionsCache.find(o=>o.id===sel.optionId);
-        return `${ssName} – ${getLocalizedName(opt)}`;
+        label = `${ssName} – ${getLocalizedName(opt)}`;
       }
-      return ssName;
+      if(sel.chosenPrice) label += ` (💷${sel.chosenPrice})`;
+      if(sel.pct) label += ` [${sel.pct}]`;
+      return label;
     }).filter(Boolean);
     const labelEl = chip.querySelector('.chip-label');
     if(labelEl) labelEl.textContent = names.length ? `${getLocalizedName(svc)}: ${names.join(', ')}` : getLocalizedName(svc);
@@ -1629,11 +1701,13 @@
     } else {
       grid.innerHTML = subs.map(ss=>{
         const hasOpts = optionsCache.some(o=>o.subServiceId===ss.id);
+        const prices = getItemPrices(ss);
+        const priceLabel = prices.length>1 ? `💷 ${prices.join(' / ')}` : (prices.length===1 ? `💷 ${prices[0]}` : '');
         return `
         <div class="subsvc-pick-item ${pickerTempSelections.includes(ss.id)?'picked':''}" id="pick-${ss.id}" onclick="togglePickerItem('${ss.id}')">
           <div class="sp-name">${esc(getLocalizedName(ss))}${hasOpts?' ▸':''}</div>
           <div class="sp-meta">
-            ${!hasOpts && ss.price?`<span>💷 ${esc(ss.price)}</span>`:''}
+            ${!hasOpts && priceLabel?`<span>${esc(priceLabel)}</span>`:''}
             ${!hasOpts && ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
           </div>
           ${getLocalizedDesc(ss)?`<div class="sp-meta" style="margin-top:3px;font-style:italic">${esc(getLocalizedDesc(ss))}</div>`:''}
@@ -1658,11 +1732,16 @@
     if(!pendingPickerSvcId){ document.getElementById('subsvc-picker-modal').classList.remove('open'); return; }
     const c = ctx();
     const svcId = pendingPickerSvcId;
+    // Split picked sub-services into those with sub-subs (need option picking) and plain leaves
     const subsWithOpts = pickerTempSelections.filter(ssId=>optionsCache.some(o=>o.subServiceId===ssId));
-    c.selected[svcId] = pickerTempSelections.map(ssId=>({subSvcId:ssId, optionId:null}));
+    const plainSubs    = pickerTempSelections.filter(ssId=>!optionsCache.some(o=>o.subServiceId===ssId));
+    // Plain sub-services become leaves immediately
+    c.selected[svcId] = plainSubs.map(ssId=>({subSvcId:ssId, optionId:null, chosenPrice:null, pct:null}));
     document.getElementById('subsvc-picker-modal').classList.remove('open');
-    if(subsWithOpts.length){ openOptionPicker(svcId, subsWithOpts, 0); }
-    else { finalizeChipSelection(svcId); }
+    // Resolve sub-subs (multi-select) for each sub-service that has them
+    optResolveCtx = { svcId, subsWithOpts, index:0 };
+    if(subsWithOpts.length){ openOptionPicker(); }
+    else { resolveLeaves(svcId, 0); }
   }
 
   function skipSubSvcPicker(){
@@ -1681,55 +1760,163 @@
     pendingPickerSvcId = null;
   }
 
-  // ── TIER-3 OPTION PICKER ──────────────────────────────────────────
-  function openOptionPicker(svcId, subsWithOpts, index){
+  // ── TIER-3 OPTION PICKER (multi-select) ───────────────────────────
+  let optResolveCtx = null; // { svcId, subsWithOpts, index }
+  let optPickedIds = [];    // multi-selected sub-sub ids for the current sub-service
+
+  function openOptionPicker(){
     const c = ctx();
+    const { svcId, subsWithOpts, index } = optResolveCtx;
     const ssId = subsWithOpts[index];
     const ss = subServicesCache.find(x=>x.id===ssId);
     const opts = optionsCache.filter(o=>o.subServiceId===ssId).sort(bySortOrder);
-    const existing = (c.selected[svcId]||[]).find(s=>s.subSvcId===ssId);
-    optPickerCtx = { svcId, subsWithOpts, index, selectedOptId: existing?.optionId || null };
+    // Pre-select any already chosen for this sub-service (when editing)
+    optPickedIds = (c.selected[svcId]||[]).filter(s=>s.subSvcId===ssId && s.optionId).map(s=>s.optionId);
 
     const svc = servicesCache.find(s=>s.id===svcId);
     document.getElementById('opt-picker-title').textContent = `${getLocalizedName(ss)} — ${t('choose_options')}`;
     document.getElementById('opt-picker-sub').textContent = `${getLocalizedName(svc)} ▸ ${getLocalizedName(ss)}`;
 
     const grid = document.getElementById('opt-picker-grid');
-    grid.innerHTML = opts.map(o=>`
-      <div class="subsvc-pick-item ${optPickerCtx.selectedOptId===o.id?'picked':''}" id="optpick-${o.id}" onclick="toggleOptPickerItem('${o.id}')">
+    grid.innerHTML = opts.map(o=>{
+      const prices = getItemPrices(o);
+      const priceLabel = prices.length>1 ? `💷 ${prices.join(' / ')}` : (prices.length===1 ? `💷 ${prices[0]}` : '');
+      return `
+      <div class="subsvc-pick-item ${optPickedIds.includes(o.id)?'picked':''}" id="optpick-${o.id}" onclick="toggleOptPickerItem('${o.id}')">
         <div class="sp-name">${esc(getLocalizedName(o))}</div>
         <div class="sp-meta">
-          ${o.price?`<span>💷 ${esc(o.price)}</span>`:''}
+          ${priceLabel?`<span>${esc(priceLabel)}</span>`:''}
           ${o.duration?`<span>⏱ ${esc(o.duration)}</span>`:''}
         </div>
         ${getLocalizedDesc(o)?`<div class="sp-meta" style="margin-top:3px;font-style:italic">${esc(getLocalizedDesc(o))}</div>`:''}
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
     document.getElementById('opt-picker-modal').classList.add('open');
   }
 
   function toggleOptPickerItem(optId){
-    optPickerCtx.selectedOptId = (optPickerCtx.selectedOptId===optId) ? null : optId;
-    document.querySelectorAll('#opt-picker-grid .subsvc-pick-item').forEach(el=>el.classList.remove('picked'));
-    if(optPickerCtx.selectedOptId) document.getElementById('optpick-'+optId)?.classList.add('picked');
+    // Multi-select
+    if(optPickedIds.includes(optId)){
+      optPickedIds = optPickedIds.filter(x=>x!==optId);
+      document.getElementById('optpick-'+optId)?.classList.remove('picked');
+    } else {
+      optPickedIds.push(optId);
+      document.getElementById('optpick-'+optId)?.classList.add('picked');
+    }
   }
 
   function confirmOptionPicker(){
     const c = ctx();
-    const { svcId, subsWithOpts, index, selectedOptId } = optPickerCtx;
+    const { svcId, subsWithOpts, index } = optResolveCtx;
     const ssId = subsWithOpts[index];
-    const sel = (c.selected[svcId]||[]).find(s=>s.subSvcId===ssId);
-    if(sel) sel.optionId = selectedOptId;
+    // Remove any prior leaves for this sub-service, then add one leaf per chosen sub-sub
+    c.selected[svcId] = (c.selected[svcId]||[]).filter(s=>s.subSvcId!==ssId);
+    if(optPickedIds.length){
+      optPickedIds.forEach(optId=>{
+        c.selected[svcId].push({subSvcId:ssId, optionId:optId, chosenPrice:null, pct:null});
+      });
+    } else {
+      // None chosen → treat the sub-service itself as the leaf
+      c.selected[svcId].push({subSvcId:ssId, optionId:null, chosenPrice:null, pct:null});
+    }
     document.getElementById('opt-picker-modal').classList.remove('open');
-    if(index+1 < subsWithOpts.length){ openOptionPicker(svcId, subsWithOpts, index+1); }
-    else { finalizeChipSelection(svcId); optPickerCtx = null; }
+    advanceOptionPicker();
   }
 
   function skipOptionPicker(){
-    const { svcId, subsWithOpts, index } = optPickerCtx;
+    const c = ctx();
+    const { svcId, subsWithOpts, index } = optResolveCtx;
+    const ssId = subsWithOpts[index];
+    // Skip → the sub-service itself becomes the leaf (no sub-sub)
+    c.selected[svcId] = (c.selected[svcId]||[]).filter(s=>s.subSvcId!==ssId);
+    c.selected[svcId].push({subSvcId:ssId, optionId:null, chosenPrice:null, pct:null});
     document.getElementById('opt-picker-modal').classList.remove('open');
-    if(index+1 < subsWithOpts.length){ openOptionPicker(svcId, subsWithOpts, index+1); }
-    else { finalizeChipSelection(svcId); optPickerCtx = null; }
+    advanceOptionPicker();
+  }
+
+  function advanceOptionPicker(){
+    const { svcId, subsWithOpts, index } = optResolveCtx;
+    if(index+1 < subsWithOpts.length){
+      optResolveCtx.index = index+1;
+      openOptionPicker();
+    } else {
+      optResolveCtx = null;
+      resolveLeaves(svcId, 0);
+    }
+  }
+
+  // ── PER-LEAF PRICE + PERCENTAGE RESOLUTION ────────────────────────
+  let pricePickerCtx = null;
+  let pctPickerCtx = null;
+  const PCT_OPTIONS = ['70/30','60/40','50/50','0%'];
+
+  // Prices available for a leaf's deepest tier
+  function getSelectionPrices(sel){
+    if(sel.optionId){ return getItemPrices(optionsCache.find(o=>o.id===sel.optionId)); }
+    return getItemPrices(subServicesCache.find(s=>s.id===sel.subSvcId));
+  }
+
+  // Walk each leaf: if it has multiple prices → price picker; if it has a price → percentage picker.
+  function resolveLeaves(svcId, i){
+    const c = ctx();
+    const leaves = c.selected[svcId] || [];
+    if(i >= leaves.length){ finalizeChipSelection(svcId); return; }
+    const leaf = leaves[i];
+    const prices = getSelectionPrices(leaf);
+    if(prices.length >= 2 && !leaf.chosenPrice){ openPricePicker(svcId, i); return; }
+    if(prices.length >= 1 && !leaf.pct){ openPctPicker(svcId, i); return; }
+    resolveLeaves(svcId, i+1);
+  }
+
+  function leafName(leaf){
+    const sub = subServicesCache.find(s=>s.id===leaf.subSvcId);
+    const opt = leaf.optionId ? optionsCache.find(o=>o.id===leaf.optionId) : null;
+    return opt ? `${getLocalizedName(sub)} – ${getLocalizedName(opt)}` : getLocalizedName(sub);
+  }
+
+  function openPricePicker(svcId, i){
+    const c = ctx();
+    const leaf = c.selected[svcId][i];
+    const prices = getSelectionPrices(leaf);
+    const svc = servicesCache.find(s=>s.id===svcId);
+    pricePickerCtx = { svcId, i, prices };
+    document.getElementById('price-picker-title').textContent = t('choose_price');
+    document.getElementById('price-picker-sub').textContent = `${getLocalizedName(svc)} ▸ ${leafName(leaf)}`;
+    const grid = document.getElementById('price-picker-grid');
+    grid.innerHTML = prices.map((p,idx)=>`
+      <button class="price-pick-btn" onclick="choosePricePick(${idx})">💷 ${esc(String(p))}</button>
+    `).join('');
+    document.getElementById('price-picker-modal').classList.add('open');
+  }
+
+  function choosePricePick(idx){
+    const { svcId, i, prices } = pricePickerCtx;
+    ctx().selected[svcId][i].chosenPrice = prices[idx];
+    document.getElementById('price-picker-modal').classList.remove('open');
+    pricePickerCtx = null;
+    resolveLeaves(svcId, i); // same leaf → now resolve its percentage
+  }
+
+  function openPctPicker(svcId, i){
+    const c = ctx();
+    const leaf = c.selected[svcId][i];
+    const svc = servicesCache.find(s=>s.id===svcId);
+    pctPickerCtx = { svcId, i };
+    document.getElementById('pct-picker-title').textContent = t('choose_pct');
+    document.getElementById('pct-picker-sub').textContent = `${getLocalizedName(svc)} ▸ ${leafName(leaf)}`;
+    const grid = document.getElementById('pct-picker-grid');
+    grid.innerHTML = PCT_OPTIONS.map(p=>`
+      <button class="price-pick-btn" onclick="choosePctPick('${p}')">${p==='0%'?t('det_free'):p}</button>
+    `).join('');
+    document.getElementById('pct-picker-modal').classList.add('open');
+  }
+
+  function choosePctPick(pct){
+    const { svcId, i } = pctPickerCtx;
+    ctx().selected[svcId][i].pct = pct;
+    document.getElementById('pct-picker-modal').classList.remove('open');
+    pctPickerCtx = null;
+    resolveLeaves(svcId, i+1); // next leaf
   }
 
   function finalizeChipSelection(svcId){
@@ -1739,6 +1926,27 @@
     pendingPickerSvcId = null;
   }
 
+  // Parse a stored inner part into its text, embedded price, and embedded percentage.
+  // Format: "Name [@price] [~pct]"  e.g. "Blowdry @300 ~60/40" or "Blowdry ~50/50"
+  function parseTags(part){
+    let text = String(part).trim();
+    let price = null, pct = null, promo = null;
+    // promo tag is written last: !<discount>
+    let m = text.match(/^(.*?)\s*!\s*([0-9]+)\s*$/);
+    if(m){ text = m[1].trim(); promo = m[2]; }
+    // percentage tag: ~<pct>
+    m = text.match(/^(.*?)\s*~\s*(\S+)\s*$/);
+    if(m){ text = m[1].trim(); pct = m[2]; }
+    // price tag: @<number>
+    m = text.match(/^(.*?)\s*@\s*([0-9.]+)\s*$/);
+    if(m){ text = m[1].trim(); price = m[2]; }
+    return { text, price, pct, promo };
+  }
+  function splitPriceTag(part){ const r = parseTags(part); return { text:r.text, price:r.price }; }
+
+  // Current promo (discount %) set on a sub-service / sub-sub-service item
+  function getItemPromo(item){ const n = item && item.promo!=null ? Number(item.promo) : 0; return isNaN(n)?0:n; }
+
   // Convert a context's selections into stored service strings
   function selectionsToStrings(sel){
     return Object.entries(sel).map(([svcId, sels])=>{
@@ -1746,11 +1954,19 @@
       const parts = (sels||[]).map(x=>{
         const ss = subServicesCache.find(y=>y.id===x.subSvcId);
         const ssName = getLocalizedName(ss);
+        let base = ssName;
+        let leafItem = ss;
         if(x.optionId){
           const opt = optionsCache.find(o=>o.id===x.optionId);
-          return `${ssName} – ${getLocalizedName(opt)}`;
+          base = `${ssName} – ${getLocalizedName(opt)}`;
+          leafItem = opt;
         }
-        return ssName;
+        if(x.chosenPrice) base += ` @${x.chosenPrice}`;
+        if(x.pct)         base += ` ~${x.pct}`;
+        // Promo: use the value carried on the selection (edit) else the item's current promo (new booking)
+        const promo = (x.promo!=null && x.promo!=='') ? Number(x.promo) : getItemPromo(leafItem);
+        if(promo>0) base += ` !${promo}`;
+        return base;
       }).filter(Boolean);
       return parts.length ? `${getLocalizedName(svc)} (${parts.join(', ')})` : getLocalizedName(svc);
     }).filter(Boolean);
@@ -1780,8 +1996,9 @@
       const parts = match[2].split(',').map(p=>p.trim()).filter(Boolean);
       const sels = [];
       parts.forEach(part=>{
-        const m = part.match(/^(.+?)\s*[–-]\s*(.+)$/);
-        const subName = (m ? m[1] : part).trim();
+        const { text, price:tagged, pct, promo } = parseTags(part);
+        const m = text.match(/^(.+?)\s*[–-]\s*(.+)$/);
+        const subName = (m ? m[1] : text).trim();
         const sub = subServicesCache.find(s=>s.serviceId===svc.id && (
           getLocalizedName(s)===subName || s.name_en===subName || s.name===subName
         ));
@@ -1794,7 +2011,7 @@
           ));
           optionId = opt ? opt.id : null;
         }
-        sels.push({subSvcId:sub.id, optionId});
+        sels.push({subSvcId:sub.id, optionId, chosenPrice: tagged, pct: pct||null, promo: promo!=null?promo:null});
       });
       c.selected[svc.id] = sels;
     });
@@ -1854,7 +2071,7 @@
         </div>
         <div class="ssname">${esc(getLocalizedName(ss))}</div>
         <div class="ssmeta">
-          ${!hasOpts && ss.price?`<span>💷 ${esc(ss.price)}</span>`:''}
+          ${!hasOpts && getItemPrices(ss).length?`<span>💷 ${esc(getItemPrices(ss).join(' / '))}</span>`:''}
           ${!hasOpts && ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
         </div>
         ${getLocalizedDesc(ss)?`<div style="font-size:12px;color:#999;margin-top:2px;font-style:italic">${esc(getLocalizedDesc(ss))}</div>`:''}
@@ -1867,7 +2084,7 @@
               </span>
               <span class="opt-name">${esc(getLocalizedName(o))}</span>
               <span class="opt-meta">
-                ${o.price?`💷 ${esc(o.price)}`:''}${o.price&&o.duration?' · ':''}${o.duration?`⏱ ${esc(o.duration)}`:''}
+                ${getItemPrices(o).length?`💷 ${esc(getItemPrices(o).join(' / '))}`:''}${getItemPrices(o).length&&o.duration?' · ':''}${o.duration?`⏱ ${esc(o.duration)}`:''}
               </span>
               <span class="opt-actions">
                 <button class="opt-edit" onclick="openOptForm('${ss.id}','${o.id}')">✏️</button>
@@ -1881,7 +2098,106 @@
     }).join('')}</div>`;
   }
 
-  // ── SORT HELPER ───────────────────────────────────────────────────
+  // ── PROMOTIONS ────────────────────────────────────────────────────
+  // A "priced leaf" is the tier that carries the price: a sub-service with no
+  // sub-sub-services, or a sub-sub-service. These are what promotions attach to.
+  function getPricedLeaves(){
+    const leaves = [];
+    [...servicesCache].sort(bySortOrder).forEach(svc=>{
+      const subs = subServicesCache.filter(s=>s.serviceId===svc.id).sort(bySortOrder);
+      subs.forEach(sub=>{
+        const opts = optionsCache.filter(o=>o.subServiceId===sub.id).sort(bySortOrder);
+        if(opts.length){
+          opts.forEach(opt=>leaves.push({ type:'opt', id:opt.id, item:opt, svc, sub, opt }));
+        } else {
+          leaves.push({ type:'sub', id:sub.id, item:sub, svc, sub });
+        }
+      });
+    });
+    return leaves;
+  }
+
+  function renderPromosPage(){
+    const container = document.getElementById('promo-container');
+    if(!container) return;
+    const leaves = getPricedLeaves();
+    if(!leaves.length){
+      container.innerHTML = `<p class="no-svc-selected">${t('promo_none')}</p>`;
+      return;
+    }
+    container.innerHTML = `<div class="promo-list">${leaves.map(lf=>{
+      const prices = getItemPrices(lf.item);
+      const priceLabel = prices.length ? `💷 ${prices.join(' / ')}` : '';
+      const promo = getItemPromo(lf.item);
+      const path = `${lf.svc.emoji||''} ${getLocalizedName(lf.svc)} ▸ ${getLocalizedName(lf.sub)}${lf.opt?` ▸ ${getLocalizedName(lf.opt)}`:''}`;
+      return `
+        <div class="promo-item" onclick="openPromoModal('${lf.type}','${lf.id}')">
+          <div class="promo-item-main">
+            <div class="promo-path">${esc(path)}</div>
+            ${priceLabel?`<div class="promo-price">${esc(priceLabel)}</div>`:''}
+          </div>
+          ${promo>0
+            ? `<span class="promo-badge">-${promo}%</span>`
+            : `<span class="promo-badge none">${t('promo_none_badge')}</span>`}
+        </div>`;
+    }).join('')}</div>`;
+  }
+
+  function buildPromoOptions(sel, current){
+    let html='';
+    for(let d=0; d<=100; d+=5){
+      html += `<option value="${d}" ${Number(current)===d?'selected':''}>${d===0?t('promo_no_discount'):d+'% '+t('promo_off')}</option>`;
+    }
+    sel.innerHTML = html;
+  }
+
+  function openPromoModal(type, id){
+    const item = type==='opt'
+      ? optionsCache.find(o=>o.id===id)
+      : subServicesCache.find(s=>s.id===id);
+    if(!item) return;
+    document.getElementById('promo-modal-title').textContent = t('promo_set_title');
+    document.getElementById('promo-modal-sub').textContent = getLocalizedName(item);
+    document.getElementById('promo-target-type').value = type;
+    document.getElementById('promo-target-id').value = id;
+    buildPromoOptions(document.getElementById('promo-discount'), getItemPromo(item));
+    document.getElementById('promo-modal').classList.add('open');
+  }
+
+  function openPromoAllModal(){
+    document.getElementById('promo-modal-title').textContent = t('promo_set_all');
+    document.getElementById('promo-modal-sub').textContent = t('promo_all_sub');
+    document.getElementById('promo-target-type').value = 'all';
+    document.getElementById('promo-target-id').value = '';
+    buildPromoOptions(document.getElementById('promo-discount'), 0);
+    document.getElementById('promo-modal').classList.add('open');
+  }
+
+  function closePromoModal(){ document.getElementById('promo-modal').classList.remove('open'); }
+
+  async function savePromo(){
+    const type = document.getElementById('promo-target-type').value;
+    const id   = document.getElementById('promo-target-id').value;
+    const promo = Number(document.getElementById('promo-discount').value)||0;
+    showSync('syncing','Saving…');
+    try{
+      if(type==='all'){
+        // Overwrite every priced leaf's promo
+        const leaves = getPricedLeaves();
+        await Promise.all(leaves.map(lf=>{
+          const coll = lf.type==='opt' ? 'subSubServices' : 'subServices';
+          return updateDoc(doc(db,coll,lf.id),{promo});
+        }));
+        showToast(promo>0?`✅ ${promo}% promotion applied to all services.`:'✅ Promotions cleared on all services.');
+      } else {
+        const coll = type==='opt' ? 'subSubServices' : 'subServices';
+        await updateDoc(doc(db,coll,id),{promo});
+        showToast(promo>0?`✅ ${promo}% promotion set.`:'✅ Promotion removed.');
+      }
+      closePromoModal(); showSync('synced','Saved');
+    }catch(e){ console.error(e); showToast('❌ Error saving promotion.'); showSync('error','Save failed'); }
+  }
+
   // Sort by explicit sortOrder; items without one fall to the end (by name).
   function bySortOrder(a,b){
     const ao = (typeof a.sortOrder==='number') ? a.sortOrder : Infinity;
@@ -2000,6 +2316,50 @@
     document.getElementById('confirm-modal').classList.add('open');
   }
 
+  // ── MULTI-PRICE HELPERS ───────────────────────────────────────────
+  // Return the list of prices for a sub-service / sub-sub-service item.
+  function getItemPrices(item){
+    if(!item) return [];
+    if(Array.isArray(item.prices) && item.prices.length) return item.prices.filter(p=>p!==''&&p!=null);
+    if(item.price) return [item.price];
+    return [];
+  }
+
+  // Render editable price rows into a container ('subsvc' or 'opt')
+  function renderPriceRows(prefix, prices){
+    const list = document.getElementById(prefix+'-price-list');
+    const arr = (prices && prices.length) ? prices : [''];
+    list.innerHTML = arr.map((p,i)=>`
+      <div class="price-row">
+        <input type="text" class="${prefix}-price-input" value="${esc(String(p))}" placeholder="e.g. 25"/>
+        <button type="button" class="price-row-del" onclick="removePriceRow('${prefix}',${i})" title="Remove">✕</button>
+      </div>
+    `).join('');
+    updatePriceRowDelState(prefix);
+  }
+  function readPriceRows(prefix){
+    return Array.from(document.querySelectorAll('.'+prefix+'-price-input'))
+      .map(inp=>inp.value.trim()).filter(v=>v!=='');
+  }
+  function addPriceRow(prefix){
+    const current = Array.from(document.querySelectorAll('.'+prefix+'-price-input')).map(i=>i.value);
+    current.push('');
+    renderPriceRows(prefix, current);
+    // focus the newly added row
+    const inputs = document.querySelectorAll('.'+prefix+'-price-input');
+    inputs[inputs.length-1]?.focus();
+  }
+  function removePriceRow(prefix, idx){
+    const current = Array.from(document.querySelectorAll('.'+prefix+'-price-input')).map(i=>i.value);
+    current.splice(idx,1);
+    if(!current.length) current.push('');
+    renderPriceRows(prefix, current);
+  }
+  function updatePriceRowDelState(prefix){
+    const rows = document.querySelectorAll('#'+prefix+'-price-list .price-row');
+    rows.forEach(r=>{ const b=r.querySelector('.price-row-del'); if(b) b.style.visibility = rows.length>1 ? 'visible':'hidden'; });
+  }
+
   // Sub-service CRUD
   function openSubSvcForm(id=null){
     document.getElementById('subsvc-id').value=id||'';
@@ -2007,11 +2367,11 @@
     document.getElementById('subsvc-name-en').value='';
     document.getElementById('subsvc-name-hy').value='';
     document.getElementById('subsvc-name-ru').value='';
-    document.getElementById('subsvc-price').value='';
     document.getElementById('subsvc-duration').value='';
     document.getElementById('subsvc-desc-en').value='';
     document.getElementById('subsvc-desc-hy').value='';
     document.getElementById('subsvc-desc-ru').value='';
+    renderPriceRows('subsvc', []);
     if(id){
       const ss=subServicesCache.find(x=>x.id===id);
       if(ss){
@@ -2019,7 +2379,7 @@
         document.getElementById('subsvc-name-en').value=ss.name_en||ss.name||'';
         document.getElementById('subsvc-name-hy').value=ss.name_hy||'';
         document.getElementById('subsvc-name-ru').value=ss.name_ru||'';
-        document.getElementById('subsvc-price').value=ss.price||'';
+        renderPriceRows('subsvc', getItemPrices(ss));
         document.getElementById('subsvc-duration').value=ss.duration||'';
         document.getElementById('subsvc-desc-en').value=ss.desc_en||ss.description||'';
         document.getElementById('subsvc-desc-hy').value=ss.desc_hy||'';
@@ -2036,7 +2396,8 @@
     const name_en   = document.getElementById('subsvc-name-en').value.trim();
     const name_hy   = document.getElementById('subsvc-name-hy').value.trim();
     const name_ru   = document.getElementById('subsvc-name-ru').value.trim();
-    const price     = document.getElementById('subsvc-price').value.trim();
+    const prices    = readPriceRows('subsvc');
+    const price     = prices[0] || '';
     const duration  = document.getElementById('subsvc-duration').value.trim();
     const desc_en   = document.getElementById('subsvc-desc-en').value.trim();
     const desc_hy   = document.getElementById('subsvc-desc-hy').value.trim();
@@ -2046,7 +2407,7 @@
     showSync('syncing','Saving…');
     try{
       const data = {
-        name_en, name_hy, name_ru, price, duration,
+        name_en, name_hy, name_ru, price, prices, duration,
         desc_en, desc_hy, desc_ru,
         name: name_en || name_hy || name_ru,
         description: desc_en || desc_hy || desc_ru,
@@ -2072,11 +2433,11 @@
     document.getElementById('opt-name-en').value='';
     document.getElementById('opt-name-hy').value='';
     document.getElementById('opt-name-ru').value='';
-    document.getElementById('opt-price').value='';
     document.getElementById('opt-duration').value='';
     document.getElementById('opt-desc-en').value='';
     document.getElementById('opt-desc-hy').value='';
     document.getElementById('opt-desc-ru').value='';
+    renderPriceRows('opt', []);
     if(id){
       const o=optionsCache.find(x=>x.id===id);
       if(o){
@@ -2084,7 +2445,7 @@
         document.getElementById('opt-name-en').value=o.name_en||o.name||'';
         document.getElementById('opt-name-hy').value=o.name_hy||'';
         document.getElementById('opt-name-ru').value=o.name_ru||'';
-        document.getElementById('opt-price').value=o.price||'';
+        renderPriceRows('opt', getItemPrices(o));
         document.getElementById('opt-duration').value=o.duration||'';
         document.getElementById('opt-desc-en').value=o.desc_en||o.description||'';
         document.getElementById('opt-desc-hy').value=o.desc_hy||'';
@@ -2101,7 +2462,8 @@
     const name_en = document.getElementById('opt-name-en').value.trim();
     const name_hy = document.getElementById('opt-name-hy').value.trim();
     const name_ru = document.getElementById('opt-name-ru').value.trim();
-    const price    = document.getElementById('opt-price').value.trim();
+    const prices   = readPriceRows('opt');
+    const price    = prices[0] || '';
     const duration = document.getElementById('opt-duration').value.trim();
     const desc_en  = document.getElementById('opt-desc-en').value.trim();
     const desc_hy  = document.getElementById('opt-desc-hy').value.trim();
@@ -2111,7 +2473,7 @@
     showSync('syncing','Saving…');
     try{
       const data = {
-        name_en, name_hy, name_ru, price, duration,
+        name_en, name_hy, name_ru, price, prices, duration,
         desc_en, desc_hy, desc_ru, subServiceId,
         name: name_en || name_hy || name_ru,
         description: desc_en || desc_hy || desc_ru,
@@ -2226,26 +2588,22 @@
       let priceHtml = '';
       if(priceLines.length){
         priceHtml += `<div class="detail" style="margin-top:8px;padding-top:8px;border-top:1px solid #eee"><strong>💷 ${t('det_price')}:</strong><br>${priceLines.map(l=>`<span style="display:block;font-size:13px;color:#555;margin-top:2px">${l}</span>`).join('')}</div>`;
-        if(a.bookingPct && total!==null){
-          const split = calcIncomeSplit(total, a.bookingPct);
-          if(split){
-            if(split.isFree){
-              priceHtml+=`<div style="margin-top:8px;padding:8px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:12px">${t('det_free')}</div>`;
-            } else {
-              priceHtml+=`<div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <div style="background:var(--teal-light);border-radius:8px;padding:10px;text-align:center">
-                  <div style="font-size:10px;font-weight:700;color:var(--teal-dark);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">${t('det_shop')}</div>
-                  <div style="font-size:17px;font-weight:700;color:var(--teal-dark)">${fmt(split.shop)}</div>
-                </div>
-                <div style="background:var(--orange-light);border-radius:8px;padding:10px;text-align:center">
-                  <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">${t('det_stylist_income')}</div>
-                  <div style="font-size:17px;font-weight:700;color:var(--orange)">${fmt(split.stylist)}</div>
-                </div>
-              </div>`;
-            }
+        const split = getApptIncomeSplit(a.services||[], a.bookingPct);
+        if(split){
+          if(split.isFree){
+            priceHtml+=`<div style="margin-top:8px;padding:8px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:12px">${t('det_free')}</div>`;
+          } else {
+            priceHtml+=`<div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div style="background:var(--teal-light);border-radius:8px;padding:10px;text-align:center">
+                <div style="font-size:10px;font-weight:700;color:var(--teal-dark);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">${t('det_shop')}</div>
+                <div style="font-size:17px;font-weight:700;color:var(--teal-dark)">${fmt(split.shop)}</div>
+              </div>
+              <div style="background:var(--orange-light);border-radius:8px;padding:10px;text-align:center">
+                <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">${t('det_stylist_income')}</div>
+                <div style="font-size:17px;font-weight:700;color:var(--orange)">${fmt(split.stylist)}</div>
+              </div>
+            </div>`;
           }
-        } else if(a.bookingPct==='0%'){
-          priceHtml+=`<div style="margin-top:8px;padding:8px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:12px">${t('det_free')}</div>`;
         }
       }
       return `
@@ -2254,8 +2612,7 @@
         <div class="detail"><strong>👤 ${t('det_customer')}:</strong> ${esc(a.name)}</div>
         <div class="detail"><strong>📅 ${t('det_date')}:</strong> ${fmtDate(a.date)}</div>
         <div class="detail"><strong>⏰ ${t('det_time')}:</strong> ${a.time}</div>
-        <div class="detail"><strong>💅 ${t('det_services')}:</strong> ${esc(a.services.join(', '))}</div>
-        ${a.bookingPct?`<div class="detail"><strong>📊 ${t('det_pct')}:</strong> ${esc(a.bookingPct)}</div>`:''}
+        <div class="detail"><strong>💅 ${t('det_services')}:</strong> ${esc(cleanServicesDisplay(a.services))}</div>
         ${a.notes?`<div class="detail"><strong>📝 ${t('det_notes')}:</strong> ${esc(a.notes)}</div>`:''}
         ${priceHtml}
         <div style="display:flex;gap:8px;margin-top:10px">
@@ -2305,68 +2662,92 @@
     );
   }
 
-  // Given the inner text of a service string (the part inside parentheses, which
-  // may contain multiple comma-separated "SubService – Option" entries), return
-  // the price-bearing item for each. We return a combined price total for the inner part.
-  function priceForInner(innerStr){
-    // innerStr may be e.g. "Hair Coloring – Full Head, Blow Dry"
-    const parts = innerStr.split(',').map(p=>p.trim()).filter(Boolean);
-    let total = 0; let found = false; const labels = [];
-    parts.forEach(part=>{
-      // Split on en-dash / hyphen to separate sub-service from option
-      const m = part.match(/^(.+?)\s*[–-]\s*(.+)$/);
-      let priceStr = null;
-      if(m){
-        const opt = findOptionByAnyName(m[2].trim());
-        if(opt?.price){ priceStr = opt.price; }
-        else {
-          const sub = findSubServiceByAnyName(m[1].trim());
-          if(sub?.price) priceStr = sub.price;
-        }
-      } else {
-        const sub = findSubServiceByAnyName(part);
-        if(sub?.price) priceStr = sub.price;
-      }
-      const p = parsePrice(priceStr);
-      if(p!==null){ total+=p; found=true; labels.push(`${part}: 💷 ${priceStr}`); }
-    });
-    return found ? {total, labels} : null;
-  }
-
-  function getApptPriceInfo(services){
-    const lines = services.map(svcStr=>{
-      const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
-      if(match){
-        const info = priceForInner(match[2]);
-        if(info) return `${esc(match[1].trim())} — ${info.labels.map(esc).join(', ')}`;
-      }
-      const sub = findSubServiceByAnyName(svcStr.trim());
-      if(sub?.price) return `${esc(svcStr)} — 💷 ${esc(sub.price)}`;
-      return null;
-    }).filter(Boolean);
-    return lines;
-  }
-
   // Parse a price string like "£25" or "25.00" → number, or null
   function parsePrice(priceStr){
-    if(!priceStr) return null;
+    if(priceStr===undefined||priceStr===null||priceStr==='') return null;
     const n = parseFloat(String(priceStr).replace(/[^0-9.]/g,''));
     return isNaN(n) ? null : n;
   }
 
-  // Get total numeric price from appointment services
+  // Resolve a single inner part's numeric price using its embedded tag or a name lookup
+  function priceOfPart(text, tagged){
+    let priceStr = tagged;
+    if(!priceStr){
+      const m = text.match(/^(.+?)\s*[–-]\s*(.+)$/);
+      if(m){
+        const opt = findOptionByAnyName(m[2].trim());
+        if(opt?.price) priceStr = opt.price;
+        else { const sub = findSubServiceByAnyName(m[1].trim()); if(sub?.price) priceStr = sub.price; }
+      } else {
+        const sub = findSubServiceByAnyName(text);
+        if(sub?.price) priceStr = sub.price;
+      }
+    }
+    return parsePrice(priceStr);
+  }
+
+  // Parse an appointment's services into structured, discount-aware line items.
+  // Returns [{ svcName, parts:[{ name, price(num|null), promo(num), pct(str|null) }] }]
+  function parseApptLines(services){
+    return (services||[]).map(svcStr=>{
+      const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
+      const svcName = match ? match[1].trim() : svcStr.trim();
+      const parts = [];
+      if(match){
+        match[2].split(',').map(p=>p.trim()).filter(Boolean).forEach(part=>{
+          const { text, price:tagged, pct, promo } = parseTags(part);
+          parts.push({ name:text, price:priceOfPart(text, tagged), promo: promo?Number(promo):0, pct:pct||null });
+        });
+      } else {
+        const sub = findSubServiceByAnyName(svcStr.trim());
+        const p = parsePrice(sub?.price);
+        if(p!==null) parts.push({ name:svcName, price:p, promo:getItemPromo(sub), pct:null });
+      }
+      return { svcName, parts };
+    });
+  }
+
+  // Price breakdown lines for the details modal (HTML with struck-through promo prices)
+  function getApptPriceInfo(services){
+    return parseApptLines(services).map(line=>{
+      const priced = line.parts.filter(p=>p.price!==null);
+      if(!priced.length) return null;
+      const labels = priced.map(p=>{
+        if(p.promo>0){
+          const disc = p.price*(1-p.promo/100);
+          return `${esc(p.name)}: <del style="color:#aaa">💷${esc(String(p.price))}</del> 💷${fmt(disc)} <span style="color:var(--orange);font-weight:600">(-${p.promo}%)</span>`;
+        }
+        return `${esc(p.name)}: 💷 ${esc(String(p.price))}`;
+      });
+      return `${esc(line.svcName)} — ${labels.join(', ')}`;
+    }).filter(Boolean);
+  }
+
+  // Human-readable services summary with tags shown nicely (incl. discount)
+  function cleanServicesDisplay(services){
+    return (services||[]).map(svcStr=>{
+      const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
+      if(!match) return svcStr;
+      const inner = match[2].split(',').map(part=>{
+        const { text, price, pct, promo } = parseTags(part.trim());
+        let extra = [];
+        if(price) extra.push(`💷${price}`);
+        if(pct)   extra.push(pct);
+        if(promo && Number(promo)>0) extra.push(`-${promo}%`);
+        return extra.length ? `${text} – ${extra.join(' · ')}` : text;
+      }).join(', ');
+      return `${match[1].trim()} (${inner})`;
+    }).join(', ');
+  }
+
+  // Total price the customer pays (after discounts)
   function getTotalPrice(services){
     let total = 0; let found = false;
-    services.forEach(svcStr=>{
-      const match = svcStr.match(/^(.+?)\s*\((.+)\)$/);
-      if(match){
-        const info = priceForInner(match[2]);
-        if(info){ total+=info.total; found=true; return; }
-      }
-      const sub = findSubServiceByAnyName(svcStr.trim());
-      const p = parsePrice(sub?.price);
-      if(p!==null){ total+=p; found=true; }
-    });
+    parseApptLines(services).forEach(line=>line.parts.forEach(p=>{
+      if(p.price===null) return;
+      total += p.price*(1-(p.promo||0)/100);
+      found = true;
+    }));
     return found ? total : null;
   }
 
@@ -2376,6 +2757,36 @@
     if(pct==='60/40') return { shop:total*0.6, stylist:total*0.4, isFree:false };
     if(pct==='50/50') return { shop:total*0.5, stylist:total*0.5, isFree:false };
     return null;
+  }
+
+  // Shop/stylist share fractions for a percentage string
+  function pctFractions(pct){
+    if(pct==='0%')    return { shop:0, stylist:0, free:true };
+    if(pct==='70/30') return { shop:0.7, stylist:0.3 };
+    if(pct==='60/40') return { shop:0.6, stylist:0.4 };
+    if(pct==='50/50') return { shop:0.5, stylist:0.5 };
+    return null;
+  }
+
+  // Per-line income split. Each priced line uses its own percentage (falling back
+  // to `fallbackPct`); any promo discount is split EQUALLY between shop and stylist.
+  function getApptIncomeSplit(services, fallbackPct){
+    let shop=0, stylist=0, found=false, anyFree=false;
+    parseApptLines(services).forEach(line=>line.parts.forEach(p=>{
+      if(p.price===null) return;
+      const fr = pctFractions(p.pct||fallbackPct);
+      if(!fr) return;
+      found = true;
+      if(fr.free){ anyFree=true; return; }
+      const discAmt = p.price*(p.promo||0)/100;
+      let s  = p.price*fr.shop    - discAmt/2;
+      let st = p.price*fr.stylist - discAmt/2;
+      if(s<0)  s=0;
+      if(st<0) st=0;
+      shop += s; stylist += st;
+    }));
+    if(!found) return null;
+    return { shop, stylist, isFree:(shop===0&&stylist===0&&anyFree) };
   }
 
   function fmt(n){ return n.toFixed(2); }
@@ -2392,33 +2803,25 @@
         ${priceLines.map(l=>`<span style="display:block;font-size:13px;color:#555;margin-top:3px">${l}</span>`).join('')}
       </div>`;
 
-      // Income split
-      if(a.bookingPct && total!==null){
-        const split = calcIncomeSplit(total, a.bookingPct);
-        if(split){
-          if(split.isFree){
-            priceHtml += `<div class="detail" style="margin-top:10px;padding:10px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:13px">
-              ${t('det_free')}
-            </div>`;
-          } else {
-            priceHtml += `<div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-              <div style="background:var(--teal-light);border-radius:10px;padding:12px;text-align:center">
-                <div style="font-size:11px;font-weight:700;color:var(--teal-dark);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${t('det_shop')}</div>
-                <div style="font-size:20px;font-weight:700;color:var(--teal-dark)">${fmt(split.shop)}</div>
-                <div style="font-size:11px;color:#888;margin-top:2px">${a.bookingPct.split('/')[0]}%</div>
-              </div>
-              <div style="background:var(--orange-light);border-radius:10px;padding:12px;text-align:center">
-                <div style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${t('det_stylist_income')}</div>
-                <div style="font-size:20px;font-weight:700;color:var(--orange)">${fmt(split.stylist)}</div>
-                <div style="font-size:11px;color:#888;margin-top:2px">${a.bookingPct.split('/')[1]||'0'}%</div>
-              </div>
-            </div>`;
-          }
+      // Income split (per-line percentages; falls back to appointment bookingPct)
+      const split = getApptIncomeSplit(a.services||[], a.bookingPct);
+      if(split){
+        if(split.isFree){
+          priceHtml += `<div class="detail" style="margin-top:10px;padding:10px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:13px">
+            ${t('det_free')}
+          </div>`;
+        } else {
+          priceHtml += `<div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="background:var(--teal-light);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:11px;font-weight:700;color:var(--teal-dark);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${t('det_shop')}</div>
+              <div style="font-size:20px;font-weight:700;color:var(--teal-dark)">${fmt(split.shop)}</div>
+            </div>
+            <div style="background:var(--orange-light);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${t('det_stylist_income')}</div>
+              <div style="font-size:20px;font-weight:700;color:var(--orange)">${fmt(split.stylist)}</div>
+            </div>
+          </div>`;
         }
-      } else if(a.bookingPct==='0%'){
-        priceHtml += `<div class="detail" style="margin-top:10px;padding:10px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:13px">
-          ${t('det_free')}
-        </div>`;
       }
     }
 
@@ -2427,8 +2830,7 @@
       <div class="detail"><strong>👤 ${t('det_customer')}:</strong> ${esc(a.name)}</div>
       <div class="detail"><strong>📅 ${t('det_date')}:</strong> ${fmtDate(a.date)}</div>
       <div class="detail"><strong>⏰ ${t('det_time')}:</strong> ${a.time}</div>
-      <div class="detail"><strong>💅 ${t('det_services')}:</strong> ${esc(a.services.join(', '))}</div>
-      ${a.bookingPct?`<div class="detail"><strong>📊 ${t('det_pct')}:</strong> ${esc(a.bookingPct)}</div>`:''}
+      <div class="detail"><strong>💅 ${t('det_services')}:</strong> ${esc(cleanServicesDisplay(a.services))}</div>
       ${a.notes?`<div class="detail"><strong>📝 ${t('det_notes')}:</strong> ${esc(a.notes)}</div>`:''}
       ${priceHtml}
     `, id);
@@ -2634,6 +3036,15 @@
       toast_option_deleted:'Sub-sub-service deleted.',
       opt_picker_hint:'Choose an option, or skip to book without a specific one.',
       opt_picker_skip:'Skip', opt_picker_confirm:'Confirm',
+      add_price:'+ Add another price', choose_price:'Select a Price', price_picker_hint:'Choose which price applies to this booking.',
+      choose_pct:'Select Booking Percentage', pct_picker_hint:'Choose the shop / stylist split for this service.',
+      nav_promos:'🏷️ Promotions', promo_page_title:'🏷️ Promotions',
+      promo_set_all:'Set promotion on all services', promo_all_sub:'This will overwrite every service\u2019s promotion.',
+      promo_hint:'Tap a priced service to set a discount. Discounts apply automatically to new bookings.',
+      promo_loading:'Loading…', promo_none:'No priced services yet. Add services with prices first.',
+      promo_none_badge:'No promo', promo_set_title:'Set Promotion',
+      promo_discount_lbl:'Discount (% off)', promo_save:'💾 Save Promotion',
+      promo_no_discount:'No discount', promo_off:'off',
       avail_title:'💁 Stylist Availability',
       avail_hint:'Green = free for the next 1.5 hours · Red = busy',
       avail_today:'Today', avail_none:'No stylists added yet.',
@@ -2740,8 +3151,17 @@
       opt_name_lbl:'Ենթաենթածառայության անվանումը', btn_save_option:'💾 Պահպանել ենթաենթածառայությունը',
       delete_option_title:'Ջնջե՞լ ենթաենթածառայությունը', delete_option_msg:'Վստա՞հ եք, որ ցանկանում եք ջնջել այս ենթաենթածառայությունը',
       toast_option_deleted:'Ենթաենթածառայությունը ջնջվեց։',
-      opt_picker_hint:'Ընտրեք տարբերակ կամ բաց թողեք՝ առանց կոնկրետ տարբերակի ամրագրելու համար:',
+      opt_picker_hint:'Ընտրեք մեկ կամ մի քանի տարբերակ, կամ բաց թողեք:',
       opt_picker_skip:'Բաց թողնել', opt_picker_confirm:'Հաստատել',
+      add_price:'+ Ավելացնել ևս մեկ գին', choose_price:'Ընտրեք գինը', price_picker_hint:'Ընտրեք, թե որ գինն է կիրառվում այս ամրագրման համար:',
+      choose_pct:'Ընտրեք ամրագրման տոկոսը', pct_picker_hint:'Ընտրեք սրահի / մասնագետի բաժանումն այս ծառայության համար:',
+      nav_promos:'🏷️ Ակցիաներ', promo_page_title:'🏷️ Ակցիաներ',
+      promo_set_all:'Սահմանել ակցիա բոլոր ծառայությունների համար', promo_all_sub:'Սա կվերագրի բոլոր ծառայությունների ակցիաները:',
+      promo_hint:'Սեղմեք գնով ծառայության վրա՝ զեղչ սահմանելու համար: Զեղչերը կիրառվում են ավտոմատ նոր ամրագրումների համար:',
+      promo_loading:'Բեռնվում է…', promo_none:'Դեռ գնով ծառայություններ չկան:',
+      promo_none_badge:'Առանց ակցիայի', promo_set_title:'Սահմանել ակցիա',
+      promo_discount_lbl:'Զեղչ (% զեղչ)', promo_save:'💾 Պահպանել ակցիան',
+      promo_no_discount:'Առանց զեղչի', promo_off:'զեղչ',
       avail_title:'💁 Մասնագետների հասանելիություն',
       avail_hint:'Կանաչ = ազատ է հաջորդ 1.5 ժամվա ընթացքում · Կարմիր = զբաղված է',
       avail_today:'Այսօր', avail_none:'Առայժմ մասնագետներ չկան:',
@@ -2818,8 +3238,17 @@
       opt_name_lbl:'Название под-подуслуги', btn_save_option:'💾 Сохранить под-подуслугу',
       delete_option_title:'Удалить под-подуслугу?', delete_option_msg:'Вы уверены, что хотите удалить эту под-подуслугу?',
       toast_option_deleted:'Под-подуслуга удалена.',
-      opt_picker_hint:'Выберите вариант или пропустите, чтобы записаться без конкретного варианта.',
+      opt_picker_hint:'Выберите один или несколько вариантов или пропустите.',
       opt_picker_skip:'Пропустить', opt_picker_confirm:'Подтвердить',
+      add_price:'+ Добавить ещё цену', choose_price:'Выберите цену', price_picker_hint:'Выберите, какая цена применяется к этой записи.',
+      choose_pct:'Выберите процент', pct_picker_hint:'Выберите разделение салон / стилист для этой услуги.',
+      nav_promos:'🏷️ Акции', promo_page_title:'🏷️ Акции',
+      promo_set_all:'Установить акцию на все услуги', promo_all_sub:'Это перезапишет акции всех услуг.',
+      promo_hint:'Нажмите на услугу с ценой, чтобы задать скидку. Скидки применяются автоматически к новым записям.',
+      promo_loading:'Загрузка…', promo_none:'Пока нет услуг с ценами.',
+      promo_none_badge:'Без акции', promo_set_title:'Установить акцию',
+      promo_discount_lbl:'Скидка (% off)', promo_save:'💾 Сохранить акцию',
+      promo_no_discount:'Без скидки', promo_off:'скидка',
       avail_title:'💁 Доступность стилистов',
       avail_hint:'Зелёный = свободен на ближайшие 1.5 часа · Красный = занят',
       avail_today:'Сегодня', avail_none:'Стилисты пока не добавлены.',
@@ -2863,6 +3292,7 @@
     renderStaffDropdown();
     renderBookingServiceChips();
     if(document.getElementById('page-calendar')?.classList.contains('active')) renderCal();
+    if(document.getElementById('page-promos')?.classList.contains('active')) renderPromosPage();
     if(document.getElementById('page-staff')?.classList.contains('active')) renderStaffPage();
     if(document.getElementById('page-services')?.classList.contains('active')){
       renderSvcList();
@@ -2937,6 +3367,9 @@
   window.openOptForm=openOptForm;window.closeOptModal=closeOptModal;window.saveOpt=saveOpt;window.deleteOpt=deleteOpt;
   window.openOptionPicker=openOptionPicker;window.toggleOptPickerItem=toggleOptPickerItem;
   window.confirmOptionPicker=confirmOptionPicker;window.skipOptionPicker=skipOptionPicker;
+  window.choosePricePick=choosePricePick;window.choosePctPick=choosePctPick;
+  window.openPromoModal=openPromoModal;window.openPromoAllModal=openPromoAllModal;window.closePromoModal=closePromoModal;window.savePromo=savePromo;
+  window.addPriceRow=addPriceRow;window.removePriceRow=removePriceRow;
   window.handleChipClick=handleChipClick;window.togglePickerItem=togglePickerItem;
   window.confirmSubSvcPicker=confirmSubSvcPicker;window.skipSubSvcPicker=skipSubSvcPicker;
   window.submitGateLogin=submitGateLogin;
