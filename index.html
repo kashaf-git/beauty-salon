@@ -1857,7 +1857,7 @@
   // ── PER-LEAF PRICE + PERCENTAGE RESOLUTION ────────────────────────
   let pricePickerCtx = null;
   let pctPickerCtx = null;
-  const PCT_OPTIONS = ['70/30','60/40','50/50','0%'];
+  const PCT_OPTIONS = ['100%','70/30','60/40','50/50','0%'];
 
   // Prices available for a leaf's deepest tier
   function getSelectionPrices(sel){
@@ -1915,7 +1915,7 @@
     document.getElementById('pct-picker-sub').textContent = `${getLocalizedName(svc)} ▸ ${leafName(leaf)}`;
     const grid = document.getElementById('pct-picker-grid');
     grid.innerHTML = PCT_OPTIONS.map(p=>`
-      <button class="price-pick-btn" onclick="choosePctPick('${p}')">${p==='0%'?t('det_free'):p}</button>
+      <button class="price-pick-btn" onclick="choosePctPick('${p}')">${p==='0%'?t('det_free'):p==='100%'?t('pct_salon_100'):p}</button>
     `).join('');
     document.getElementById('pct-picker-modal').classList.add('open');
   }
@@ -2592,37 +2592,14 @@
 
     // Multiple appointments — show all with individual edit/delete buttons
     const body = appts.map((a,i)=>{
-      const priceLines = getApptPriceInfo(a.services||[]);
-      const total      = getTotalPrice(a.services||[]);
-      let priceHtml = '';
-      if(priceLines.length){
-        const split = getApptIncomeSplit(a.services||[], a.bookingPct);
-        if(split){
-          if(split.isFree){
-            priceHtml+=`<div style="margin-top:8px;padding:8px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:12px">${t('det_free')}</div>`;
-          } else {
-            priceHtml+=`<div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              <div style="background:var(--teal-light);border-radius:8px;padding:10px;text-align:center">
-                <div style="font-size:10px;font-weight:700;color:var(--teal-dark);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">${t('det_shop')}</div>
-                <div style="font-size:17px;font-weight:700;color:var(--teal-dark)">${fmt(split.shop)}</div>
-              </div>
-              <div style="background:var(--orange-light);border-radius:8px;padding:10px;text-align:center">
-                <div style="font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">${t('det_stylist_income')}</div>
-                <div style="font-size:17px;font-weight:700;color:var(--orange)">${fmt(split.stylist)}</div>
-              </div>
-            </div>`;
-          }
-        }
-      }
       return `
       <div style="margin-bottom:${i<appts.length-1?'16px':'0'}">
         ${a.stylist?`<div class="detail"><strong>💁 ${t('det_stylist')}:</strong> ${esc(a.stylist)}</div>`:''}
         <div class="detail"><strong>👤 ${t('det_customer')}:</strong> ${esc(a.name)}</div>
         <div class="detail"><strong>📅 ${t('det_date')}:</strong> ${fmtDate(a.date)}</div>
         <div class="detail"><strong>⏰ ${t('det_time')}:</strong> ${a.time}</div>
-        <div class="detail"><strong>💅 ${t('det_services')}:</strong>${servicesDisplayHtml(a.services)}</div>
+        <div class="detail"><strong>💅 ${t('det_services')}:</strong>${servicesDisplayHtml(a.services, a.bookingPct)}</div>
         ${a.notes?`<div class="detail"><strong>📝 ${t('det_notes')}:</strong> ${esc(a.notes)}</div>`:''}
-        ${priceHtml}
         <div style="display:flex;gap:8px;margin-top:10px">
           <button onclick="closeModal();setTimeout(()=>openEditApptModal('${a.id}'),50)" style="flex:1;padding:8px;border:1.5px solid var(--teal);border-radius:8px;background:var(--teal-light);color:var(--teal-dark);font-size:13px;font-weight:700;cursor:pointer">${t('modal_edit')}</button>
           <button onclick="closeModal();removeAppt('${a.id}')" style="flex:1;padding:8px;border:1.5px solid #f5c0c0;border-radius:8px;background:#fff0f0;color:#c00;font-size:13px;font-weight:700;cursor:pointer">${t('modal_delete')}</button>
@@ -2817,7 +2794,7 @@
   // Names are re-localized to the CURRENT app language by matching the stored
   // (booking-time-language) text back to its service/sub-service/option record,
   // rather than just echoing whatever language was active when it was booked.
-  function servicesDisplayHtml(services){
+  function servicesDisplayHtml(services, fallbackPct){
     // Build a price/promo label like "💷25" or a struck-through "💷25 💷20 (-20%)"
     const priceLabel = (price, promoNum)=>{
       if(price===null) return '';
@@ -2842,13 +2819,15 @@
           let extra = [];
           if(pct) extra.push(pct);
           const displayText = localizePartText(text);
-          return `<div style="padding-left:16px;font-size:13px;color:#666">• ${esc(displayText)}${priceLabel(price, promoNum)}${extra.length?` <span style="color:#999">· ${extra.join(' · ')}</span>`:''}</div>`;
+          const incomeLine = incomeMiniHtml(price, promoNum, pct||fallbackPct);
+          return `<div style="padding-left:16px;font-size:13px;color:#666">• ${esc(displayText)}${priceLabel(price, promoNum)}${extra.length?` <span style="color:#999">· ${extra.join(' · ')}</span>`:''}${incomeLine}</div>`;
         }).join('');
         sub = parts;
       } else {
         const subSvc = findSubServiceByAnyName(rawSvcName);
         const price = parsePrice(subSvc?.price);
-        nameLabel = priceLabel(price, getItemPromo(subSvc));
+        const promoNum = getItemPromo(subSvc);
+        nameLabel = priceLabel(price, promoNum) + incomeMiniHtml(price, promoNum, fallbackPct);
       }
       return `<div style="margin-top:4px"><span style="font-weight:600">${esc(svcName)}</span>${nameLabel}${sub}</div>`;
     }).join('');
@@ -2870,6 +2849,7 @@
     if(pct==='70/30') return { shop:total*0.7, stylist:total*0.3, isFree:false };
     if(pct==='60/40') return { shop:total*0.6, stylist:total*0.4, isFree:false };
     if(pct==='50/50') return { shop:total*0.5, stylist:total*0.5, isFree:false };
+    if(pct==='100%')  return { shop:total,     stylist:0,         isFree:false };
     return null;
   }
 
@@ -2879,7 +2859,35 @@
     if(pct==='70/30') return { shop:0.7, stylist:0.3 };
     if(pct==='60/40') return { shop:0.6, stylist:0.4 };
     if(pct==='50/50') return { shop:0.5, stylist:0.5 };
+    if(pct==='100%')  return { shop:1,   stylist:0 };
     return null;
+  }
+
+  // Compact, rounded-box shop/stylist income for ONE priced item (used inline,
+  // directly under each service/sub-service/option, instead of one combined
+  // total for the whole appointment). Same look as before, just much smaller.
+  function incomeMiniHtml(price, promoNum, pct){
+    if(price===null || !pct) return '';
+    const fr = pctFractions(pct);
+    if(!fr) return '';
+    if(fr.free){
+      return `<div style="font-size:11px;color:#999;font-style:italic;margin-top:2px">${t('det_free')}</div>`;
+    }
+    const discAmt = price*(promoNum||0)/100;
+    let shop = price*fr.shop - discAmt/2;
+    let stylist = price*fr.stylist - discAmt/2;
+    if(shop<0) shop=0;
+    if(stylist<0) stylist=0;
+    return `<div style="display:flex;gap:6px;margin-top:3px">
+      <div style="background:var(--teal-light);border-radius:6px;padding:3px 8px;text-align:center">
+        <div style="font-size:8px;font-weight:700;color:var(--teal-dark);letter-spacing:0.5px;text-transform:uppercase">${t('det_shop')}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--teal-dark)">💷${fmt(shop)}</div>
+      </div>
+      <div style="background:var(--orange-light);border-radius:6px;padding:3px 8px;text-align:center">
+        <div style="font-size:8px;font-weight:700;color:var(--orange);letter-spacing:0.5px;text-transform:uppercase">${t('det_stylist_income')}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--orange)">💷${fmt(stylist)}</div>
+      </div>
+    </div>`;
   }
 
   // Per-line income split. Each priced line uses its own percentage (falling back
@@ -2907,41 +2915,14 @@
 
   function openApptModal(id){
     const a=appointmentsCache.find(x=>x.id===id); if(!a) return;
-    const priceLines = getApptPriceInfo(a.services||[]);
-    const total      = getTotalPrice(a.services||[]);
-
-    let priceHtml = '';
-    if(priceLines.length){
-      // Income split (per-line percentages; falls back to appointment bookingPct)
-      const split = getApptIncomeSplit(a.services||[], a.bookingPct);
-      if(split){
-        if(split.isFree){
-          priceHtml += `<div class="detail" style="margin-top:10px;padding:10px 12px;background:#f5f5f5;border-radius:8px;text-align:center;color:#888;font-style:italic;font-size:13px">
-            ${t('det_free')}
-          </div>`;
-        } else {
-          priceHtml += `<div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div style="background:var(--teal-light);border-radius:10px;padding:12px;text-align:center">
-              <div style="font-size:11px;font-weight:700;color:var(--teal-dark);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${t('det_shop')}</div>
-              <div style="font-size:20px;font-weight:700;color:var(--teal-dark)">${fmt(split.shop)}</div>
-            </div>
-            <div style="background:var(--orange-light);border-radius:10px;padding:12px;text-align:center">
-              <div style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">${t('det_stylist_income')}</div>
-              <div style="font-size:20px;font-weight:700;color:var(--orange)">${fmt(split.stylist)}</div>
-            </div>
-          </div>`;
-        }
-      }
-    }
 
     openModal(`
       ${a.stylist?`<div class="detail"><strong>💁 ${t('det_stylist')}:</strong> ${esc(a.stylist)}</div>`:''}
       <div class="detail"><strong>👤 ${t('det_customer')}:</strong> ${esc(a.name)}</div>
       <div class="detail"><strong>📅 ${t('det_date')}:</strong> ${fmtDate(a.date)}</div>
       <div class="detail"><strong>⏰ ${t('det_time')}:</strong> ${a.time}</div>
-      <div class="detail"><strong>💅 ${t('det_services')}:</strong>${servicesDisplayHtml(a.services)}</div>
+      <div class="detail"><strong>💅 ${t('det_services')}:</strong>${servicesDisplayHtml(a.services, a.bookingPct)}</div>
       ${a.notes?`<div class="detail"><strong>📝 ${t('det_notes')}:</strong> ${esc(a.notes)}</div>`:''}
-      ${priceHtml}
     `, id);
   }
 
@@ -3114,6 +3095,7 @@
       det_stylist:'Stylist', det_notes:'Notes', det_pct:'Booking %', det_price:'Price',
       det_shop:'Shop Income', det_stylist_income:'Stylist Income',
       det_free:'🎁 Free booking — no income generated',
+      pct_salon_100:'100% Salon',
       add_staff_modal:'➕ Add Staff Member', edit_staff_modal:'✏️ Edit Staff Member',
       sf_firstname:'First Name', sf_surname:'Surname', sf_specialty:'Specialty Service',
       sf_sel_specialty:'— Select Specialty —', sf_startdate:'Start Date',
@@ -3221,6 +3203,7 @@
       det_shop:'Սրահի եկամուտ',
       det_stylist_income:'Մասնագետի վարձատրություն',
       det_free:'🎁 Անվճար այց (եկամուտ չի հաշվարկվում)',
+      pct_salon_100:'100% Սրահ',
       nav_services_short:'Ծառայություններ',
       no_subsvc_select:'Ընտրեք ծառայություն՝ ենթածառայությունները կառավարելու համար',
       no_subsvc_yet:'Առայժմ ենթածառայություններ չկան։ Սեղմեք "+ Ավելացնել նոր ենթածառայություն"',
@@ -3320,6 +3303,7 @@
       det_stylist:'Стилист', det_notes:'Примечания', det_pct:'Процент бронирования', det_price:'Цена',
       det_shop:'Доход салона', det_stylist_income:'Доход стилиста',
       det_free:'🎁 Бесплатная запись — доход не формируется',
+      pct_salon_100:'100% Салон',
       add_staff_modal:'➕ Добавить сотрудника', edit_staff_modal:'✏️ Изменить сотрудника',
       sf_firstname:'Имя', sf_surname:'Фамилия', sf_specialty:'Специализация',
       sf_sel_specialty:'— Выберите специализацию —', sf_startdate:'Дата начала работы',
