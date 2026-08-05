@@ -489,6 +489,13 @@
         </div>
       </div>
       <div class="form-group">
+        <label data-i18n="lbl_adhoc_promo">Quick Promotion (optional)</label>
+        <div class="pct-group">
+          <button type="button" class="pct-btn" id="adhoc-promo-10" onclick="setAdhocPromo(10)">10%</button>
+          <button type="button" class="pct-btn" id="adhoc-promo-15" onclick="setAdhocPromo(15)">15%</button>
+        </div>
+      </div>
+      <div class="form-group">
         <label data-i18n="lbl_notes">Notes (optional — required if "Other" selected)</label>
         <textarea id="f-notes" rows="3" data-i18n-placeholder="ph_notes" placeholder="Any special requests or notes…"></textarea>
       </div>
@@ -601,7 +608,8 @@
       </div>
       <div class="form-group">
         <label data-i18n="subsvc_duration_lbl">Duration (optional)</label>
-        <input type="text" id="subsvc-duration" data-i18n-placeholder="subsvc_duration_ph" placeholder="e.g. 45 mins"/>
+        <div id="subsvc-duration-list"></div>
+        <button type="button" class="btn-add-price" onclick="addDurationRow('subsvc')" data-i18n="add_duration">+ Add another duration</button>
       </div>
     </div>
     <div class="form-group">
@@ -637,7 +645,8 @@
       </div>
       <div class="form-group">
         <label data-i18n="subsvc_duration_lbl">Duration (optional)</label>
-        <input type="text" id="opt-duration" placeholder="e.g. 45 mins"/>
+        <div id="opt-duration-list"></div>
+        <button type="button" class="btn-add-price" onclick="addDurationRow('opt')" data-i18n="add_duration">+ Add another duration</button>
       </div>
     </div>
     <div class="form-group">
@@ -705,6 +714,16 @@
     <p id="price-picker-sub" style="font-size:13px;color:var(--teal-dark);font-weight:600;margin-bottom:4px"></p>
     <p style="font-size:13px;color:#888;margin-bottom:14px" data-i18n="price_picker_hint">Choose which price applies to this booking.</p>
     <div class="price-picker-grid" id="price-picker-grid"></div>
+  </div>
+</div>
+
+<!-- DURATION PICKER MODAL (for items with multiple durations) -->
+<div class="modal-overlay" id="duration-picker-modal">
+  <div class="modal" style="width:420px;max-width:92vw">
+    <h3 id="duration-picker-title">Select a Duration</h3>
+    <p id="duration-picker-sub" style="font-size:13px;color:var(--teal-dark);font-weight:600;margin-bottom:4px"></p>
+    <p style="font-size:13px;color:#888;margin-bottom:14px" data-i18n="duration_picker_hint">Choose which duration applies to this booking.</p>
+    <div class="price-picker-grid" id="duration-picker-grid"></div>
   </div>
 </div>
 
@@ -1245,17 +1264,19 @@
       const parts = match[2].split(',').map(p=>p.trim()).filter(Boolean);
       let sum = 0;
       parts.forEach(part=>{
-        const { text } = splitPriceTag(part);
+        const { text, duration: taggedDuration } = parseTags(part);
         const m = text.match(/^(.+?)\s*[–-]\s*(.+)$/);
-        let durStr = null;
-        if(m){
-          // sub – sub-sub : use the sub-sub (last tier) if found
-          const opt = findOptionByAnyName(m[2].trim());
-          if(opt){ durStr = opt.duration; }
-          else { const sub = findSubServiceByAnyName(m[1].trim()); durStr = sub?sub.duration:null; }
-        } else {
-          const sub = findSubServiceByAnyName(text);
-          durStr = sub ? sub.duration : null;
+        let durStr = taggedDuration || null;
+        if(!durStr){
+          if(m){
+            // sub – sub-sub : use the sub-sub (last tier) if found
+            const opt = findOptionByAnyName(m[2].trim());
+            if(opt){ durStr = getItemDurations(opt)[0] || null; }
+            else { const sub = findSubServiceByAnyName(m[1].trim()); durStr = sub ? (getItemDurations(sub)[0]||null) : null; }
+          } else {
+            const sub = findSubServiceByAnyName(text);
+            durStr = sub ? (getItemDurations(sub)[0]||null) : null;
+          }
         }
         const d = parseDuration(durStr);
         sum += (d!==null ? d : DEFAULT_DURATION_MIN);
@@ -1300,6 +1321,14 @@
     const time    =document.getElementById('f-time').value;
     const stylist =document.getElementById('f-stylist').value;
     const notes   =document.getElementById('f-notes').value.trim();
+    // Apply the quick ad-hoc booking promo (if selected) to every currently
+    // selected leaf, so it flows through the existing promo-tag machinery
+    // (price display, income split, totals) exactly like a per-service promo.
+    if(servicesCache.length && adhocPromoPct>0){
+      Object.values(chipContexts.booking.selected).forEach(leaves=>{
+        (leaves||[]).forEach(leaf=>{ leaf.promo = adhocPromoPct; });
+      });
+    }
     // Use dynamic DB-driven chips if services exist in DB, else use static checkboxes
     const services = servicesCache.length
       ? getSelectedServicesForBooking()
@@ -1338,6 +1367,7 @@
       document.getElementById('f-time').value='';
       document.getElementById('f-stylist').value='';
       document.getElementById('f-notes').value='';
+      setAdhocPromo(0); // clear ad-hoc promo selection for the next booking
       // Reset chips
       if(servicesCache.length){
         resetServiceChips();
@@ -1585,6 +1615,18 @@
   // ── BOOKING PERCENTAGE ────────────────────────────────────────────
   let selectedPct = null;
 
+  // ── QUICK AD-HOC BOOKING PROMOTION (10%/15% buttons on the booking form) ──
+  // A one-off discount for this booking only — applied to every currently
+  // selected service/sub-service/option at submit time. Does NOT change any
+  // service's stored promo configuration.
+  let adhocPromoPct = 0;
+
+  function setAdhocPromo(pct){
+    adhocPromoPct = (adhocPromoPct === pct) ? 0 : pct;
+    document.getElementById('adhoc-promo-10')?.classList.toggle('pct-selected', adhocPromoPct===10);
+    document.getElementById('adhoc-promo-15')?.classList.toggle('pct-selected', adhocPromoPct===15);
+  }
+
   function selectPct(val){
     selectedPct = val;
     document.querySelectorAll('.pct-btn').forEach(b=>b.classList.remove('pct-selected'));
@@ -1723,6 +1765,8 @@
       const chosenOpts = Array.isArray(pickerWorking[ss.id]) ? pickerWorking[ss.id] : [];
       const prices = getItemPrices(ss);
       const priceLabel = prices.length>1 ? `💷 ${prices.join(' / ')}` : (prices.length===1 ? `💷 ${prices[0]}` : '');
+      const durations = getItemDurations(ss);
+      const durationLabel = durations.length ? `⏱ ${durations.join(' / ')}` : '';
       // Names of chosen sub-subs to show as a subtitle
       let optNames = '';
       if(hasOpts && chosenOpts.length){
@@ -1733,7 +1777,7 @@
         <div class="sp-name">${esc(getLocalizedName(ss))}${hasOpts?' ▸':''}</div>
         <div class="sp-meta">
           ${!hasOpts && priceLabel?`<span>${esc(priceLabel)}</span>`:''}
-          ${!hasOpts && ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
+          ${!hasOpts && durationLabel?`<span>${esc(durationLabel)}</span>`:''}
         </div>
         ${optNames?`<div class="sp-meta" style="margin-top:3px;color:var(--teal-dark);font-weight:600">✓ ${esc(optNames)}</div>`:''}
         ${getLocalizedDesc(ss)?`<div class="sp-meta" style="margin-top:3px;font-style:italic">${esc(getLocalizedDesc(ss))}</div>`:''}
@@ -1810,12 +1854,14 @@
     grid.innerHTML = opts.map(o=>{
       const prices = getItemPrices(o);
       const priceLabel = prices.length>1 ? `💷 ${prices.join(' / ')}` : (prices.length===1 ? `💷 ${prices[0]}` : '');
+      const durations = getItemDurations(o);
+      const durationLabel = durations.length ? `⏱ ${durations.join(' / ')}` : '';
       return `
       <div class="subsvc-pick-item ${optPickedIds.includes(o.id)?'picked':''}" id="optpick-${o.id}" onclick="toggleOptPickerItem('${o.id}')">
         <div class="sp-name">${esc(getLocalizedName(o))}</div>
         <div class="sp-meta">
           ${priceLabel?`<span>${esc(priceLabel)}</span>`:''}
-          ${o.duration?`<span>⏱ ${esc(o.duration)}</span>`:''}
+          ${durationLabel?`<span>${esc(durationLabel)}</span>`:''}
         </div>
         ${getLocalizedDesc(o)?`<div class="sp-meta" style="margin-top:3px;font-style:italic">${esc(getLocalizedDesc(o))}</div>`:''}
       </div>`;
@@ -1856,6 +1902,7 @@
 
   // ── PER-LEAF PRICE + PERCENTAGE RESOLUTION ────────────────────────
   let pricePickerCtx = null;
+  let durationPickerCtx = null;
   let pctPickerCtx = null;
   const PCT_OPTIONS = ['100%','70/30','60/40','50/50','0%'];
 
@@ -1865,7 +1912,14 @@
     return getItemPrices(subServicesCache.find(s=>s.id===sel.subSvcId));
   }
 
-  // Walk each leaf: if it has multiple prices → price picker; if it has a price → percentage picker.
+  // Durations available for a leaf's deepest tier
+  function getSelectionDurations(sel){
+    if(sel.optionId){ return getItemDurations(optionsCache.find(o=>o.id===sel.optionId)); }
+    return getItemDurations(subServicesCache.find(s=>s.id===sel.subSvcId));
+  }
+
+  // Walk each leaf: if it has multiple prices → price picker; if it has multiple
+  // durations → duration picker; if it has a price → percentage picker.
   function resolveLeaves(svcId, i){
     const c = ctx();
     const leaves = c.selected[svcId] || [];
@@ -1873,6 +1927,8 @@
     const leaf = leaves[i];
     const prices = getSelectionPrices(leaf);
     if(prices.length >= 2 && !leaf.chosenPrice){ openPricePicker(svcId, i); return; }
+    const durations = getSelectionDurations(leaf);
+    if(durations.length >= 2 && !leaf.chosenDuration){ openDurationPicker(svcId, i); return; }
     if(prices.length >= 1 && !leaf.pct){ openPctPicker(svcId, i); return; }
     resolveLeaves(svcId, i+1);
   }
@@ -1903,6 +1959,29 @@
     ctx().selected[svcId][i].chosenPrice = prices[idx];
     document.getElementById('price-picker-modal').classList.remove('open');
     pricePickerCtx = null;
+    resolveLeaves(svcId, i); // same leaf → now resolve its duration/percentage
+  }
+
+  function openDurationPicker(svcId, i){
+    const c = ctx();
+    const leaf = c.selected[svcId][i];
+    const durations = getSelectionDurations(leaf);
+    const svc = servicesCache.find(s=>s.id===svcId);
+    durationPickerCtx = { svcId, i, durations };
+    document.getElementById('duration-picker-title').textContent = t('choose_duration');
+    document.getElementById('duration-picker-sub').textContent = `${getLocalizedName(svc)} ▸ ${leafName(leaf)}`;
+    const grid = document.getElementById('duration-picker-grid');
+    grid.innerHTML = durations.map((d,idx)=>`
+      <button class="price-pick-btn" onclick="chooseDurationPick(${idx})">⏱ ${esc(String(d))}</button>
+    `).join('');
+    document.getElementById('duration-picker-modal').classList.add('open');
+  }
+
+  function chooseDurationPick(idx){
+    const { svcId, i, durations } = durationPickerCtx;
+    ctx().selected[svcId][i].chosenDuration = durations[idx];
+    document.getElementById('duration-picker-modal').classList.remove('open');
+    durationPickerCtx = null;
     resolveLeaves(svcId, i); // same leaf → now resolve its percentage
   }
 
@@ -1935,21 +2014,24 @@
     pendingPickerSvcId = null;
   }
 
-  // Parse a stored inner part into its text, embedded price, and embedded percentage.
-  // Format: "Name [@price] [~pct]"  e.g. "Blowdry @300 ~60/40" or "Blowdry ~50/50"
+  // Parse a stored inner part into its text, embedded price, duration, and percentage.
+  // Format: "Name [@price] [#duration] [~pct] [!promo]"  e.g. "Blowdry @300 #45m ~60/40"
   function parseTags(part){
     let text = String(part).trim();
-    let price = null, pct = null, promo = null;
+    let price = null, pct = null, promo = null, duration = null;
     // promo tag is written last: !<discount>
     let m = text.match(/^(.*?)\s*!\s*([0-9]+)\s*$/);
     if(m){ text = m[1].trim(); promo = m[2]; }
     // percentage tag: ~<pct>
     m = text.match(/^(.*?)\s*~\s*(\S+)\s*$/);
     if(m){ text = m[1].trim(); pct = m[2]; }
+    // duration tag: #<free text duration>
+    m = text.match(/^(.*?)\s*#\s*([^@~!#]+?)\s*$/);
+    if(m){ text = m[1].trim(); duration = m[2].trim(); }
     // price tag: @<number>
     m = text.match(/^(.*?)\s*@\s*([0-9.]+)\s*$/);
     if(m){ text = m[1].trim(); price = m[2]; }
-    return { text, price, pct, promo };
+    return { text, price, pct, promo, duration };
   }
   function splitPriceTag(part){ const r = parseTags(part); return { text:r.text, price:r.price }; }
 
@@ -1971,6 +2053,7 @@
           leafItem = opt;
         }
         if(x.chosenPrice) base += ` @${x.chosenPrice}`;
+        if(x.chosenDuration) base += ` #${x.chosenDuration}`;
         if(x.pct)         base += ` ~${x.pct}`;
         // Promo: use the value carried on the selection (edit) else the item's current promo (new booking)
         const promo = (x.promo!=null && x.promo!=='') ? Number(x.promo) : getItemPromo(leafItem);
@@ -2005,7 +2088,7 @@
       const parts = match[2].split(',').map(p=>p.trim()).filter(Boolean);
       const sels = [];
       parts.forEach(part=>{
-        const { text, price:tagged, pct, promo } = parseTags(part);
+        const { text, price:tagged, pct, promo, duration } = parseTags(part);
         const m = text.match(/^(.+?)\s*[–-]\s*(.+)$/);
         const subName = (m ? m[1] : text).trim();
         const sub = subServicesCache.find(s=>s.serviceId===svc.id && (
@@ -2020,7 +2103,7 @@
           ));
           optionId = opt ? opt.id : null;
         }
-        sels.push({subSvcId:sub.id, optionId, chosenPrice: tagged, pct: pct||null, promo: promo!=null?promo:null});
+        sels.push({subSvcId:sub.id, optionId, chosenPrice: tagged, pct: pct||null, promo: promo!=null?promo:null, chosenDuration: duration||null});
       });
       c.selected[svc.id] = sels;
     });
@@ -2081,7 +2164,7 @@
         <div class="ssname">${esc(getLocalizedName(ss))}</div>
         <div class="ssmeta">
           ${!hasOpts && getItemPrices(ss).length?`<span>💷 ${esc(getItemPrices(ss).join(' / '))}</span>`:''}
-          ${!hasOpts && ss.duration?`<span>⏱ ${esc(ss.duration)}</span>`:''}
+          ${!hasOpts && ss.duration?`<span>⏱ ${esc(getItemDurations(ss).join(' / '))}</span>`:''}
         </div>
         ${getLocalizedDesc(ss)?`<div style="font-size:12px;color:#999;margin-top:2px;font-style:italic">${esc(getLocalizedDesc(ss))}</div>`:''}
         <div class="opt-section">
@@ -2093,7 +2176,7 @@
               </span>
               <span class="opt-name">${esc(getLocalizedName(o))}</span>
               <span class="opt-meta">
-                ${getItemPrices(o).length?`💷 ${esc(getItemPrices(o).join(' / '))}`:''}${getItemPrices(o).length&&o.duration?' · ':''}${o.duration?`⏱ ${esc(o.duration)}`:''}
+                ${getItemPrices(o).length?`💷 ${esc(getItemPrices(o).join(' / '))}`:''}${getItemPrices(o).length&&o.duration?' · ':''}${o.duration?`⏱ ${esc(getItemDurations(o).join(' / '))}`:''}
               </span>
               <span class="opt-actions">
                 <button class="opt-edit" onclick="openOptForm('${ss.id}','${o.id}')">✏️</button>
@@ -2334,6 +2417,13 @@
     return [];
   }
 
+  function getItemDurations(item){
+    if(!item) return [];
+    if(Array.isArray(item.durations) && item.durations.length) return item.durations.filter(d=>d!==''&&d!=null);
+    if(item.duration) return [item.duration];
+    return [];
+  }
+
   // Render editable price rows into a container ('subsvc' or 'opt')
   function renderPriceRows(prefix, prices){
     const list = document.getElementById(prefix+'-price-list');
@@ -2369,6 +2459,40 @@
     rows.forEach(r=>{ const b=r.querySelector('.price-row-del'); if(b) b.style.visibility = rows.length>1 ? 'visible':'hidden'; });
   }
 
+  // Render editable duration rows into a container ('subsvc' or 'opt')
+  function renderDurationRows(prefix, durations){
+    const list = document.getElementById(prefix+'-duration-list');
+    const arr = (durations && durations.length) ? durations : [''];
+    list.innerHTML = arr.map((d,i)=>`
+      <div class="price-row">
+        <input type="text" class="${prefix}-duration-input" value="${esc(String(d))}" placeholder="e.g. 45 mins"/>
+        <button type="button" class="price-row-del" onclick="removeDurationRow('${prefix}',${i})" title="Remove">✕</button>
+      </div>
+    `).join('');
+    updateDurationRowDelState(prefix);
+  }
+  function readDurationRows(prefix){
+    return Array.from(document.querySelectorAll('.'+prefix+'-duration-input'))
+      .map(inp=>inp.value.trim()).filter(v=>v!=='');
+  }
+  function addDurationRow(prefix){
+    const current = Array.from(document.querySelectorAll('.'+prefix+'-duration-input')).map(i=>i.value);
+    current.push('');
+    renderDurationRows(prefix, current);
+    const inputs = document.querySelectorAll('.'+prefix+'-duration-input');
+    inputs[inputs.length-1]?.focus();
+  }
+  function removeDurationRow(prefix, idx){
+    const current = Array.from(document.querySelectorAll('.'+prefix+'-duration-input')).map(i=>i.value);
+    current.splice(idx,1);
+    if(!current.length) current.push('');
+    renderDurationRows(prefix, current);
+  }
+  function updateDurationRowDelState(prefix){
+    const rows = document.querySelectorAll('#'+prefix+'-duration-list .price-row');
+    rows.forEach(r=>{ const b=r.querySelector('.price-row-del'); if(b) b.style.visibility = rows.length>1 ? 'visible':'hidden'; });
+  }
+
   // Sub-service CRUD
   function openSubSvcForm(id=null){
     document.getElementById('subsvc-id').value=id||'';
@@ -2376,7 +2500,7 @@
     document.getElementById('subsvc-name-en').value='';
     document.getElementById('subsvc-name-hy').value='';
     document.getElementById('subsvc-name-ru').value='';
-    document.getElementById('subsvc-duration').value='';
+    renderDurationRows('subsvc', []);
     document.getElementById('subsvc-desc-en').value='';
     document.getElementById('subsvc-desc-hy').value='';
     document.getElementById('subsvc-desc-ru').value='';
@@ -2389,7 +2513,7 @@
         document.getElementById('subsvc-name-hy').value=ss.name_hy||'';
         document.getElementById('subsvc-name-ru').value=ss.name_ru||'';
         renderPriceRows('subsvc', getItemPrices(ss));
-        document.getElementById('subsvc-duration').value=ss.duration||'';
+        renderDurationRows('subsvc', getItemDurations(ss));
         document.getElementById('subsvc-desc-en').value=ss.desc_en||ss.description||'';
         document.getElementById('subsvc-desc-hy').value=ss.desc_hy||'';
         document.getElementById('subsvc-desc-ru').value=ss.desc_ru||'';
@@ -2407,7 +2531,8 @@
     const name_ru   = document.getElementById('subsvc-name-ru').value.trim();
     const prices    = readPriceRows('subsvc');
     const price     = prices[0] || '';
-    const duration  = document.getElementById('subsvc-duration').value.trim();
+    const durations = readDurationRows('subsvc');
+    const duration  = durations[0] || '';
     const desc_en   = document.getElementById('subsvc-desc-en').value.trim();
     const desc_hy   = document.getElementById('subsvc-desc-hy').value.trim();
     const desc_ru   = document.getElementById('subsvc-desc-ru').value.trim();
@@ -2416,7 +2541,7 @@
     showSync('syncing','Saving…');
     try{
       const data = {
-        name_en, name_hy, name_ru, price, prices, duration,
+        name_en, name_hy, name_ru, price, prices, duration, durations,
         desc_en, desc_hy, desc_ru,
         name: name_en || name_hy || name_ru,
         description: desc_en || desc_hy || desc_ru,
@@ -2442,7 +2567,7 @@
     document.getElementById('opt-name-en').value='';
     document.getElementById('opt-name-hy').value='';
     document.getElementById('opt-name-ru').value='';
-    document.getElementById('opt-duration').value='';
+    renderDurationRows('opt', []);
     document.getElementById('opt-desc-en').value='';
     document.getElementById('opt-desc-hy').value='';
     document.getElementById('opt-desc-ru').value='';
@@ -2455,7 +2580,7 @@
         document.getElementById('opt-name-hy').value=o.name_hy||'';
         document.getElementById('opt-name-ru').value=o.name_ru||'';
         renderPriceRows('opt', getItemPrices(o));
-        document.getElementById('opt-duration').value=o.duration||'';
+        renderDurationRows('opt', getItemDurations(o));
         document.getElementById('opt-desc-en').value=o.desc_en||o.description||'';
         document.getElementById('opt-desc-hy').value=o.desc_hy||'';
         document.getElementById('opt-desc-ru').value=o.desc_ru||'';
@@ -2471,9 +2596,10 @@
     const name_en = document.getElementById('opt-name-en').value.trim();
     const name_hy = document.getElementById('opt-name-hy').value.trim();
     const name_ru = document.getElementById('opt-name-ru').value.trim();
-    const prices   = readPriceRows('opt');
-    const price    = prices[0] || '';
-    const duration = document.getElementById('opt-duration').value.trim();
+    const prices    = readPriceRows('opt');
+    const price     = prices[0] || '';
+    const durations = readDurationRows('opt');
+    const duration  = durations[0] || '';
     const desc_en  = document.getElementById('opt-desc-en').value.trim();
     const desc_hy  = document.getElementById('opt-desc-hy').value.trim();
     const desc_ru  = document.getElementById('opt-desc-ru').value.trim();
@@ -2482,7 +2608,7 @@
     showSync('syncing','Saving…');
     try{
       const data = {
-        name_en, name_hy, name_ru, price, prices, duration,
+        name_en, name_hy, name_ru, price, prices, duration, durations,
         desc_en, desc_hy, desc_ru, subServiceId,
         name: name_en || name_hy || name_ru,
         description: desc_en || desc_hy || desc_ru,
@@ -2680,6 +2806,21 @@
     return parsePrice(priceStr);
   }
 
+  // Resolve a single inner part's duration text using its embedded tag or a name lookup
+  // (falls back to the item's first duration when nothing was specifically chosen)
+  function durationOfPart(text, tagged){
+    if(tagged) return tagged;
+    const m = text.match(/^(.+?)\s*[–-]\s*(.+)$/);
+    if(m){
+      const opt = findOptionByAnyName(m[2].trim());
+      if(opt){ return getItemDurations(opt)[0] || null; }
+      const sub = findSubServiceByAnyName(m[1].trim());
+      return sub ? (getItemDurations(sub)[0] || null) : null;
+    }
+    const sub = findSubServiceByAnyName(text);
+    return sub ? (getItemDurations(sub)[0] || null) : null;
+  }
+
   // Parse an appointment's services into structured, discount-aware line items.
   // Returns [{ svcName, parts:[{ name, price(num|null), promo(num), pct(str|null) }] }]
   function parseApptLines(services){
@@ -2813,10 +2954,12 @@
       let nameLabel = '';
       if(match){
         const parts = match[2].split(',').map(part=>{
-          const { text, price:tagged, pct, promo } = parseTags(part.trim());
+          const { text, price:tagged, pct, promo, duration:taggedDuration } = parseTags(part.trim());
           const price = priceOfPart(text, tagged);
+          const durationStr = durationOfPart(text, taggedDuration);
           const promoNum = promo?Number(promo):0;
           let extra = [];
+          if(durationStr) extra.push(`⏱ ${durationStr}`);
           if(pct) extra.push(pct);
           const displayText = localizePartText(text);
           const incomeLine = incomeMiniHtml(price, promoNum, pct||fallbackPct);
@@ -2827,7 +2970,9 @@
         const subSvc = findSubServiceByAnyName(rawSvcName);
         const price = parsePrice(subSvc?.price);
         const promoNum = getItemPromo(subSvc);
-        nameLabel = priceLabel(price, promoNum) + incomeMiniHtml(price, promoNum, fallbackPct);
+        const durationStr = getItemDurations(subSvc)[0] || null;
+        const durationLabel = durationStr ? ` <span style="color:#999">(⏱ ${esc(durationStr)})</span>` : '';
+        nameLabel = priceLabel(price, promoNum) + durationLabel + incomeMiniHtml(price, promoNum, fallbackPct);
       }
       return `<div style="margin-top:4px"><span style="font-weight:600">${esc(svcName)}</span>${nameLabel}${sub}</div>`;
     }).join('');
@@ -3066,6 +3211,7 @@
       lbl_customer:'Customer Name', lbl_date:'Date', lbl_time:'Time',
       lbl_stylist:'Stylist / Therapist', lbl_services:'Services (select all that apply)',
       lbl_notes:'Notes (optional — required if "Other" selected)',
+      lbl_adhoc_promo:'Quick Promotion (optional)',
       lbl_booking_pct:'Booking Percentage',
       btn_confirm:'✦ Confirm Appointment',
       sel_time:'— Select Time —', sel_stylist:'— Select Staff Member —',
@@ -3129,6 +3275,7 @@
       opt_picker_skip:'Skip', opt_picker_confirm:'Confirm',
       opt_picker_hint2:'Select one or more, then Confirm. Or Close to unselect this sub-service.', opt_picker_close:'✕ Close & Unselect',
       add_price:'+ Add another price', choose_price:'Select a Price', price_picker_hint:'Choose which price applies to this booking.',
+      add_duration:'+ Add another duration', choose_duration:'Select a Duration', duration_picker_hint:'Choose which duration applies to this booking.',
       choose_pct:'Select Booking Percentage', pct_picker_hint:'Choose the shop / stylist split for this service.',
       nav_promos:'🏷️ Promotions', promo_page_title:'🏷️ Promotions',
       promo_set_all:'Set promotion on all services', promo_all_sub:'This will overwrite every service\u2019s promotion.',
@@ -3160,6 +3307,7 @@
       lbl_stylist:'Սպասարկող մասնագետ',
       lbl_services:'Ընտրված ծառայություններ (նշեք բոլոր համապատասխան ծառայությունները)',
       lbl_notes:'Լրացուցիչ նշումներ (ըստ ցանկության)',
+      lbl_adhoc_promo:'Արագ ակցիա (ըստ ցանկության)',
       lbl_booking_pct:'Կանխավճարի տոկոսը (%)',
       btn_confirm:'✦ Հաստատել ամրագրումը',
       sel_time:'— Ընտրեք ժամը —',
@@ -3248,6 +3396,7 @@
       opt_picker_skip:'Բաց թողնել', opt_picker_confirm:'Հաստատել',
       opt_picker_hint2:'Ընտրեք մեկ կամ մի քանիսը, ապա հաստատեք: Կամ փակեք՝ չեղարկելու համար:', opt_picker_close:'✕ Փակել և չեղարկել',
       add_price:'+ Ավելացնել ևս մեկ գին', choose_price:'Ընտրեք գինը', price_picker_hint:'Ընտրեք, թե որ գինն է կիրառվում այս ամրագրման համար:',
+      add_duration:'+ Ավելացնել ևս մեկ տևողություն', choose_duration:'Ընտրեք տևողությունը', duration_picker_hint:'Ընտրեք, թե որ տևողությունն է կիրառվում այս ամրագրման համար:',
       choose_pct:'Ընտրեք ամրագրման տոկոսը', pct_picker_hint:'Ընտրեք սրահի / մասնագետի բաժանումն այս ծառայության համար:',
       nav_promos:'🏷️ Ակցիաներ', promo_page_title:'🏷️ Ակցիաներ',
       promo_set_all:'Սահմանել ակցիա բոլոր ծառայությունների համար', promo_all_sub:'Սա կվերագրի բոլոր ծառայությունների ակցիաները:',
@@ -3274,6 +3423,7 @@
       lbl_customer:'Имя клиента', lbl_date:'Дата', lbl_time:'Время',
       lbl_stylist:'Стилист / Терапевт', lbl_services:'Услуги (выбрать все подходящие)',
       lbl_notes:'Примечания (необязательно)',
+      lbl_adhoc_promo:'Быстрая акция (необязательно)',
       lbl_booking_pct:'Процент бронирования',
       btn_confirm:'✦ Подтвердить запись',
       sel_time:'— Выберите время —', sel_stylist:'— Выберите сотрудника —',
@@ -3337,6 +3487,7 @@
       opt_picker_skip:'Пропустить', opt_picker_confirm:'Подтвердить',
       opt_picker_hint2:'Выберите один или несколько, затем подтвердите. Или закройте, чтобы отменить.', opt_picker_close:'✕ Закрыть и отменить',
       add_price:'+ Добавить ещё цену', choose_price:'Выберите цену', price_picker_hint:'Выберите, какая цена применяется к этой записи.',
+      add_duration:'+ Добавить ещё длительность', choose_duration:'Выберите длительность', duration_picker_hint:'Выберите, какая длительность применяется к этой записи.',
       choose_pct:'Выберите процент', pct_picker_hint:'Выберите разделение салон / стилист для этой услуги.',
       nav_promos:'🏷️ Акции', promo_page_title:'🏷️ Акции',
       promo_set_all:'Установить акцию на все услуги', promo_all_sub:'Это перезапишет акции всех услуг.',
@@ -3464,12 +3615,14 @@
   window.openOptForm=openOptForm;window.closeOptModal=closeOptModal;window.saveOpt=saveOpt;window.deleteOpt=deleteOpt;
   window.toggleOptPickerItem=toggleOptPickerItem;
   window.confirmOptionPicker=confirmOptionPicker;window.skipOptionPicker=skipOptionPicker;
-  window.choosePricePick=choosePricePick;window.choosePctPick=choosePctPick;
+  window.choosePricePick=choosePricePick;window.choosePctPick=choosePctPick;window.chooseDurationPick=chooseDurationPick;
   window.openPromoModal=openPromoModal;window.openPromoAllModal=openPromoAllModal;window.closePromoModal=closePromoModal;window.savePromo=savePromo;
   window.addPriceRow=addPriceRow;window.removePriceRow=removePriceRow;
+  window.addDurationRow=addDurationRow;window.removeDurationRow=removeDurationRow;
   window.handleChipClick=handleChipClick;window.pickSubSvc=pickSubSvc;
   window.confirmSubSvcPicker=confirmSubSvcPicker;window.skipSubSvcPicker=skipSubSvcPicker;
   window.submitGateLogin=submitGateLogin;
+  window.setAdhocPromo=setAdhocPromo;
 </script>
 
 </div><!-- /#app-content -->
