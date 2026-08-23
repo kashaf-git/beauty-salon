@@ -1904,7 +1904,7 @@
   let pricePickerCtx = null;
   let durationPickerCtx = null;
   let pctPickerCtx = null;
-  const PCT_OPTIONS = ['100%','70/30','60/40','50/50','0%'];
+  const PCT_OPTIONS = ['100%','70/30','60/40','50/50','40/60','0%'];
 
   // Prices available for a leaf's deepest tier
   function getSelectionPrices(sel){
@@ -2080,7 +2080,7 @@
       const match = str.match(/^(.+?)\s*\((.+)\)$/);
       const svcName = match ? match[1].trim() : str.trim();
       const svc = servicesCache.find(s=>
-        getLocalizedName(s)===svcName || s.name_en===svcName || s.name===svcName
+        getLocalizedName(s)===svcName || s.name_en===svcName || s.name_hy===svcName || s.name_ru===svcName || s.name===svcName
       );
       if(!svc){ return; } // service no longer exists; skip
       if(!match){ c.selected[svc.id] = []; return; }
@@ -2092,14 +2092,14 @@
         const m = text.match(/^(.+?)\s*[–-]\s*(.+)$/);
         const subName = (m ? m[1] : text).trim();
         const sub = subServicesCache.find(s=>s.serviceId===svc.id && (
-          getLocalizedName(s)===subName || s.name_en===subName || s.name===subName
+          getLocalizedName(s)===subName || s.name_en===subName || s.name_hy===subName || s.name_ru===subName || s.name===subName
         ));
         if(!sub) return;
         let optionId = null;
         if(m){
           const optName = m[2].trim();
           const opt = optionsCache.find(o=>o.subServiceId===sub.id && (
-            getLocalizedName(o)===optName || o.name_en===optName || o.name===optName
+            getLocalizedName(o)===optName || o.name_en===optName || o.name_hy===optName || o.name_ru===optName || o.name===optName
           ));
           optionId = opt ? opt.id : null;
         }
@@ -2994,6 +2994,7 @@
     if(pct==='70/30') return { shop:total*0.7, stylist:total*0.3, isFree:false };
     if(pct==='60/40') return { shop:total*0.6, stylist:total*0.4, isFree:false };
     if(pct==='50/50') return { shop:total*0.5, stylist:total*0.5, isFree:false };
+    if(pct==='40/60') return { shop:total*0.4, stylist:total*0.6, isFree:false };
     if(pct==='100%')  return { shop:total,     stylist:0,         isFree:false };
     return null;
   }
@@ -3004,6 +3005,7 @@
     if(pct==='70/30') return { shop:0.7, stylist:0.3 };
     if(pct==='60/40') return { shop:0.6, stylist:0.4 };
     if(pct==='50/50') return { shop:0.5, stylist:0.5 };
+    if(pct==='40/60') return { shop:0.4, stylist:0.6 };
     if(pct==='100%')  return { shop:1,   stylist:0 };
     return null;
   }
