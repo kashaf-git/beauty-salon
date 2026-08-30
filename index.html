@@ -1295,10 +1295,16 @@
     return total || DEFAULT_DURATION_MIN;
   }
 
+  // ── FEATURE SWITCH ──────────────────────────────────────────────────
+  // Set to true to re-enable the stylist double-booking conflict check.
+  // Currently off — all stylists are treated as always free/bookable.
+  const FEATURE_STYLIST_CONFLICT_CHECK = false;
+
   // Check if a stylist has a conflicting appointment overlapping the proposed
   // booking's time window. Durations are derived from each appointment's services
   // (falling back to the default). Returns the conflicting appointment, or null.
   function getStylistConflict(stylist, date, time, services, ignoreId=null){
+    if(!FEATURE_STYLIST_CONFLICT_CHECK) return null;
     if(!stylist || stylist==='Any Available' || !date || !time) return null;
     const [hh,mm] = time.split(':').map(n=>parseInt(n,10));
     const newStart = hh*60 + (mm||0);
