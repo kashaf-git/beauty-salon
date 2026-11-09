@@ -2703,15 +2703,13 @@
     const offset=(new Date(year,month,1).getDay()+6)%7;
     const dim=new Date(year,month+1,0).getDate();
     const ts=toDateStr(today);
-    const total=Math.ceil((offset+dim)/7)*7;
     let html=`<div class="month-grid"><div class="month-days-header">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div>${d}</div>`).join('')}</div><div class="month-body">`;
-    for(let i=0;i<total;i++){
-      const dn=i-offset+1;let cls='month-cell',ds='',num='';
-      if(dn<1){cls+=' other-month';const d=new Date(year,month,dn);num=d.getDate();ds=toDateStr(d);}
-      else if(dn>dim){cls+=' other-month';const d=new Date(year,month,dn);num=d.getDate();ds=toDateStr(d);}
-      else{num=dn;ds=toDateStr(new Date(year,month,dn));if(ds===ts)cls+=' today';}
+    for(let dn=1;dn<=dim;dn++){
+      let cls='month-cell';
+      const num=dn,ds=toDateStr(new Date(year,month,dn));
+      if(ds===ts)cls+=' today';
       const da=am[ds]||[],sh=da.slice(0,3),ex=da.length-sh.length;
-      html+=`<div class="${cls}" onclick="calDayClick('${ds}')"><div class="cell-date">${num}</div>${sh.map(a=>`<div class="cell-appt">${a.stylist?esc(a.stylist):esc(a.name)}${a.stylist?`<span class="cell-appt-customer">${esc(a.name)}</span>`:''}</div>`).join('')}${ex>0?`<div class="cell-appt">+${ex} more</div>`:''}</div>`;
+      html+=`<div class="${cls}"${dn===1?` style="grid-column:${offset+1}"`:''} onclick="calDayClick('${ds}')"><div class="cell-date">${num}</div>${sh.map(a=>`<div class="cell-appt">${a.stylist?esc(a.stylist):esc(a.name)}${a.stylist?`<span class="cell-appt-customer">${esc(a.name)}</span>`:''}</div>`).join('')}${ex>0?`<div class="cell-appt">+${ex} more</div>`:''}</div>`;
     }
     html+='</div></div>';
     document.getElementById('cal-container').innerHTML=html;
